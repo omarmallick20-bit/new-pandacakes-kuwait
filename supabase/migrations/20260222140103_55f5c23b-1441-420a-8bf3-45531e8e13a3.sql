@@ -1,0 +1,1 @@
+ALTER TABLE public.qatar_reviews ADD COLUMN country_id varchar DEFAULT 'qa';

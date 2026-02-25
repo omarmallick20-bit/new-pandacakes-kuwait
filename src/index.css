@@ -1,0 +1,183 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Panda Cakes Design System - Inspired by Our Blooms 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Light mode - Tiffany Blue to White gradient */
+    --background: 180 35% 95%;
+    --foreground: 0 0% 15%;
+
+    --card: 0 0% 98%;
+    --card-foreground: 0 0% 15%;
+
+    --popover: 0 0% 98%;
+    --popover-foreground: 0 0% 15%;
+
+    --primary: 0 0% 15%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 180 25% 90%;
+    --secondary-foreground: 0 0% 15%;
+
+    --muted: 180 15% 92%;
+    --muted-foreground: 0 0% 40%;
+
+    --accent: 45 95% 65%;
+    --accent-foreground: 0 0% 15%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 180 20% 85%;
+    --input: 180 20% 90%;
+    --ring: 180 35% 70%;
+
+    /* Brand colors */
+    --tiffany-blue: 180 35% 70%;
+    --tiffany-light: 180 25% 85%;
+    --sunshine-yellow: 45 95% 65%;
+    --cream: 45 25% 95%;
+
+    /* Gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(var(--tiffany-blue)), hsl(var(--background)));
+    --gradient-card: linear-gradient(135deg, hsl(var(--card)), hsl(var(--tiffany-light)));
+
+    --radius: 1rem;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    /* Dark mode - Tiffany Blue to Black gradient */
+    --background: 0 0% 8%;
+    --foreground: 0 0% 95%;
+
+    --card: 0 0% 12%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 0 0% 12%;
+    --popover-foreground: 0 0% 95%;
+
+    --primary: 0 0% 95%;
+    --primary-foreground: 0 0% 15%;
+
+    --secondary: 180 20% 15%;
+    --secondary-foreground: 0 0% 95%;
+
+    --muted: 0 0% 18%;
+    --muted-foreground: 0 0% 65%;
+
+    --accent: 45 95% 65%;
+    --accent-foreground: 0 0% 15%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 95%;
+
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 180 35% 70%;
+
+    /* Brand colors for dark mode */
+    --tiffany-blue: 180 35% 60%;
+    --tiffany-light: 180 25% 25%;
+    --sunshine-yellow: 45 95% 65%;
+    --cream: 0 0% 15%;
+
+    /* Dark gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(var(--tiffany-blue)), hsl(var(--background)));
+    --gradient-card: linear-gradient(135deg, hsl(var(--card)), hsl(var(--tiffany-light)));
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  /* Prevent horizontal overflow on all devices */
+  html, body, #root {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  /* Ensure text wraps properly on small screens */
+  h1, h2, h3, h4, h5, h6 {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    hyphens: auto;
+  }
+}
+
+/* Hide scrollbar for date selector while keeping scroll functionality */
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Phone input styling for popup */
+.phone-input-popup {
+  @apply w-full;
+}
+
+.phone-input-popup .PhoneInputInput {
+  @apply w-full px-4 py-3 rounded-lg border-0 text-base;
+  background: rgba(255, 255, 255, 0.15);
+  color: inherit;
+}
+
+.phone-input-popup .PhoneInputInput::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.phone-input-popup .PhoneInputInput:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.phone-input-popup .PhoneInputCountry {
+  @apply px-3 py-3 rounded-l-lg;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.phone-input-popup .PhoneInputCountrySelect {
+  color: inherit;
+  background: transparent;
+}

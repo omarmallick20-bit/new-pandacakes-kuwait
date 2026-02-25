@@ -1,0 +1,24 @@
+-- Revert category image URLs to previous shortened paths
+UPDATE categories SET image_url = '/images/categories/boy.jpg' WHERE name = 'Boys Cakes';
+UPDATE categories SET image_url = '/images/categories/candles-toppers.jpg' WHERE name = 'Candles & Toppers';
+UPDATE categories SET image_url = '/images/categories/chocolatebrownie.jpg' WHERE name = 'Chocolates & Brownies';
+UPDATE categories SET image_url = '/images/categories/classic.jpg' WHERE name = 'Classic Cakes';
+UPDATE categories SET image_url = '/images/categories/comic.jpg' WHERE name = 'Comic Cakes';
+UPDATE categories SET image_url = '/images/categories/Cupcakes.jpg' WHERE name = 'Cupcakes';
+UPDATE categories SET image_url = '/images/categories/customized-cakes.jpg' WHERE name = 'Customized Cakes';
+UPDATE categories SET image_url = '/images/categories/european.jpg' WHERE name = 'European Cakes';
+UPDATE categories SET image_url = '/images/categories/family.jpg' WHERE name = 'Family Cakes';
+UPDATE categories SET image_url = '/images/categories/flower.jpg' WHERE name = 'Flower & Balloon Cakes';
+UPDATE categories SET image_url = '/images/categories/girls.jpg' WHERE name = 'Girls Cakes';
+UPDATE categories SET image_url = '/images/categories/graduation.jpg' WHERE name = 'Graduation Corner';
+UPDATE categories SET image_url = '/images/categories/islamic.jpg' WHERE name = 'Islamic Cakes';
+UPDATE categories SET image_url = '/images/categories/marble.jpg' WHERE name = 'Marble Cakes';
+UPDATE categories SET image_url = '/images/categories/movies.jpg' WHERE name = 'Movies & TV';
+UPDATE categories SET image_url = '/images/categories/photo.jpg' WHERE name = 'Photo Cakes';
+UPDATE categories SET image_url = '/images/categories/retro.jpg' WHERE name = 'Retro Cakes';
+UPDATE categories SET image_url = '/images/categories/small.jpg' WHERE name = 'Small Cakes';
+UPDATE categories SET image_url = '/images/categories/special.jpg' WHERE name = 'Special Items';
+UPDATE categories SET image_url = '/images/categories/sports.jpg' WHERE name = 'Sports Corner';
+UPDATE categories SET image_url = '/images/categories/valentine.jpg' WHERE name = 'Valentine Corner';
+UPDATE categories SET image_url = '/images/categories/wedding-corner.jpg' WHERE name = 'Wedding Corner';
+UPDATE categories SET image_url = '/images/categories/zodiac.jpg' WHERE name = 'Zodiac Sign Cakes';

@@ -1,0 +1,1 @@
+ALTER TABLE menu_items ADD COLUMN name_ar TEXT, ADD COLUMN description_ar TEXT;
