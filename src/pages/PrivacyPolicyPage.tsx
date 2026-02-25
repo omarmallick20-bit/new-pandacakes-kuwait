@@ -31,7 +31,7 @@ export default function PrivacyPolicyPage() {
                 <div className="prose prose-slate dark:prose-invert max-w-none space-y-6">
                   <section>
                     <h2 className="text-xl font-semibold text-foreground mt-8 mb-4">١. المقدمة</h2>
-                    <p>تلتزم باندا كيك بحماية خصوصية عملائنا عبر الإنترنت. توضح سياسة الخصوصية هذه كيفية جمع واستخدام ومشاركة معلوماتك الشخصية عند زيارة أو إجراء عملية شراء من موقعنا الإلكتروني www.PandaCakes.me. نحن موجودون في الدوحة، قطر.</p>
+                    <p>تلتزم باندا كيك بحماية خصوصية عملائنا عبر الإنترنت. توضح سياسة الخصوصية هذه كيفية جمع واستخدام ومشاركة معلوماتك الشخصية عند زيارة أو إجراء عملية شراء من موقعنا الإلكتروني www.PandaCakes.me. نحن موجودون في العردية الحرفية، الكويت.</p>
                   </section>
 
                   <section>
@@ -91,14 +91,14 @@ export default function PrivacyPolicyPage() {
                     <p>إذا كان لديك أي أسئلة حول سياسة الخصوصية هذه، يرجى التواصل معنا على:</p>
                     <div className="mt-4 p-4 bg-muted rounded-lg">
                       <p className="font-semibold">باندا كيك</p>
-                      <p>+974 60018005</p>
-                      <p>qa@pandacakes.me</p>
+                      <p><span dir="ltr">+965 50018008</span></p>
+                      <p>kw@pandacakes.me</p>
                     </div>
                   </section>
 
                   <section>
                     <h2 className="text-xl font-semibold text-foreground mt-8 mb-4">١٠. القانون الحاكم</h2>
-                    <p>تخضع سياسة الخصوصية هذه وتُفسر وفقاً لقوانين دولة قطر.</p>
+                    <p>تخضع سياسة الخصوصية هذه وتُفسر وفقاً لقوانين دولة الكويت.</p>
                   </section>
                 </div>
               </>
@@ -110,7 +110,7 @@ export default function PrivacyPolicyPage() {
                 <div className="prose prose-slate dark:prose-invert max-w-none space-y-6">
                   <section>
                     <h2 className="text-xl font-semibold text-foreground mt-8 mb-4">1. Introduction</h2>
-                    <p>PANDA CAKES is committed to protecting the privacy of our online customers. This Privacy Policy explains how we collect, use, and share your personal information when you visit or make a purchase from our website www.PandaCakes.me. We are located at Doha, Qatar.</p>
+                    <p>PANDA CAKES is committed to protecting the privacy of our online customers. This Privacy Policy explains how we collect, use, and share your personal information when you visit or make a purchase from our website www.PandaCakes.me. We are located at Ardiya Herafiya, Kuwait.</p>
                   </section>
 
                   <section>
@@ -170,14 +170,14 @@ export default function PrivacyPolicyPage() {
                     <p>If you have any questions about this Privacy Policy, please contact us at:</p>
                     <div className="mt-4 p-4 bg-muted rounded-lg">
                       <p className="font-semibold">PANDA CAKES</p>
-                      <p>+974 60018005</p>
-                      <p>qa@pandacakes.me</p>
+                      <p>+965 50018008</p>
+                      <p>kw@pandacakes.me</p>
                     </div>
                   </section>
 
                   <section>
                     <h2 className="text-xl font-semibold text-foreground mt-8 mb-4">10. Governing Law</h2>
-                    <p>This Privacy Policy shall be governed by and construed in accordance with the laws of The State of Qatar.</p>
+                    <p>This Privacy Policy shall be governed by and construed in accordance with the laws of The State of Kuwait.</p>
                   </section>
                 </div>
               </>

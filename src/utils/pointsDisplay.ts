@@ -1,7 +1,7 @@
 /**
  * Utility functions for displaying loyalty points/BakePoints
- * This is a Qatar-based website - all users see "BakePoints"
- * Redemption: 50 BakePoints = 1 QAR, valid for 12 months
+ * This is a Kuwait-based website - all users see "BakePoints"
+ * Redemption: 500 BakePoints = 1 KWD, valid for 12 months
  */
 
 export interface PointsInfo {
@@ -13,18 +13,18 @@ export interface PointsInfo {
 }
 
 export const getPointsLabel = (countryId?: string | null): string => {
-  // This is a Qatar-based website, so BakePoints is the default for all users
+  // This is a Kuwait-based website, so BakePoints is the default for all users
   return 'BakePoints';
 };
 
 export const getPointsRedemptionInfo = (countryId?: string | null): PointsInfo => {
-  // Default to QAR/BakePoints (this website's default for all users)
+  // Default to KWD/BakePoints (this website's default for all users)
   return {
     label: 'BakePoints',
-    rate: 50, // 50 points = 1 QAR
+    rate: 500, // 500 points = 1 KWD
     expiryMonths: 12,
-    currency: 'QAR',
-    currencySymbol: 'ر.ق'
+    currency: 'KWD',
+    currencySymbol: 'د.ك'
   };
   
   // Note: If you expand to other countries in future, add conditional logic here
@@ -45,9 +45,9 @@ export const formatPointsExpiry = (expiryDate: string | Date): string => {
 };
 
 export const getCurrencyForOrder = (countryId?: string): string => {
-  return 'QAR'; // Qatar-only website
+  return 'KWD'; // Kuwait-only website
 };
 
 export const getCurrencySymbol = (countryId?: string): string => {
-  return 'ر.ق'; // QAR symbol - Qatar-only website
+  return 'د.ك'; // KWD symbol - Kuwait-only website
 };
