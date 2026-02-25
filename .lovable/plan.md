@@ -1,112 +1,99 @@
 
 
-# Kuwait Content Update — Terms, Privacy, Refund, BakePoints, Contact
+# Kuwait Tap Payment Functions + Menu Filtering
 
-This plan replaces all Qatar-specific legal/policy content, BakePoints logic, and contact details with their Kuwait equivalents. All documents will be fully translated to Arabic with phone numbers kept in LTR format.
+## Problem Summary
+1. The existing Tap payment edge functions (`tap-create-charge`, `tap-webhook`, `tap-retry-payment`, `tap-check-status`) use `TAP_SECRET_KEY` — which is the **Qatar** key. Kuwait has its own Tap account with secrets `TAP_SECRET_KUWAIT_KEY` and `TAP_PUBLIC_KUWAIT_KEY` (visible in the screenshot). These secrets need to be added to Supabase first.
+2. The Kuwait merchant ID is `2096036` (Qatar is `27353015`).
+3. Menu items are already filtered by `country_id = COUNTRY_ID` in CategoryPage, CakeDetailPage, and GlobalSearchModal — this is working correctly.
+4. Categories table has no `country_id` column, so categories themselves cannot be filtered. Only the cakes within them are filtered.
+5. The frontend calls to Tap functions need to be switched to the `-kw` variants for this Kuwait deployment.
 
----
+## Implementation Plan
 
-## Technical Details
+### Step 1: Add Kuwait Tap Secrets to Supabase
+Two secrets need to be added:
+- `TAP_SECRET_KUWAIT_KEY` — the Kuwait Tap secret key
+- `TAP_PUBLIC_KUWAIT_KEY` — the Kuwait Tap publishable key
 
-### 1. Terms & Conditions (`src/pages/TermsPage.tsx`) — Full content replacement
+The user's screenshot confirms these exist. I will use the secrets tool to request them.
 
-**English section** (lines 236-458): Replace all content with the uploaded Kuwait T&C file. Key differences from Qatar version:
-- Company registered in "State of Kuwait", registration number 428943
-- Website: www.pandacakes.me
-- Phone: +965 50018008 (all occurrences)
-- Opening hours: 8am to 9pm Sunday to Saturday
-- Currency: QAR in section 4.1 stays as-is per the uploaded file (the file literally says "QAR" — this appears to be a typo in the source doc but we'll keep it faithful)
-- Delivery section 3.4: "Kuwait" instead of "Qatar"
-- Section 8.1: Delivery cost reference to "Barwa Village" removed — the uploaded file says "from our shop which located at Barwa Village" which seems Qatar-specific but it's in the Kuwait file, so we keep it as provided
-- Section 8.7: Phone +965 50018008
-- Section 14.2: "laws of The State of Kuwait"
-- Hyperlinks preserved: Privacy Policy (`/privacy-policy`), Refund Policy (`/refund-policy`), Tap Payments ToS
+### Step 2: Create 4 Duplicated Edge Functions (Kuwait-only)
 
-**Arabic section** (lines 27-234): Full translation of the Kuwait T&C. All phone numbers wrapped in `<span dir="ltr">+965 50018008</span>` to prevent RTL reversal. Key Arabic changes:
-- "دولة الكويت" instead of "دولة قطر"
-- Registration: ٤٢٨٩٤٣
-- Phone: +965 50018008
-- www.pandacakes.me
-- "قوانين دولة الكويت" in governing law
+Each is a copy of the Qatar original, with two changes:
+- Uses `Deno.env.get('TAP_SECRET_KUWAIT_KEY')` instead of `TAP_SECRET_KEY`
+- Uses merchant ID `2096036` instead of `27353015`
 
----
+**`supabase/functions/tap-create-charge-kw/index.ts`**
+- Exact copy of `tap-create-charge/index.ts`
+- Line 65: `TAP_SECRET_KEY` → `TAP_SECRET_KUWAIT_KEY`
+- Line 138: merchant id `27353015` → `2096036`
+- Line 115: webhook URL points to `tap-webhook-kw`
 
-### 2. Privacy Policy (`src/pages/PrivacyPolicyPage.tsx`) — Full content replacement
+**`supabase/functions/tap-webhook-kw/index.ts`**
+- Exact copy of `tap-webhook/index.ts`
+- Line 41: `TAP_SECRET_KEY` → `TAP_SECRET_KUWAIT_KEY`
+- No merchant ID in webhook (it verifies charges, doesn't create them)
 
-**English section** (lines 106-183): Replace with uploaded Kuwait privacy policy:
-- Location: "Ardiya Herafiya, Kuwait"
-- Contact: +965 50018008, kw@pandacakes.me
-- Governing law: "The State of Kuwait"
+**`supabase/functions/tap-retry-payment-kw/index.ts`**
+- Exact copy of `tap-retry-payment/index.ts`
+- Line 33: `TAP_SECRET_KEY` → `TAP_SECRET_KUWAIT_KEY`
+- Line 99: merchant id `27353015` → `2096036`
+- Line 83: webhook URL points to `tap-webhook-kw`
 
-**Arabic section** (lines 27-103): Full Arabic translation:
-- "العردية الحرفية، الكويت"
-- Phone in `<span dir="ltr">+965 50018008</span>`
-- Email: kw@pandacakes.me
-- "قوانين دولة الكويت"
+**`supabase/functions/tap-check-status-kw/index.ts`**
+- Exact copy of `tap-check-status/index.ts`
+- Line 33: `TAP_SECRET_KEY` → `TAP_SECRET_KUWAIT_KEY`
 
----
+### Step 3: Add Config.toml Entries
+Add `verify_jwt = false` for all 4 new functions:
+```toml
+[functions.tap-create-charge-kw]
+verify_jwt = false
 
-### 3. Refund Policy (`src/pages/RefundPolicyPage.tsx`) — Full content replacement
+[functions.tap-webhook-kw]
+verify_jwt = false
 
-**English section** (lines 69-112): Replace with uploaded Kuwait refund policy:
-- All phone numbers: +965 50018008 (sections 3, 4, and contact box)
+[functions.tap-check-status-kw]
+verify_jwt = false
 
-**Arabic section** (lines 27-67): Full Arabic translation:
-- All phone numbers in `<span dir="ltr">+965 50018008</span>`
+[functions.tap-retry-payment-kw]
+verify_jwt = false
+```
 
----
+### Step 4: Update Frontend to Call `-kw` Functions
+4 files reference Tap function names:
 
-### 4. BakePoints Info Modal (`src/components/BakePointsInfoModal.tsx`)
+**`src/components/CheckoutModal.tsx`** (line 821):
+- `'tap-create-charge'` → `'tap-create-charge-kw'`
 
-Update the modal content to reflect Kuwait BakePoints logic from the uploaded file:
-- Line 71: "QAR 1" → "KWD 1", "1 BakePoint" → "10 BakePoints"
-- Line 77: "Talabat, Snoonu, Rafeeq, Bleems" → "Talabat, Keeta, Deliveroo"
-- Line 100: "50 BakePoints" → "500 BakePoints", "QAR 1" → "KWD 1"
+**`src/components/PaymentModal.tsx`** (line 165):
+- `'tap-create-charge'` → `'tap-create-charge-kw'`
 
-The modal currently has no Arabic support (it's English-only). We should add language-aware rendering so Arabic users see Arabic content. Add `useTranslation` hook and conditionally render Arabic/English content, with phone numbers protected in `<span dir="ltr">`.
+**`src/components/RetryPaymentModal.tsx`** (line 59):
+- `'tap-retry-payment'` → `'tap-retry-payment-kw'`
 
----
+**`src/pages/PaymentSuccessPage.tsx`** (line 125):
+- `'tap-check-status'` → `'tap-check-status-kw'`
 
-### 5. Points Display Utility (`src/utils/pointsDisplay.ts`)
+### Step 5: Menu Item Filtering (Already Done)
+Verified that all menu item queries already filter by `country_id = COUNTRY_ID`:
+- `src/pages/CategoryPage.tsx` line 111: `.eq('country_id', COUNTRY_ID)` ✅
+- `src/pages/CakeDetailPage.tsx` line 113: `.eq('country_id', COUNTRY_ID)` ✅
+- `src/pages/CakeDetailPage.tsx` line 197: `.eq('country_id', COUNTRY_ID)` ✅
+- `src/components/GlobalSearchModal.tsx` line 69: `.eq('country_id', COUNTRY_ID)` ✅
 
-- Line 4: Comment → "Kuwait-based website"
-- Line 21-28: Update `getPointsRedemptionInfo` return:
-  - `rate: 500` (500 BakePoints = 1 KWD, per the uploaded file)
-  - `currency: 'KWD'`
-  - `currencySymbol: 'د.ك'`
-- Line 48: `getCurrencyForOrder` → `return 'KWD'`
-- Line 52: `getCurrencySymbol` → `return 'د.ك'`
+Categories don't have a `country_id` column — they are shared across countries. Only the menu items within them are filtered. If a category has zero `kw` items, the user will see an empty "Coming Soon" state, which is the correct behavior.
 
----
+### Summary
 
-### 6. Contact Page (`src/pages/ContactPage.tsx`)
+| Change | Files |
+|--------|-------|
+| Add 2 secrets | `TAP_SECRET_KUWAIT_KEY`, `TAP_PUBLIC_KUWAIT_KEY` |
+| 4 new edge functions | `tap-create-charge-kw`, `tap-webhook-kw`, `tap-retry-payment-kw`, `tap-check-status-kw` |
+| Config entries | `supabase/config.toml` (4 new entries) |
+| Frontend function calls | `CheckoutModal.tsx`, `PaymentModal.tsx`, `RetryPaymentModal.tsx`, `PaymentSuccessPage.tsx` |
+| Menu filtering | Already correct — no changes needed |
 
-- Line 13: WhatsApp URL → `https://api.whatsapp.com/send/?phone=96550018008&text&type=phone_number&app_absent=0`
-- Lines 67-74: Phone numbers → `+965 5001 8008` and `+965 5575 6675` (with clipboard values `+96550018008` and `+96555756675`)
-- Lines 87-98: Social links:
-  - TikTok → `https://www.tiktok.com/@pandacakes.kw`
-  - Instagram → `https://www.instagram.com/pandacakes.kw`
-  - Facebook → `https://www.facebook.com/PandaCakes.kw/`
-- Line 113: Map iframe → the Kuwait embed URL provided by user
-
----
-
-### 7. Translations (`src/i18n/translations.ts`)
-
-- `contact_address`: `'Ardiya Herafiya, Kuwait'` (EN), `'العردية الحرفية، الكويت'` (AR)
-- `contact_hours`: Already correct ("8:00 AM – 9:00 PM")
-
----
-
-### Summary: 7 files changed
-
-| File | Change |
-|------|--------|
-| `TermsPage.tsx` | Full Kuwait T&C content (EN + AR) |
-| `PrivacyPolicyPage.tsx` | Full Kuwait privacy policy (EN + AR) |
-| `RefundPolicyPage.tsx` | Full Kuwait refund policy (EN + AR) |
-| `BakePointsInfoModal.tsx` | Kuwait BakePoints logic + AR translation |
-| `pointsDisplay.ts` | Rate 500, KWD currency |
-| `ContactPage.tsx` | Kuwait phone/social/map |
-| `translations.ts` | Contact address string |
+**Qatar functions are completely untouched.** The `-kw` functions are independent copies with their own API keys and merchant ID.
 
