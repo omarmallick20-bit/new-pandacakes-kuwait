@@ -162,7 +162,7 @@ export function PaymentModal({
 
         console.log('Initiating Tap payment with order data, Amount:', totalAmount);
 
-        const { data, error } = await supabase.functions.invoke('tap-create-charge', {
+        const { data, error } = await supabase.functions.invoke('tap-create-charge-kw', {
           body: {
             amount: totalAmount,
             customerInfo,

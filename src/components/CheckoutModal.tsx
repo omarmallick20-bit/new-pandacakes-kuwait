@@ -818,7 +818,7 @@ export function CheckoutModal({
 
       console.log('Initiating Tap payment directly, Amount:', total);
 
-      const { data, error } = await supabase.functions.invoke('tap-create-charge', {
+      const { data, error } = await supabase.functions.invoke('tap-create-charge-kw', {
         body: {
           amount: total,
           customerInfo,

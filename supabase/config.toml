@@ -77,3 +77,15 @@ verify_jwt = false
 
 [functions.translate-menu-items]
 verify_jwt = false
+
+[functions.tap-create-charge-kw]
+verify_jwt = false
+
+[functions.tap-webhook-kw]
+verify_jwt = false
+
+[functions.tap-check-status-kw]
+verify_jwt = false
+
+[functions.tap-retry-payment-kw]
+verify_jwt = false

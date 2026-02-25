@@ -56,7 +56,7 @@ export function RetryPaymentModal({ isOpen, onClose, onSuccess, order, customerI
         onSuccess();
       } else {
         // Retry card payment via edge function
-        const { data, error } = await supabase.functions.invoke('tap-retry-payment', {
+        const { data, error } = await supabase.functions.invoke('tap-retry-payment-kw', {
           body: {
             orderId: order.id,
             amount: order.total_amount,
