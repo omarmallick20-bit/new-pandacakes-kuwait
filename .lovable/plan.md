@@ -1,48 +1,112 @@
 
 
-# Remaining Kuwait Conversion — Country ID Fix + Reviews
+# Kuwait Content Update — Terms, Privacy, Refund, BakePoints, Contact
 
-## Current State Analysis
-
-### 1. Country ID Attachment Bug (CRITICAL)
-The `auth-signup` edge function has a **mismatch** between what the frontend sends and what it reads:
-- **Frontend** (`AuthContext.tsx` line 411): sends `country_id: COUNTRY_ID` at the **top level** of the request body
-- **Edge function** (`auth-signup/index.ts` line 28): reads `userData?.country_id` — which is **NOT set** in `userData`
-- **Result**: The edge function falls back to `SERVER_COUNTRY_ID_FALLBACK` (env var or `'qa'`), meaning **every signup from this Kuwait site currently gets tagged as `qa`**
-
-The `AuthCallback.tsx` (OAuth/Google/Apple) correctly writes `country_id: COUNTRY_ID` directly to the Customers table (line 63, 79), so OAuth signups are fine. Only the **form-based signup** path through `auth-signup` edge function is broken.
-
-**Fix**: Update `auth-signup/index.ts` line 28 to also check the top-level `country_id` from the request body:
-```
-const countryId = userData?.country_id || body_country_id || SERVER_COUNTRY_ID_FALLBACK;
-```
-This requires destructuring `country_id` from the request body alongside `email`, `phone`, `userData`.
-
-This is a **backward-compatible change** — Qatar frontend sends `country_id: 'qa'` at the top level too, so both will work correctly.
-
-### 2. Kuwait Reviews (0 reviews currently)
-- The `SERPER_API_KEY` secret is configured in Supabase
-- The `fetch-and-store-reviews` edge function already supports Kuwait (Place ID `ChIJud10oHuQzz8RMLZClbrsXVc`)
-- The `ReviewsPage.tsx` already filters by `COUNTRY_ID` and uses the correct place ID for the "Write Review" button
-- Currently 60 reviews exist for `qa`, 0 for `kw`
-- **Action**: Call the edge function with `{ "country_id": "kw" }` to fetch, translate, and store Kuwait reviews
-
-### 3. No Duplicated Kuwait Tap Functions
-Confirmed: there are no `tap-kw-*` or similar duplicated functions. The existing `tap-create-charge`, `tap-webhook`, `tap-retry-payment`, and `tap-check-status` already handle multi-country dynamically. No deletion or duplication needed.
+This plan replaces all Qatar-specific legal/policy content, BakePoints logic, and contact details with their Kuwait equivalents. All documents will be fully translated to Arabic with phone numbers kept in LTR format.
 
 ---
 
-## Implementation Plan
+## Technical Details
 
-### File Change: `supabase/functions/auth-signup/index.ts`
-- Line 23: Destructure `country_id` from request body alongside `email`, `phone`, `userData`
-- Line 28: Update to `const countryId = userData?.country_id || country_id || SERVER_COUNTRY_ID_FALLBACK;`
-- This ensures the frontend's top-level `country_id: 'kw'` is used, falling back to `userData.country_id`, then env var, then `'qa'`
-- Fully backward-compatible: Qatar frontend sends the same structure
+### 1. Terms & Conditions (`src/pages/TermsPage.tsx`) — Full content replacement
 
-### Action: Fetch Kuwait Reviews
-- Call `fetch-and-store-reviews` edge function with body `{ "country_id": "kw" }`
-- This will pull reviews from Google Place ID `ChIJud10oHuQzz8RMLZClbrsXVc`, translate to Arabic, and store in `qatar_reviews` table with `country_id = 'kw'`
+**English section** (lines 236-458): Replace all content with the uploaded Kuwait T&C file. Key differences from Qatar version:
+- Company registered in "State of Kuwait", registration number 428943
+- Website: www.pandacakes.me
+- Phone: +965 50018008 (all occurrences)
+- Opening hours: 8am to 9pm Sunday to Saturday
+- Currency: QAR in section 4.1 stays as-is per the uploaded file (the file literally says "QAR" — this appears to be a typo in the source doc but we'll keep it faithful)
+- Delivery section 3.4: "Kuwait" instead of "Qatar"
+- Section 8.1: Delivery cost reference to "Barwa Village" removed — the uploaded file says "from our shop which located at Barwa Village" which seems Qatar-specific but it's in the Kuwait file, so we keep it as provided
+- Section 8.7: Phone +965 50018008
+- Section 14.2: "laws of The State of Kuwait"
+- Hyperlinks preserved: Privacy Policy (`/privacy-policy`), Refund Policy (`/refund-policy`), Tap Payments ToS
 
-### Total changes: 1 edge function file, 1 edge function call
+**Arabic section** (lines 27-234): Full translation of the Kuwait T&C. All phone numbers wrapped in `<span dir="ltr">+965 50018008</span>` to prevent RTL reversal. Key Arabic changes:
+- "دولة الكويت" instead of "دولة قطر"
+- Registration: ٤٢٨٩٤٣
+- Phone: +965 50018008
+- www.pandacakes.me
+- "قوانين دولة الكويت" in governing law
+
+---
+
+### 2. Privacy Policy (`src/pages/PrivacyPolicyPage.tsx`) — Full content replacement
+
+**English section** (lines 106-183): Replace with uploaded Kuwait privacy policy:
+- Location: "Ardiya Herafiya, Kuwait"
+- Contact: +965 50018008, kw@pandacakes.me
+- Governing law: "The State of Kuwait"
+
+**Arabic section** (lines 27-103): Full Arabic translation:
+- "العردية الحرفية، الكويت"
+- Phone in `<span dir="ltr">+965 50018008</span>`
+- Email: kw@pandacakes.me
+- "قوانين دولة الكويت"
+
+---
+
+### 3. Refund Policy (`src/pages/RefundPolicyPage.tsx`) — Full content replacement
+
+**English section** (lines 69-112): Replace with uploaded Kuwait refund policy:
+- All phone numbers: +965 50018008 (sections 3, 4, and contact box)
+
+**Arabic section** (lines 27-67): Full Arabic translation:
+- All phone numbers in `<span dir="ltr">+965 50018008</span>`
+
+---
+
+### 4. BakePoints Info Modal (`src/components/BakePointsInfoModal.tsx`)
+
+Update the modal content to reflect Kuwait BakePoints logic from the uploaded file:
+- Line 71: "QAR 1" → "KWD 1", "1 BakePoint" → "10 BakePoints"
+- Line 77: "Talabat, Snoonu, Rafeeq, Bleems" → "Talabat, Keeta, Deliveroo"
+- Line 100: "50 BakePoints" → "500 BakePoints", "QAR 1" → "KWD 1"
+
+The modal currently has no Arabic support (it's English-only). We should add language-aware rendering so Arabic users see Arabic content. Add `useTranslation` hook and conditionally render Arabic/English content, with phone numbers protected in `<span dir="ltr">`.
+
+---
+
+### 5. Points Display Utility (`src/utils/pointsDisplay.ts`)
+
+- Line 4: Comment → "Kuwait-based website"
+- Line 21-28: Update `getPointsRedemptionInfo` return:
+  - `rate: 500` (500 BakePoints = 1 KWD, per the uploaded file)
+  - `currency: 'KWD'`
+  - `currencySymbol: 'د.ك'`
+- Line 48: `getCurrencyForOrder` → `return 'KWD'`
+- Line 52: `getCurrencySymbol` → `return 'د.ك'`
+
+---
+
+### 6. Contact Page (`src/pages/ContactPage.tsx`)
+
+- Line 13: WhatsApp URL → `https://api.whatsapp.com/send/?phone=96550018008&text&type=phone_number&app_absent=0`
+- Lines 67-74: Phone numbers → `+965 5001 8008` and `+965 5575 6675` (with clipboard values `+96550018008` and `+96555756675`)
+- Lines 87-98: Social links:
+  - TikTok → `https://www.tiktok.com/@pandacakes.kw`
+  - Instagram → `https://www.instagram.com/pandacakes.kw`
+  - Facebook → `https://www.facebook.com/PandaCakes.kw/`
+- Line 113: Map iframe → the Kuwait embed URL provided by user
+
+---
+
+### 7. Translations (`src/i18n/translations.ts`)
+
+- `contact_address`: `'Ardiya Herafiya, Kuwait'` (EN), `'العردية الحرفية، الكويت'` (AR)
+- `contact_hours`: Already correct ("8:00 AM – 9:00 PM")
+
+---
+
+### Summary: 7 files changed
+
+| File | Change |
+|------|--------|
+| `TermsPage.tsx` | Full Kuwait T&C content (EN + AR) |
+| `PrivacyPolicyPage.tsx` | Full Kuwait privacy policy (EN + AR) |
+| `RefundPolicyPage.tsx` | Full Kuwait refund policy (EN + AR) |
+| `BakePointsInfoModal.tsx` | Kuwait BakePoints logic + AR translation |
+| `pointsDisplay.ts` | Rate 500, KWD currency |
+| `ContactPage.tsx` | Kuwait phone/social/map |
+| `translations.ts` | Contact address string |
 
