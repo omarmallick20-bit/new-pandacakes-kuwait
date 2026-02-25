@@ -122,7 +122,7 @@ const PaymentSuccessPage = () => {
 
       // STEP 1: Check Tap payment status FIRST (fast, ~1s)
       console.log('⚡ Checking Tap payment status first...');
-      const { data: tapData, error: tapError } = await supabase.functions.invoke('tap-check-status', {
+      const { data: tapData, error: tapError } = await supabase.functions.invoke('tap-check-status-kw', {
         body: { charge_id: tapChargeId }
       });
 
