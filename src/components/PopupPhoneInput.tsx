@@ -6,6 +6,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import { PHONE_COUNTRY_CODE } from '@/config/country';
 
 interface Country {
   id: string;
@@ -47,7 +48,7 @@ export function PopupPhoneInput({
   accentColor 
 }: PopupPhoneInputProps) {
   const [countries, setCountries] = useState<Country[]>(FALLBACK_COUNTRIES);
-  const [selectedCode, setSelectedCode] = useState('+974');
+  const [selectedCode, setSelectedCode] = useState(PHONE_COUNTRY_CODE);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [open, setOpen] = useState(false);
 

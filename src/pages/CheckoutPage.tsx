@@ -19,7 +19,7 @@ import { DeliveryZoneMap } from '@/components/DeliveryZoneMap';
 import { toast } from "sonner";
 import { UpsellModal } from "@/components/UpsellModal";
 import { PaymentModal } from "@/components/PaymentModal";
-import { COUNTRY_ID } from '@/config/country';
+import { COUNTRY_ID, COUNTRY_NAME } from '@/config/country';
 export default function CheckoutPage() {
   const {
     state,
@@ -57,7 +57,7 @@ export default function CheckoutPage() {
     building_flat: '',
     street_address: '',
     city: '',
-    country: 'Qatar',
+    country: COUNTRY_NAME,
     landmarks: '',
     latitude: null as number | null,
     longitude: null as number | null,
@@ -145,7 +145,7 @@ export default function CheckoutPage() {
         label: newAddress.label,
         street_address: fullStreetAddress,
         city: newAddress.city,
-        country: 'Qatar',
+        country: COUNTRY_NAME,
         country_id: COUNTRY_ID,
         landmarks: newAddress.landmarks,
         latitude: newAddress.latitude,
@@ -164,7 +164,7 @@ export default function CheckoutPage() {
         building_flat: '',
         street_address: '',
         city: '',
-        country: 'Qatar',
+        country: COUNTRY_NAME,
         landmarks: '',
         latitude: null,
         longitude: null,
@@ -655,7 +655,7 @@ export default function CheckoutPage() {
                 <Label htmlFor="country">Country</Label>
                 <Input 
                   id="country" 
-                  value="Qatar" 
+                  value={COUNTRY_NAME} 
                   disabled 
                   className="bg-muted"
                 />

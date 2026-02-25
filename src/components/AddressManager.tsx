@@ -556,7 +556,7 @@ export default function AddressManager() {
                 <Label htmlFor="country">Country</Label>
                 <Input
                   id="country"
-                  value="Qatar"
+                  value={COUNTRY_NAME}
                   disabled
                   className="bg-muted"
                 />
