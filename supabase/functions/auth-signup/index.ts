@@ -20,12 +20,12 @@ serve(async (req) => {
   }
 
   try {
-    const { email, phone, userData } = await req.json();
+    const { email, phone, userData, country_id } = await req.json();
 
     console.log('Creating customer profile for:', email || phone);
     console.log('User data received:', JSON.stringify(userData));
     // Use client-provided country_id (from frontend COUNTRY_ID), fall back to server env
-    const countryId = userData?.country_id || SERVER_COUNTRY_ID_FALLBACK;
+    const countryId = userData?.country_id || country_id || SERVER_COUNTRY_ID_FALLBACK;
     console.log('Using country_id:', countryId);
 
     // OPTIMIZED: Use targeted lookup instead of listUsers() which fetches ALL users
