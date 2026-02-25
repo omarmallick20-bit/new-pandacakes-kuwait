@@ -7,8 +7,14 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Multi-country currency mapping
+const COUNTRY_CURRENCY: Record<string, { code: string; decimals: number }> = {
+  qa: { code: 'QAR', decimals: 2 },
+  kw: { code: 'KWD', decimals: 3 },
+  sa: { code: 'SAR', decimals: 2 },
+};
+
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -19,29 +25,19 @@ serve(async (req) => {
 
     const { id, amount, currency, status, metadata } = webhookBody;
 
-    // Verify currency is QAR
-    if (currency !== 'QAR') {
-      console.error('Invalid currency:', currency);
-      throw new Error('Payment currency must be QAR');
-    }
-
-    // Extract session ID from metadata (minimal data now stored in Tap)
     const sessionId = metadata?.session_id;
-
     if (!sessionId) {
       console.error('Missing session_id in metadata');
       throw new Error('Invalid webhook data - missing session_id');
     }
 
-    console.log(`Processing payment for session ${sessionId}, status: ${status}, amount: ${amount} QAR`);
+    console.log(`Processing payment for session ${sessionId}, status: ${status}, amount: ${amount} ${currency}`);
 
-    // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // SECURITY: Verify the charge by re-fetching it from Tap API
-    // This prevents forged webhook payloads from creating fraudulent orders
     const tapSecretKey = Deno.env.get('TAP_SECRET_KEY')?.trim();
     if (!tapSecretKey) {
       console.error('TAP_SECRET_KEY not configured - cannot verify webhook');
@@ -64,22 +60,11 @@ serve(async (req) => {
     const verifiedCharge = await verifyResponse.json();
     console.log('Verified charge from Tap API:', { id: verifiedCharge.id, status: verifiedCharge.status, amount: verifiedCharge.amount });
 
-    // Use the VERIFIED data from Tap, not the webhook body (which could be forged)
     const verifiedStatus = verifiedCharge.status;
     const verifiedAmount = verifiedCharge.amount;
     const verifiedCurrency = verifiedCharge.currency;
 
-    if (verifiedCurrency !== 'QAR') {
-      console.error('Verified charge has invalid currency:', verifiedCurrency);
-      throw new Error('Payment currency must be QAR');
-    }
-
-    console.log(`Verified payment for session ${sessionId}, status: ${verifiedStatus}, amount: ${verifiedAmount} QAR`);
-
-
-
-
-    // Retrieve full order data from pending_checkouts table
+    // Retrieve full order data from pending_checkouts first (need countryId for currency validation)
     const { data: pendingCheckout, error: fetchError } = await supabase
       .from('pending_checkouts')
       .select('order_data')
@@ -94,26 +79,27 @@ serve(async (req) => {
     const orderData = pendingCheckout.order_data as any;
     console.log('Retrieved order data from pending_checkouts for session:', sessionId);
 
-    // Handle failed/cancelled payments - clean up pending checkout
+    // Validate currency dynamically based on order country
+    const countryId = orderData.countryId || 'qa';
+    const expectedCurrencyConfig = COUNTRY_CURRENCY[countryId] || COUNTRY_CURRENCY.qa;
+    const expectedCurrency = expectedCurrencyConfig.code;
+    const decimalFactor = Math.pow(10, expectedCurrencyConfig.decimals);
+
+    if (verifiedCurrency !== expectedCurrency) {
+      console.error(`Currency mismatch: expected ${expectedCurrency}, got ${verifiedCurrency}`);
+      throw new Error(`Payment currency must be ${expectedCurrency}`);
+    }
+
+    console.log(`Verified payment for session ${sessionId}, status: ${verifiedStatus}, amount: ${verifiedAmount} ${verifiedCurrency}`);
+
+    // Handle failed/cancelled payments
     if (verifiedStatus === 'FAILED' || verifiedStatus === 'DECLINED' || verifiedStatus === 'CANCELLED') {
       console.log(`Payment ${verifiedStatus} for session ${sessionId} - cleaning up pending checkout`);
-      
-      // Delete the pending checkout
-      await supabase
-        .from('pending_checkouts')
-        .delete()
-        .eq('session_id', sessionId);
+      await supabase.from('pending_checkouts').delete().eq('session_id', sessionId);
       
       return new Response(
-        JSON.stringify({
-          success: true,
-          sessionId,
-          status: 'no_order_created',
-          message: `Payment ${verifiedStatus} - no order was created`,
-        }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
+        JSON.stringify({ success: true, sessionId, status: 'no_order_created', message: `Payment ${verifiedStatus} - no order was created` }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -121,19 +107,12 @@ serve(async (req) => {
     if (verifiedStatus !== 'CAPTURED' && verifiedStatus !== 'AUTHORIZED') {
       console.log(`Ignoring payment with status ${verifiedStatus}`);
       return new Response(
-        JSON.stringify({
-          success: true,
-          sessionId,
-          status: 'ignored',
-          message: `Status ${verifiedStatus} does not trigger order creation`,
-        }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
+        JSON.stringify({ success: true, sessionId, status: 'ignored', message: `Status ${verifiedStatus} does not trigger order creation` }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // PAYMENT SUCCESSFUL - Check idempotency first (prevent duplicate orders)
+    // PAYMENT SUCCESSFUL - Check idempotency first
     const { data: existingOrder } = await supabase
       .from('orders')
       .select('id, order_number')
@@ -143,64 +122,55 @@ serve(async (req) => {
     if (existingOrder) {
       console.log(`Order already exists for charge ${id}: ${existingOrder.order_number} - skipping duplicate`);
       return new Response(
-        JSON.stringify({
-          success: true,
-          orderId: existingOrder.id,
-          orderNumber: existingOrder.order_number,
-          status: 'already_processed',
-        }),
+        JSON.stringify({ success: true, orderId: existingOrder.id, orderNumber: existingOrder.order_number, status: 'already_processed' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // NOW create the order
     console.log(`Payment ${verifiedStatus} - creating order for session ${sessionId}`);
     console.log(`BakePoints to redeem: ${orderData.bakePointsApplied || 0}, Voucher discount: ${orderData.voucherDiscount || 0}`);
 
-    // Round verified amount to 2 decimal places
-    const receivedAmount = Math.round(verifiedAmount * 100) / 100;
+    // Round verified amount using correct decimals for currency
+    const receivedAmount = Math.round(verifiedAmount * decimalFactor) / decimalFactor;
+    const expectedAmount = Math.round(orderData.totalAmount * decimalFactor) / decimalFactor;
+    const tolerance = 1 / decimalFactor; // 0.01 for QAR, 0.001 for KWD
 
-    // Verify amount matches
-    const expectedAmount = Math.round(orderData.totalAmount * 100) / 100;
-    if (Math.abs(expectedAmount - receivedAmount) > 0.01) {
-      console.error(`Amount mismatch: expected ${expectedAmount} QAR, received ${receivedAmount} QAR`);
+    if (Math.abs(expectedAmount - receivedAmount) > tolerance) {
+      console.error(`Amount mismatch: expected ${expectedAmount} ${verifiedCurrency}, received ${receivedAmount} ${verifiedCurrency}`);
       throw new Error('Payment amount mismatch');
     }
 
-    // Generate estimated delivery time
     const estimatedDeliveryTime = orderData.deliveryDate && orderData.deliveryTime
       ? `${orderData.deliveryDate}T${orderData.deliveryTime.split('-')[0]}:00`
       : null;
 
-    // Create the order NOW that payment is confirmed
     const { data: newOrder, error: orderError } = await supabase
       .from('orders')
       .insert({
         customer_id: orderData.customerId,
         total_amount: receivedAmount,
         delivery_fee: orderData.deliveryFee || 0,
-        status: 'pending', // All orders start as pending, staff confirms via dashboard
+        status: 'pending',
         payment_method: 'card',
         payment_status: verifiedStatus === 'CAPTURED' ? 'captured' : 'authorized',
         payment_amount: receivedAmount,
-        payment_currency: 'QAR',
+        payment_currency: verifiedCurrency,
         tap_charge_id: id,
         tap_payment_reference: webhookBody.reference?.transaction || null,
         estimated_delivery_time: estimatedDeliveryTime,
         customer_notes: orderData.customerNotes,
-        order_number: '', // Will be auto-generated by trigger
+        order_number: '',
         vat_percentage: orderData.vatPercentage || 0,
         vat_amount: orderData.vatAmount || 0,
-        country_id: orderData.countryId || 'qa',
+        country_id: countryId,
         fulfillment_type: orderData.fulfillmentType,
         delivery_address_id: orderData.fulfillmentType === 'delivery' ? orderData.deliveryAddressId : null,
         cake_details: orderData.cakeDetails,
         platform_source: 'website',
-        // Voucher and BakePoints data
         original_amount: orderData.originalAmount || orderData.totalAmount,
         voucher_id: orderData.voucherId,
         voucher_discount_amount: orderData.voucherDiscount || null,
-        bakepoints_discount_amount: orderData.bakePointsDiscount || null, // Track BakePoints discount
+        bakepoints_discount_amount: orderData.bakePointsDiscount || null,
       })
       .select()
       .single();
@@ -212,7 +182,7 @@ serve(async (req) => {
 
     console.log(`✅ Order created: ${newOrder.id}, order_number: ${newOrder.order_number}`);
 
-    // Create order items with discount info
+    // Create order items
     const orderItems = orderData.cartItems.map((item: any) => ({
       order_id: newOrder.id,
       product_id: item.productId,
@@ -226,13 +196,9 @@ serve(async (req) => {
       customizations: item.customizations || {}
     }));
 
-    const { error: itemsError } = await supabase
-      .from('order_items')
-      .insert(orderItems);
-
+    const { error: itemsError } = await supabase.from('order_items').insert(orderItems);
     if (itemsError) {
       console.error('Error creating order items:', itemsError);
-      // Don't throw - order is created, items error is not critical
     }
 
     console.log(`✅ Order items created for order ${newOrder.id}`);
@@ -240,47 +206,37 @@ serve(async (req) => {
     // Redeem BakePoints if any were applied
     if (orderData.bakePointsApplied > 0) {
       console.log(`Redeeming ${orderData.bakePointsApplied} BakePoints for order ${newOrder.id}`);
-      
       const { data: redeemResult, error: redeemError } = await supabase.rpc('redeem_bakepoints', {
         p_customer_id: orderData.customerId,
         p_points_to_redeem: orderData.bakePointsApplied,
         p_order_id: newOrder.id,
-        p_country_id: orderData.countryId || 'qa'
+        p_country_id: countryId
       });
-
       if (redeemError) {
         console.error('Error redeeming BakePoints:', redeemError);
-        // Don't throw - order is created, BakePoints error is logged but not critical
       } else {
         console.log(`✅ BakePoints redeemed successfully:`, redeemResult);
       }
     }
 
-    // Record voucher usage ONLY now that order is successfully created
+    // Record voucher usage
     if (orderData.voucherId && orderData.voucherDiscount > 0) {
       console.log(`📝 Recording voucher usage for order ${newOrder.id}, voucher: ${orderData.voucherId}`);
-      
       const { error: voucherError } = await supabase.rpc('record_voucher_usage', {
         p_voucher_id: orderData.voucherId,
         p_customer_id: orderData.customerId,
         p_order_id: newOrder.id,
         p_discount_applied: orderData.voucherDiscount
       });
-
       if (voucherError) {
         console.error('⚠️ Voucher usage recording failed:', voucherError);
-        // Don't fail the order - just log the error
       } else {
         console.log('✅ Voucher usage recorded successfully');
       }
     }
 
-    // Clean up the pending checkout now that order is created
-    await supabase
-      .from('pending_checkouts')
-      .delete()
-      .eq('session_id', sessionId);
-    
+    // Clean up pending checkout
+    await supabase.from('pending_checkouts').delete().eq('session_id', sessionId);
     console.log(`✅ Cleaned up pending checkout for session ${sessionId}`);
 
     // Log WhatsApp notification
@@ -295,9 +251,9 @@ serve(async (req) => {
         customer_id: orderData.customerId,
         phone_number: customer.whatsapp_number,
         message_type: 'payment_confirmation',
-        message_content: `✅ Payment confirmed! Your order ${newOrder.order_number} (${receivedAmount} QAR) has been successfully placed. We'll notify you when it's being prepared.`,
+        message_content: `✅ Payment confirmed! Your order ${newOrder.order_number} (${receivedAmount} ${verifiedCurrency}) has been successfully placed. We'll notify you when it's being prepared.`,
         status: 'pending',
-        country_id: customer.country_id || 'qa',
+        country_id: customer.country_id || countryId,
       });
     }
 
@@ -328,21 +284,13 @@ serve(async (req) => {
         paymentStatus: verifiedStatus === 'CAPTURED' ? 'captured' : 'authorized',
         bakePointsRedeemed: orderData.bakePointsApplied,
       }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
     console.error('Error in tap-webhook:', error);
     return new Response(
-      JSON.stringify({
-        success: false,
-        error: error.message,
-      }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
+      JSON.stringify({ success: false, error: error.message }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });

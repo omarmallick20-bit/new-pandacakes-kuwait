@@ -6,6 +6,13 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Multi-country currency & phone mapping
+const COUNTRY_CONFIG: Record<string, { currency: string; phoneCode: string; decimals: number }> = {
+  qa: { currency: 'QAR', phoneCode: '974', decimals: 2 },
+  kw: { currency: 'KWD', phoneCode: '965', decimals: 3 },
+  sa: { currency: 'SAR', phoneCode: '966', decimals: 2 },
+};
+
 interface RetryRequest {
   orderId: string;
   amount: number;
@@ -37,15 +44,14 @@ serve(async (req) => {
       );
     }
 
-    // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Fetch order to verify it exists and is retryable
+    // Fetch order to verify it exists, is retryable, and get country_id
     const { data: order, error: orderError } = await supabase
       .from('orders')
-      .select('id, order_number, payment_status, status, payment_retry_count')
+      .select('id, order_number, payment_status, status, payment_retry_count, country_id')
       .eq('id', orderId)
       .single();
 
@@ -56,7 +62,6 @@ serve(async (req) => {
       );
     }
 
-    // Check if order is in a retryable state
     if (order.status === 'completed' || order.status === 'cancelled') {
       return new Response(
         JSON.stringify({ success: false, error: 'Order cannot be retried' }),
@@ -64,26 +69,23 @@ serve(async (req) => {
       );
     }
 
-    // Round amount to 2 decimal places for QAR
-    const roundedAmount = Math.round(amount * 100) / 100;
+    // Resolve country config dynamically
+    const countryId = order.country_id || 'qa';
+    const cc = COUNTRY_CONFIG[countryId] || COUNTRY_CONFIG.qa;
+    const decimalFactor = Math.pow(10, cc.decimals);
 
-    // Generate new idempotency key for retry
+    const roundedAmount = Math.round(amount * decimalFactor) / decimalFactor;
+
     const retryCount = (order.payment_retry_count || 0) + 1;
     const idempotencyKey = `${orderId}-retry-${retryCount}-${Date.now()}`;
 
-    // Get explicit URLs for webhook and redirect
-    const supabaseFnUrl = Deno.env.get('SUPABASE_URL')!;
-    const appUrl = req.headers.get('origin') || 'https://pandacakes.qa';
-    const webhookUrl = `${supabaseFnUrl}/functions/v1/tap-webhook`;
+    const appUrl = req.headers.get('origin') || 'https://pandacakes.me';
+    const webhookUrl = `${supabaseUrl}/functions/v1/tap-webhook`;
 
-    console.log('Creating Tap charge for retry:', {
-      orderId,
-      amount: roundedAmount,
-      retryCount,
-      idempotencyKey
-    });
+    console.log('Creating Tap charge for retry:', { orderId, amount: roundedAmount, currency: cc.currency, retryCount });
 
-    // Create charge with Tap Payments
+    const phoneRegex = new RegExp(`^${cc.phoneCode}`);
+
     const tapResponse = await fetch('https://api.tap.company/v2/charges', {
       method: 'POST',
       headers: {
@@ -93,34 +95,22 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         amount: roundedAmount,
-        currency: 'QAR',
+        currency: cc.currency,
         merchant: { id: '27353015' },
         customer: {
           first_name: customerInfo.firstName,
           last_name: customerInfo.lastName || '',
           email: customerInfo.email || 'noreply@pandacakes.me',
           phone: {
-            country_code: '974',
-            number: customerInfo.phone.replace(/\D/g, '').replace(/^974/, '')
+            country_code: cc.phoneCode,
+            number: customerInfo.phone.replace(/\D/g, '').replace(phoneRegex, '')
           }
         },
-        source: {
-          id: 'src_all'
-        },
-        redirect: {
-          url: `${appUrl}/payment-success`
-        },
-        post: {
-          url: webhookUrl
-        },
-        metadata: {
-          orderId: orderId,
-          retryAttempt: retryCount.toString()
-        },
-        reference: {
-          transaction: order.order_number,
-          order: orderId
-        },
+        source: { id: 'src_all' },
+        redirect: { url: `${appUrl}/payment-success` },
+        post: { url: webhookUrl },
+        metadata: { orderId, retryAttempt: retryCount.toString() },
+        reference: { transaction: order.order_number, order: orderId },
         description: `Payment retry for order ${order.order_number}`
       })
     });
@@ -129,11 +119,7 @@ serve(async (req) => {
       const errorText = await tapResponse.text();
       console.error('Tap API error:', errorText);
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Payment service error',
-          details: errorText 
-        }),
+        JSON.stringify({ success: false, error: 'Payment service error', details: errorText }),
         { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -144,7 +130,6 @@ serve(async (req) => {
 
     console.log('Tap charge created for retry:', { chargeId, redirectUrl });
 
-    // Update order with new charge details and increment retry count
     const { error: updateError } = await supabase
       .from('orders')
       .update({
@@ -158,26 +143,17 @@ serve(async (req) => {
 
     if (updateError) {
       console.error('Failed to update order with retry details:', updateError);
-      // Don't fail the request if order update fails - charge is already created
     }
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        chargeId,
-        redirectUrl,
-        retryCount
-      }),
+      JSON.stringify({ success: true, chargeId, redirectUrl, retryCount }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
     console.error('Retry payment error:', error);
     return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error.message || 'Internal server error' 
-      }),
+      JSON.stringify({ success: false, error: error.message || 'Internal server error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

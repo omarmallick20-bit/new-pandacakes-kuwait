@@ -6,10 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const COUNTRY_CODE = 'qa'; // Qatar country code
-
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -20,7 +17,9 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { action, filters = {}, message, message_type = 'promotional' } = await req.json();
+    const { action, filters = {}, message, message_type = 'promotional', country_id } = await req.json();
+    // Use client-provided country_id, default to 'qa' for backward compatibility
+    const COUNTRY_CODE = country_id || 'qa';
 
     switch (action) {
       case 'get_loyalty_segments':
