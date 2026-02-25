@@ -315,7 +315,7 @@ export default function AddressSetupPage() {
               <Label htmlFor="city">City</Label>
               <Input
                 id="city"
-                placeholder="e.g., Doha, Al Rayyan"
+                placeholder="e.g., Kuwait City, Hawalli"
                 value={formData.city}
                 onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
                 required
@@ -341,7 +341,7 @@ export default function AddressSetupPage() {
               <Label htmlFor="country">Country</Label>
               <Input
                 id="country"
-                value="Qatar"
+                value="Kuwait"
                 disabled
                 className="bg-muted"
               />

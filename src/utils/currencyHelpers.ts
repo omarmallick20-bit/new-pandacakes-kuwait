@@ -1,85 +1,79 @@
 /**
- * Currency helper utilities for QAR (Qatari Riyal)
- * All prices in the application are in QAR
+ * Currency helper utilities
+ * Uses dynamic currency from country config
  */
 
-export const CURRENCY_CODE = 'QAR';
-export const CURRENCY_SYMBOL = 'ر.ق';
+import { DEFAULT_CURRENCY, DEFAULT_CURRENCY_SYMBOL, CURRENCY_DECIMALS } from '@/config/country';
+
+export const CURRENCY_CODE = DEFAULT_CURRENCY;
+export const CURRENCY_SYMBOL = DEFAULT_CURRENCY_SYMBOL;
+
+const DECIMAL_FACTOR = Math.pow(10, CURRENCY_DECIMALS); // 1000 for KWD, 100 for QAR
 
 /**
- * Format amount as QAR with proper formatting
- * @param amount - The amount to format
- * @param includeSymbol - Whether to include the currency symbol
- * @returns Formatted string like "150.00 QAR" or "150.00"
+ * Format amount with proper formatting
  */
-export function formatQAR(amount: number, includeSymbol: boolean = true): string {
-  const formatted = amount.toFixed(2);
+export function formatCurrency(amount: number, includeSymbol: boolean = true): string {
+  const formatted = amount.toFixed(CURRENCY_DECIMALS);
   return includeSymbol ? `${formatted} ${CURRENCY_CODE}` : formatted;
 }
 
 /**
- * Validate that an amount is a valid QAR amount (2 decimal places, positive)
- * @param amount - The amount to validate
- * @returns true if valid, false otherwise
+ * Validate that an amount is valid (correct decimal places, positive)
  */
-export function validateQARAmount(amount: number): boolean {
+export function validateAmount(amount: number): boolean {
   if (typeof amount !== 'number' || isNaN(amount) || amount < 0) {
     return false;
   }
-  
-  // Check that it has at most 2 decimal places
   const decimalPlaces = (amount.toString().split('.')[1] || '').length;
-  return decimalPlaces <= 2;
+  return decimalPlaces <= CURRENCY_DECIMALS;
 }
 
 /**
- * Round amount to 2 decimal places for QAR
- * @param amount - The amount to round
- * @returns Rounded amount
+ * Round amount to correct decimal places
  */
-export function roundToQAR(amount: number): number {
-  return Math.round(amount * 100) / 100;
+export function roundToCurrency(amount: number): number {
+  return Math.round(amount * DECIMAL_FACTOR) / DECIMAL_FACTOR;
 }
 
 /**
- * Convert QAR to fils (cents) - useful for some payment APIs
- * @param amount - The QAR amount
- * @returns Amount in fils (1 QAR = 100 fils)
+ * Convert to fils/smallest unit
  */
-export function convertToQARFils(amount: number): number {
-  return Math.round(amount * 100);
+export function convertToFils(amount: number): number {
+  return Math.round(amount * DECIMAL_FACTOR);
 }
 
 /**
- * Convert fils to QAR
- * @param fils - The amount in fils
- * @returns Amount in QAR
+ * Convert from fils/smallest unit
  */
-export function convertFromQARFils(fils: number): number {
-  return roundToQAR(fils / 100);
+export function convertFromFils(fils: number): number {
+  return roundToCurrency(fils / DECIMAL_FACTOR);
 }
 
 /**
- * Parse a string to QAR amount
- * @param value - String value to parse
- * @returns Parsed QAR amount or null if invalid
+ * Parse a string to currency amount
  */
-export function parseQARAmount(value: string): number | null {
+export function parseCurrencyAmount(value: string): number | null {
   const cleaned = value.replace(/[^0-9.]/g, '');
   const parsed = parseFloat(cleaned);
-  
-  if (isNaN(parsed) || !validateQARAmount(parsed)) {
+  if (isNaN(parsed) || !validateAmount(parsed)) {
     return null;
   }
-  
-  return roundToQAR(parsed);
+  return roundToCurrency(parsed);
 }
 
 /**
- * Format QAR amount for display in forms (without currency code)
- * @param amount - The amount to format
- * @returns Formatted string like "150.00"
+ * Format amount for display in forms (without currency code)
  */
-export function formatQARInput(amount: number): string {
-  return amount.toFixed(2);
+export function formatCurrencyInput(amount: number): string {
+  return amount.toFixed(CURRENCY_DECIMALS);
 }
+
+// Backward-compatible aliases
+export const formatQAR = formatCurrency;
+export const validateQARAmount = validateAmount;
+export const roundToQAR = roundToCurrency;
+export const convertToQARFils = convertToFils;
+export const convertFromQARFils = convertFromFils;
+export const parseQARAmount = parseCurrencyAmount;
+export const formatQARInput = formatCurrencyInput;

@@ -59,10 +59,10 @@ export const DeliveryZoneMap: React.FC<DeliveryZoneMapProps> = ({
   const [isLoadingToken, setIsLoadingToken] = useState(true);
   const [isMapReady, setIsMapReady] = useState(false);
 
-  // Default to Doha, Qatar
+  // Default to Kuwait City, Kuwait
   const defaultPosition: [number, number] = [
-    initialPosition?.lng || 51.531,
-    initialPosition?.lat || 25.2854,
+    initialPosition?.lng || 47.9783,
+    initialPosition?.lat || 29.3759,
   ];
 
   // Cleanup on unmount
@@ -178,8 +178,8 @@ export const DeliveryZoneMap: React.FC<DeliveryZoneMapProps> = ({
         }
         // Initial geocode
         await reverseGeocode(
-          initialPosition?.lat || 25.2854,
-          initialPosition?.lng || 51.531
+          initialPosition?.lat || 29.3759,
+          initialPosition?.lng || 47.9783
         );
       });
     };
@@ -266,7 +266,7 @@ export const DeliveryZoneMap: React.FC<DeliveryZoneMapProps> = ({
 
       let city = '';
       let street = '';
-      let country = 'Qatar';
+      let country = 'Kuwait';
 
       if (feature) {
         // Extract context info
@@ -290,7 +290,7 @@ export const DeliveryZoneMap: React.FC<DeliveryZoneMapProps> = ({
         latitude: lat,
         longitude: lng,
         country: country,
-        city: city || 'Doha',
+        city: city || 'Kuwait City',
         street: street,
         displayName: feature?.place_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`,
       };
@@ -303,7 +303,7 @@ export const DeliveryZoneMap: React.FC<DeliveryZoneMapProps> = ({
       const zoneTimeoutId = setTimeout(() => zoneController.abort(), MAP_TIMEOUT_MS);
 
       const { data: zoneData, error: zoneError } = await supabase.functions.invoke('detect-delivery-zone', {
-        body: { latitude: lat, longitude: lng }
+        body: { latitude: lat, longitude: lng, country_id: COUNTRY_ID }
       });
 
       clearTimeout(zoneTimeoutId);
@@ -368,7 +368,7 @@ export const DeliveryZoneMap: React.FC<DeliveryZoneMapProps> = ({
 
     try {
 const response = await fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxToken}&country=qa&language=en&limit=5`,
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxToken}&country=kw&language=en&limit=5`,
         { signal: controller.signal }
       );
 

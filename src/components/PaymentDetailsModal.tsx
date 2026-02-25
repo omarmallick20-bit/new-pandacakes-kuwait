@@ -5,6 +5,7 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { CreditCard, Banknote, CheckCircle2, XCircle, Clock, MapPin, Truck } from 'lucide-react';
 import { formatQAR } from '@/utils/currencyHelpers';
+import { DEFAULT_CURRENCY } from '@/config/country';
 import { formatOrderItemCustomizations, getSpecialInstructions } from '@/utils/orderHelpers';
 import { format } from 'date-fns';
 
@@ -216,7 +217,7 @@ export function PaymentDetailsModal({ isOpen, onClose, order }: PaymentDetailsMo
                 </div>
 
                 <div className="text-xs text-muted-foreground">
-                  Currency: {order.payment_currency || 'QAR'} (Qatari Riyal)
+                  Currency: {order.payment_currency || DEFAULT_CURRENCY}
                 </div>
               </div>
             </CardContent>

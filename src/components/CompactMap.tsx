@@ -33,7 +33,7 @@ export function CompactMap({
           />
         </div>
         <div className="mt-2 text-xs text-muted-foreground text-center">
-          Panda Cakes - Qatar
+          Panda Cakes - Kuwait
         </div>
       </CardContent>
     </Card>
