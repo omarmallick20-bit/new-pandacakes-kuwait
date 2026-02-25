@@ -41,9 +41,9 @@ export default function TermsPage() {
 
                   <section>
                     <h2 className="text-xl font-semibold text-foreground mt-8 mb-4">٢. معلومات عنا وكيفية التواصل معنا</h2>
-                    <p><strong>من نحن.</strong> نحن باندا كيك، شركة مسجلة في دولة قطر. رقم تسجيل شركتنا هو ١٨٦٩٣ (يُشار إليها فيما بعد بباندا كيك ونحن).</p>
+                    <p><strong>من نحن.</strong> نحن باندا كيك، شركة مسجلة في دولة الكويت. رقم تسجيل شركتنا هو ٤٢٨٩٤٣ (يُشار إليها فيما بعد بباندا كيك ونحن).</p>
                     <p>تدير باندا كيك موقعاً إلكترونياً للتجارة الإلكترونية على www.pandacakes.me لبيع الكيك والمخبوزات وجميع المنتجات الأخرى (المشار إليها فيما بعد بالكيك والمخبوزات) لك.</p>
-                    <p><strong>كيفية التواصل معنا.</strong> يمكنك التواصل معنا عبر الاتصال/واتساب بفريق خدمة العملاء على الرقم <span dir="ltr">+974 60018005</span>. يرجى ملاحظة أن ساعات العمل لدينا من ٨ صباحاً إلى ٩ مساءً من الأحد إلى السبت.</p>
+                    <p><strong>كيفية التواصل معنا.</strong> يمكنك التواصل معنا عبر الاتصال/واتساب بفريق خدمة العملاء على الرقم <span dir="ltr">+965 50018008</span>. يرجى ملاحظة أن ساعات العمل لدينا من ٨ صباحاً إلى ٩ مساءً من الأحد إلى السبت.</p>
                     <p><strong>كيف قد نتواصل معك.</strong> إذا كان علينا التواصل معك، سنقوم بذلك عبر الهاتف/واتساب الذي قدمته لنا في طلبك (كما هو محدد في البند ٣.١ أدناه).</p>
                     <p><strong>شروط أخرى قابلة للتطبيق.</strong> بالإضافة إلى هذه الشروط، تنطبق الشروط التالية أيضاً عليك عند استخدام موقعنا و/أو شراء الكيك والمخبوزات:</p>
                     <p>
@@ -79,13 +79,13 @@ export default function TermsPage() {
                     <p>سنخصص رقم طلب لطلبك ونبلغك به عند قبول طلبك. سيساعدنا إذا أمكنك إبلاغنا برقم الطلب عند التواصل معنا بشأن طلبك.</p>
                     
                     <h3 className="text-lg font-medium text-foreground mt-6 mb-3">٣.٤ التوصيل.</h3>
-                    <p>على الرغم من أننا مقيمون في قطر، قد لا نتمكن من توصيل الكيك إلى جميع مناطق قطر. إذا أدخلت عنوان توصيل خارج منطقة التوصيل الخاصة بنا، فلن يتم قبول طلبك. لعرض مناطق التوصيل المحددة داخل قطر، يرجى استخدام الخريطة التفاعلية في صفحة الطلب أو التواصل مع فريقنا مباشرة للمساعدة.</p>
+                    <p>على الرغم من أننا مقيمون في الكويت، قد لا نتمكن من توصيل الكيك إلى جميع مناطق الكويت. إذا أدخلت عنوان توصيل خارج منطقة التوصيل الخاصة بنا، فلن يتم قبول طلبك. لعرض مناطق التوصيل المحددة داخل الكويت، يرجى استخدام الخريطة التفاعلية في صفحة الطلب أو التواصل مع فريقنا مباشرة للمساعدة.</p>
                   </section>
 
                   <section>
                     <h2 className="text-xl font-semibold text-foreground mt-8 mb-4">٤. الأسعار والدفع</h2>
                     
-                    <p><strong>٤.١</strong> يتم الدفع مقابل الطلب عند تقديم طلبك إلينا عند الدفع. ما لم يتم الاتفاق على خلاف ذلك من قبلنا وفقاً لتقديرنا المطلق، يتم إدراج جميع الأسعار ودفعها بالريال القطري. جميع الأسعار شاملة لضريبة القيمة المضافة حيثما تكون قابلة للتطبيق. تقع على عاتقك وحدك مسؤولية مراجعة محتويات طلبك وملاءمتها وتكاليفها.</p>
+                    <p><strong>٤.١</strong> يتم الدفع مقابل الطلب عند تقديم طلبك إلينا عند الدفع. ما لم يتم الاتفاق على خلاف ذلك من قبلنا وفقاً لتقديرنا المطلق، يتم إدراج جميع الأسعار ودفعها بالدينار الكويتي. جميع الأسعار شاملة لضريبة القيمة المضافة حيثما تكون قابلة للتطبيق. تقع على عاتقك وحدك مسؤولية مراجعة محتويات طلبك وملاءمتها وتكاليفها.</p>
                     
                     <p><strong>٤.٢</strong> أسعارنا القياسية كما هو موضح على موقعنا وتخضع للتغيير وفقاً لتقديرنا المطلق. من الممكن دائماً أنه على الرغم من بذلنا قصارى جهدنا، قد تكون بعض الكيك أو المخبوزات التي نبيعها مسعرة بشكل غير صحيح. سنتحقق عادةً من الأسعار قبل قبول طلبك. إذا قبلنا وعالجنا طلبك حيث يكون خطأ التسعير واضحاً ولا لبس فيه وكان يمكن التعرف عليه بشكل معقول من قبلك كخطأ في التسعير، فقد ننهي عقد البيع معك ونلغي طلبك ونرد لك أي مبالغ دفعتها.</p>
                     
@@ -136,7 +136,7 @@ export default function TermsPage() {
                     <h2 className="text-xl font-semibold text-foreground mt-8 mb-4">٨. تقديم الكيك و/أو المخبوزات إليك</h2>
                     
                     <h3 className="text-lg font-medium text-foreground mt-6 mb-3">٨.١ تكاليف التوصيل.</h3>
-                    <p>تكلفة التوصيل ١٠ ريال قطري لمعظم المناطق، ومع ذلك قد تختلف حسب المسافة إلى عنوانك من متجرنا الموجود في قرية بروة.</p>
+                    <p>تكلفة التوصيل تختلف حسب المسافة إلى عنوانك من متجرنا الموجود في العردية الحرفية.</p>
                     
                     <h3 className="text-lg font-medium text-foreground mt-6 mb-3">٨.٢ تواريخ التوصيل.</h3>
                     <p>سيكون تاريخ توصيل الكيك و/أو المخبوزات هو التاريخ المحدد في تأكيد طلبك. سنبذل قصارى جهدنا لتلبية تاريخ ووقت التوصيل الذي تطلبه في طلبك، ومع ذلك، يعتمد ذلك أيضاً على الشروط التالية:</p>
@@ -160,7 +160,7 @@ export default function TermsPage() {
                     <p>إذا لم تقم بإعادة ترتيب التوصيل. إذا لم تستلم الكيك أو المخبوزات منا كما هو مرتب أو إذا، بعد فشل التوصيل إليك، لم تقم بإعادة ترتيب التوصيل، فسنتصل بك للحصول على مزيد من التعليمات. قد نفرض عليك تكاليف التخزين وأي تكاليف توصيل إضافية. إذا لم نتمكن، على الرغم من جهودنا المعقولة، من التواصل معك أو إعادة ترتيب التوصيل أو الاستلام، فقد ننهي العقد. في مثل هذه الحالات حيث لم يكن من الممكن، بدون خطأ منا، توصيل الطلب، لا يمكننا تقديم استرداد.</p>
                     
                     <h3 className="text-lg font-medium text-foreground mt-6 mb-3">٨.٧ إذا تأخر التوصيل.</h3>
-                    <p>نهدف إلى توصيل جميع الطلبات ضمن فترة الـ ٣ ساعات المحددة في تأكيد طلبك. ومع ذلك، في حالة عدم وصول طلبك في الوقت المحدد، يرجى التواصل مع فريق خدمة العملاء على الرقم <span dir="ltr">+974 60018005</span> مع رقم طلبك.</p>
+                    <p>نهدف إلى توصيل جميع الطلبات ضمن فترة الـ ٣ ساعات المحددة في تأكيد طلبك. ومع ذلك، في حالة عدم وصول طلبك في الوقت المحدد، يرجى التواصل مع فريق خدمة العملاء على الرقم <span dir="ltr">+965 50018008</span> مع رقم طلبك.</p>
                     
                     <h3 className="text-lg font-medium text-foreground mt-6 mb-3">٨.٨ متى تصبح مسؤولاً عن الكيك و/أو المخبوزات.</h3>
                     <p>ستكون الكيك و/أو المخبوزات في طلبك مسؤوليتك من وقت توصيلنا للكيك و/أو المخبوزات إلى العنوان الذي أعطيتنا إياه، أو استلامك لها منا.</p>
@@ -229,7 +229,7 @@ export default function TermsPage() {
                     <p>قد ننقل حقوقنا والتزاماتنا بموجب هذه الشروط إلى مؤسسة أخرى. سنبلغك دائماً كتابياً إذا حدث ذلك وسنضمن أن النقل لن يؤثر على حقوقك بموجب العقد.</p>
                     
                     <h3 className="text-lg font-medium text-foreground mt-6 mb-3">١٤.٢ القوانين التي تنطبق على هذه الشروط وأين يمكنك رفع إجراءات قانونية.</h3>
-                    <p>سنستخدم المساعي المعقولة للتوسط في أي نزاع يتعلق بطلبك، دون اللجوء إلى أطراف ثالثة في المقام الأول. ومع ذلك، إذا لم يمكن حل النزاع، يجوز لأي من الطرفين تقديم الأمر أمام المحكمة المختصة. إذا كنت مستهلكاً، فإن هذه الشروط تخضع وتُفسر وفقاً لقوانين دولة قطر.</p>
+                    <p>سنستخدم المساعي المعقولة للتوسط في أي نزاع يتعلق بطلبك، دون اللجوء إلى أطراف ثالثة في المقام الأول. ومع ذلك، إذا لم يمكن حل النزاع، يجوز لأي من الطرفين تقديم الأمر أمام المحكمة المختصة. إذا كنت مستهلكاً، فإن هذه الشروط تخضع وتُفسر وفقاً لقوانين دولة الكويت.</p>
                   </section>
                 </div>
               </>
@@ -253,9 +253,9 @@ export default function TermsPage() {
                   {/* Section 2 */}
                   <section>
                     <h2 className="text-xl font-semibold text-foreground mt-8 mb-4">2. Information about us and how to contact us</h2>
-                    <p><strong>Who we are.</strong> We are PANDA CAKES, a company registered in State of Qatar. Our company registration number is 18693, (hereafter referred to as PANDA CAKES, we, and us).</p>
+                    <p><strong>Who we are.</strong> We are PANDA CAKES, a company registered in State of Kuwait. Our company registration number is 428943, (hereafter referred to as PANDA CAKES, we, and us).</p>
                     <p>PANDA CAKES operates an e-commerce website at www.pandacakes.me to sell our cakes, baked goods, and all other goods (hereafter, our Cakes and Baked Goods) to you.</p>
-                    <p><strong>How to contact us.</strong> You can contact us by Call/WhatsApp our customer service team at +974 60018005. Please note that our opening hours are from 8am to 9pm on Sunday to Saturday.</p>
+                    <p><strong>How to contact us.</strong> You can contact us by Call/WhatsApp our customer service team at +965 50018008. Please note that our opening hours are from 8am to 9pm on Sunday to Saturday.</p>
                     <p><strong>How we may contact you.</strong> If we have to contact you, we will do so by telephone/WhatsApp you provided to us in your Order (as defined in clause 3.1 below).</p>
                     <p><strong>Other applicable terms.</strong> In addition to these Terms, the following terms also apply to you when using our site and/or purchasing our Cakes and Baked Goods:</p>
                     <p>
@@ -292,14 +292,14 @@ export default function TermsPage() {
                     <p>We will assign an Order number to your Order and tell you what it is when we accept your Order. It will help us if you can tell us the Order number whenever you contact us about your Order.</p>
                     
                     <h3 className="text-lg font-medium text-foreground mt-6 mb-3">3.4 Delivery.</h3>
-                    <p>Even though we are based in Qatar, we may not be able to deliver our cakes to entire areas of Qatar. If you insert a delivery address outside of our delivery area, your Order will not be accepted. To view our specific delivery zones within Qatar, please use the interactive map on our order page or contact our team directly for assistance.</p>
+                    <p>Even though we are based in Kuwait, we may not be able to deliver our cakes to entire areas of Kuwait. If you insert a delivery address outside of our delivery area, your Order will not be accepted. To view our specific delivery zones within Kuwait, please use the interactive map on our order page or contact our team directly for assistance.</p>
                   </section>
 
                   {/* Section 4 */}
                   <section>
                     <h2 className="text-xl font-semibold text-foreground mt-8 mb-4">4. Prices and Payment</h2>
                     
-                    <p><strong>4.1</strong> Payment for the Order shall be taken when you submit your Order to us at the checkout. Unless otherwise agreed by us, at our sole discretion, all prices shall be listed and payable in QAR. All prices are inclusive of VAT where VAT is applicable. It is your sole responsibility to review the contents of your Order, their suitability, and their costs.</p>
+                    <p><strong>4.1</strong> Payment for the Order shall be taken when you submit your Order to us at the checkout. Unless otherwise agreed by us, at our sole discretion, all prices shall be listed and payable in KWD. All prices are inclusive of VAT where VAT is applicable. It is your sole responsibility to review the contents of your Order, their suitability, and their costs.</p>
                     
                     <p><strong>4.2</strong> Our standard prices are as shown on our site and subject to change at our sole discretion. It is always possible that, despite our best efforts, some of the Cakes or Baked Goods we sell may be incorrectly priced. We will normally check prices before accepting your Order. If we accept and process your Order where a pricing error is obvious and unmistakable and could reasonably have been recognised by you as a mispricing, we may end our sale contract with you, cancel your Order and refund you any sums you have paid.</p>
                     
@@ -354,7 +354,7 @@ export default function TermsPage() {
                     <h2 className="text-xl font-semibold text-foreground mt-8 mb-4">8. Providing the Cakes and/or Baked Goods to you</h2>
                     
                     <h3 className="text-lg font-medium text-foreground mt-6 mb-3">8.1 Delivery costs.</h3>
-                    <p>The delivery costs 10QAR for most of the areas, however it may varies depending on the distance to your address from our shop which located at Barwa Village.</p>
+                    <p>The delivery costs may vary depending on the distance to your address from our shop located at Ardiya Herafiya.</p>
                     
                     <h3 className="text-lg font-medium text-foreground mt-6 mb-3">8.2 Delivery dates.</h3>
                     <p>The delivery date for your Cakes and/or Baked Goods shall be the date specified in your Order Confirmation. We shall try our best to meet the delivery date and delivery time slot that you request in your Order, however, this is also dependent on the following terms:</p>
@@ -378,7 +378,7 @@ export default function TermsPage() {
                     <p>If you do not re-arrange delivery. If you do not collect the Cakes or Baked Goods from us as arranged or if, after a failed delivery to you, you do not re-arrange delivery, then we will contact you for further instructions. We may charge you for storage costs and any further delivery costs. If, despite our reasonable efforts, we are unable to contact you or re-arrange delivery or collection we may end the contract. In such cases where, through no fault of ours, it has not been possible to deliver the Order, we are unable to offer a refund.</p>
                     
                     <h3 className="text-lg font-medium text-foreground mt-6 mb-3">8.7 If your delivery is late.</h3>
-                    <p>We aim to deliver all Orders within the specified 3-hour time slot in your Order Confirmation. However, in the event that your Order does not arrive on time, please contact our Customer Service Team at +974 60018005 with your Order number.</p>
+                    <p>We aim to deliver all Orders within the specified 3-hour time slot in your Order Confirmation. However, in the event that your Order does not arrive on time, please contact our Customer Service Team at +965 50018008 with your Order number.</p>
                     
                     <h3 className="text-lg font-medium text-foreground mt-6 mb-3">8.8 When you become responsible for the Cakes and/or Baked Goods.</h3>
                     <p>The Cakes and/or Baked Goods in your Order will be your responsibility from the time we deliver the Cakes and/or Baked Goods to the address you gave us, or you collect it from us.</p>
@@ -451,7 +451,7 @@ export default function TermsPage() {
                     <p>We may transfer our rights and obligations under these Terms to another organisation. We will always tell you in writing if this happens and we will ensure that the transfer will not affect your rights under the contract.</p>
                     
                     <h3 className="text-lg font-medium text-foreground mt-6 mb-3">14.2 Which laws apply to these Terms and where you may bring legal proceedings.</h3>
-                    <p>We will use reasonable endeavors to mediate any dispute concerning your Order, without recourse to third parties in the first instance. However, if the dispute cannot be resolved, either party may bring the matter before the competent court. If you are a consumer, these terms are governed by in accordance with the laws of The State of Qatar.</p>
+                    <p>We will use reasonable endeavors to mediate any dispute concerning your Order, without recourse to third parties in the first instance. However, if the dispute cannot be resolved, either party may bring the matter before the competent court. If you are a consumer, these terms are governed by in accordance with the laws of The State of Kuwait.</p>
                   </section>
                 </div>
               </>

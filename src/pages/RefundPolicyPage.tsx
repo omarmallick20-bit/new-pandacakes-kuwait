@@ -51,18 +51,18 @@ export default function RefundPolicyPage() {
                   <section>
                     <h2 className="text-xl font-semibold text-foreground mt-8 mb-4">٣. الإرجاع والاسترداد بعد توصيل الكيك و/أو المخبوزات إليك</h2>
                     <p>بمجرد توصيل طلبك إليك، يكون العقد قد اكتمل. نظراً لأن منتجاتنا هي سلع قابلة للتلف، فلا يحق لك إرجاع طلبك إلينا، ولسنا ملزمين بتقديم استرداد لك.</p>
-                    <p className="mt-4">ومع ذلك، إذا واجهت أي مشاكل مع الكيك والمخبوزات لدينا، ندعوك لإبلاغنا بذلك. إذا كان لديك شكوى بخصوص طلبك، يجب الإبلاغ عنها على الرقم <span dir="ltr">+974 60018005</span> في أقرب وقت ممكن عملياً، ومن الأفضل خلال ٢٤ ساعة. أي شكوى تُستلم بعد أكثر من ٢٤ ساعة من توصيل طلبك لن يتم النظر فيها. لسنا ملزمين، ولكن قد نقدم وفقاً لتقديرنا استرداداً جزئياً أو كاملاً أو خصماً على مشترياتك القادمة معنا.</p>
+                    <p className="mt-4">ومع ذلك، إذا واجهت أي مشاكل مع الكيك والمخبوزات لدينا، ندعوك لإبلاغنا بذلك. إذا كان لديك شكوى بخصوص طلبك، يجب الإبلاغ عنها على الرقم <span dir="ltr">+965 50018008</span> في أقرب وقت ممكن عملياً، ومن الأفضل خلال ٢٤ ساعة. أي شكوى تُستلم بعد أكثر من ٢٤ ساعة من توصيل طلبك لن يتم النظر فيها. لسنا ملزمين، ولكن قد نقدم وفقاً لتقديرنا استرداداً جزئياً أو كاملاً أو خصماً على مشترياتك القادمة معنا.</p>
                     <p className="mt-4">يرجى ملاحظة أنه إذا كانت شكواك تتعلق بالطعم أو قوام الكيك، أو تتعلق بمسألة نظافة مزعومة، يجب إبلاغنا في أقرب وقت ممكن، والحفاظ على الكيك، ومنحنا الفرصة لاستلامها للتحقيق. لا يمكننا تقديم استرداد أو تعويض حيث لا تُمنح لنا الفرصة لتقييم مزايا الشكاوى المتعلقة بالطعم أو القوام أو النظافة من خلال فحص الكيك.</p>
                   </section>
 
                   <section>
                     <h2 className="text-xl font-semibold text-foreground mt-8 mb-4">٤. كيفية إنهاء عقدك معنا قبل التوصيل</h2>
-                    <p>وفقاً لاستيفاء الشروط في القسم ١ من هذه السياسة، يمكنك إرسال طلب لإلغاء طلبك معنا عبر الاتصال/واتساب على الرقم <strong><span dir="ltr">+974 60018005</span></strong>.</p>
+                    <p>وفقاً لاستيفاء الشروط في القسم ١ من هذه السياسة، يمكنك إرسال طلب لإلغاء طلبك معنا عبر الاتصال/واتساب على الرقم <strong><span dir="ltr">+965 50018008</span></strong>.</p>
                   </section>
 
                   <section className="mt-8 p-4 bg-muted rounded-lg">
                     <p className="font-semibold">تحتاج للإلغاء أو لديك أسئلة؟</p>
-                    <p className="mt-2">تواصل معنا على: <strong><span dir="ltr">+974 60018005</span></strong></p>
+                    <p className="mt-2">تواصل معنا على: <strong><span dir="ltr">+965 50018008</span></strong></p>
                   </section>
                 </div>
               </>
@@ -94,18 +94,18 @@ export default function RefundPolicyPage() {
                   <section>
                     <h2 className="text-xl font-semibold text-foreground mt-8 mb-4">3. Returns and refunds after the Cake and/or Baked Good has been delivered to you</h2>
                     <p>Once your Order has been delivered to you, the contract has been completed. Since our products are perishable goods, you are not entitled to return your Order to us, and we are not obliged to offer you a refund.</p>
-                    <p className="mt-4">However, if you experience any issues with our Cakes and Baked Goods, we invite you to bring this to our attention. If you have a complaint in relation to your Order, that complaint must be reported to +974 60018005 as soon as practically possible, and ideally within 24 hours. Any complaint received more than 24 hours after delivery of your Order will not be considered by us. We are not obliged to, but may at our discretion, offer you a partial refund, a full refund, or a discount off your next purchase with us.</p>
+                    <p className="mt-4">However, if you experience any issues with our Cakes and Baked Goods, we invite you to bring this to our attention. If you have a complaint in relation to your Order, that complaint must be reported to +965 50018008 as soon as practically possible, and ideally within 24 hours. Any complaint received more than 24 hours after delivery of your Order will not be considered by us. We are not obliged to, but may at our discretion, offer you a partial refund, a full refund, or a discount off your next purchase with us.</p>
                     <p className="mt-4">Please note that if your complaint relates to the taste, texture of the cake, or relates to an alleged hygiene matter, you must let us know as soon as possible, preserve the cake, and give us the opportunity to collect it, to allow us to investigate. We are unable to offer refunds or compensation where we are not given the opportunity to assess the merits of complaints relating to taste, texture or hygiene by inspecting the cake.</p>
                   </section>
 
                   <section>
                     <h2 className="text-xl font-semibold text-foreground mt-8 mb-4">4. How to end your contract with us before delivery</h2>
-                    <p>Subject to satisfying the conditions in Section 1 of this Policy, you may send a request to cancel your Order with us by call/WhatsApp at <strong>+974 60018005</strong>.</p>
+                    <p>Subject to satisfying the conditions in Section 1 of this Policy, you may send a request to cancel your Order with us by call/WhatsApp at <strong>+965 50018008</strong>.</p>
                   </section>
 
                   <section className="mt-8 p-4 bg-muted rounded-lg">
                     <p className="font-semibold">Need to cancel or have questions?</p>
-                    <p className="mt-2">Contact us at: <strong>+974 60018005</strong></p>
+                    <p className="mt-2">Contact us at: <strong>+965 50018008</strong></p>
                   </section>
                 </div>
               </>

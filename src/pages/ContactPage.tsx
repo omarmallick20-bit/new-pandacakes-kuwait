@@ -10,7 +10,7 @@ export default function ContactPage() {
   const { t } = useTranslation();
 
   const handleWhatsApp = () => {
-    window.open("https://api.whatsapp.com/send/?phone=97460018005&text&type=phone_number&app_absent=0", "_blank");
+    window.open("https://api.whatsapp.com/send/?phone=96550018008&text&type=phone_number&app_absent=0", "_blank");
   };
   const copyToClipboard = async (text: string) => {
     try {
@@ -64,12 +64,12 @@ export default function ContactPage() {
                 <CardDescription>{t('contact_call_desc')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
-                <button onClick={() => copyToClipboard("+97460018005")} className="flex items-center justify-center gap-2 w-full p-2 rounded-md hover:bg-muted transition-colors text-foreground">
-                  <span className="font-medium">+974 60018005</span>
+                <button onClick={() => copyToClipboard("+96550018008")} className="flex items-center justify-center gap-2 w-full p-2 rounded-md hover:bg-muted transition-colors text-foreground">
+                  <span className="font-medium" dir="ltr">+965 5001 8008</span>
                   <Copy className="w-4 h-4" />
                 </button>
-                <button onClick={() => copyToClipboard("+97460019344")} className="flex items-center justify-center gap-2 w-full p-2 rounded-md hover:bg-muted transition-colors text-foreground">
-                  <span className="font-medium">+974 60019344</span>
+                <button onClick={() => copyToClipboard("+96555756675")} className="flex items-center justify-center gap-2 w-full p-2 rounded-md hover:bg-muted transition-colors text-foreground">
+                  <span className="font-medium" dir="ltr">+965 5575 6675</span>
                   <Copy className="w-4 h-4" />
                 </button>
               </CardContent>
@@ -84,15 +84,15 @@ export default function ContactPage() {
                 <CardDescription>{t('contact_follow_desc')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
-                <Button variant="outline" onClick={() => window.open("https://www.tiktok.com/@pandacakes.qa", "_blank")} className="w-full flex items-center gap-2">
+                <Button variant="outline" onClick={() => window.open("https://www.tiktok.com/@pandacakes.kw", "_blank")} className="w-full flex items-center gap-2">
                   <img src={tiktokLogo} alt="TikTok" className="w-4 h-4" />
                   TikTok
                 </Button>
-                <Button variant="outline" onClick={() => window.open("https://www.instagram.com/pandacakes.qa/#", "_blank")} className="w-full flex items-center gap-2">
+                <Button variant="outline" onClick={() => window.open("https://www.instagram.com/pandacakes.kw", "_blank")} className="w-full flex items-center gap-2">
                   <Instagram className="w-4 h-4" />
                   Instagram
                 </Button>
-                <Button variant="outline" onClick={() => window.open("https://www.facebook.com/PandaCakes.qa/", "_blank")} className="w-full flex items-center gap-2">
+                <Button variant="outline" onClick={() => window.open("https://www.facebook.com/PandaCakes.kw/", "_blank")} className="w-full flex items-center gap-2">
                   <Facebook className="w-4 h-4" />
                   Facebook
                 </Button>
@@ -110,7 +110,7 @@ export default function ContactPage() {
             </CardHeader>
             <CardContent>
               <div className="aspect-video rounded-lg overflow-hidden shadow-lg">
-                <iframe src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d28878.39581486397!2d51.574197!3d25.209984!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3e45cfd07986c83d%3A0xf63a0d6de5f4d17a!2sPANDA%20CAKES!5e0!3m2!1sen!2sqa!4v1758026332523!5m2!1sen!2sqa" className="w-full h-full border-0" allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade" title="PANDA CAKES Location" />
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3479.6194374260135!2d47.90644827552532!3d29.293500275310365!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3fcf907ba074ddb9%3A0x575decba9542b630!2sPANDA%20CAKES!5e0!3m2!1sen!2sqa!4v1771672383039!5m2!1sen!2sqa" className="w-full h-full border-0" allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade" title="PANDA CAKES Location" />
               </div>
             </CardContent>
           </Card>
