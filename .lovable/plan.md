@@ -1,68 +1,48 @@
 
 
-# Kuwait Conversion — Remaining Items
+# Remaining Kuwait Conversion — Country ID Fix + Reviews
 
-After reviewing the entire codebase, here is what has already been done and what still needs to be implemented.
+## Current State Analysis
 
-## Already Done (No Changes Needed)
-- `.env` → `VITE_COUNTRY_ID=kw`
-- `src/config/country.ts` → fallback to `'kw'`, KWD config with 3 decimals
-- `src/utils/currencyHelpers.ts` → dynamic currency, KWD 3-decimal support, backward aliases
-- `src/utils/timeSlots.ts` → `Asia/Kuwait` timezone, `getCurrentLocalTime` with alias
-- `src/utils/discountHelpers.ts` → dynamic `DEFAULT_CURRENCY`
-- `src/i18n/translations.ts` → Kuwait strings
-- `src/components/AddressMapPicker.tsx` → Kuwait City center
-- `src/components/DeliveryZoneMap.tsx` → Kuwait City center, passes `country_id`
-- `src/components/CompactMap.tsx` → "Panda Cakes - Kuwait"
-- `src/pages/AddressSetupPage.tsx` → `value="Kuwait"`
-- `src/components/PaymentDetailsModal.tsx` → dynamic currency
-- `index.html` → Kuwait title, OG tags, GTM removed
-- `src/components/DateSelector.tsx` → Kuwait timezone
-- `src/components/AuthCallback.tsx` → uses `COUNTRY_ID` for country_id
-- `src/contexts/AuthContext.tsx` → sends `COUNTRY_ID` in signup
-- All edge functions → multi-country support (auth-signup, detect-delivery-zone, tap-create-charge, tap-webhook, tap-retry-payment, birthday-voucher-automation, voucher-manager, customer-segmentation)
-- `supabase/config.toml` → `verify_jwt = false` restored
-- Reviews page → already filters by `COUNTRY_ID` and uses correct place ID for "Write Review" button
-- No Kuwait-specific duplicated tap functions exist (they were already cleaned up or never created)
+### 1. Country ID Attachment Bug (CRITICAL)
+The `auth-signup` edge function has a **mismatch** between what the frontend sends and what it reads:
+- **Frontend** (`AuthContext.tsx` line 411): sends `country_id: COUNTRY_ID` at the **top level** of the request body
+- **Edge function** (`auth-signup/index.ts` line 28): reads `userData?.country_id` — which is **NOT set** in `userData`
+- **Result**: The edge function falls back to `SERVER_COUNTRY_ID_FALLBACK` (env var or `'qa'`), meaning **every signup from this Kuwait site currently gets tagged as `qa`**
 
-## Still Needs Implementation
+The `AuthCallback.tsx` (OAuth/Google/Apple) correctly writes `country_id: COUNTRY_ID` directly to the Customers table (line 63, 79), so OAuth signups are fine. Only the **form-based signup** path through `auth-signup` edge function is broken.
 
-### 1. Phone Number Default: `+974` → `+965` (2 files)
-**`src/components/PhoneNumberInput.tsx` (line 50)**
-- `useState<string>('+974')` → `useState<string>(PHONE_COUNTRY_CODE)`
-- Import `PHONE_COUNTRY_CODE` from `@/config/country`
+**Fix**: Update `auth-signup/index.ts` line 28 to also check the top-level `country_id` from the request body:
+```
+const countryId = userData?.country_id || body_country_id || SERVER_COUNTRY_ID_FALLBACK;
+```
+This requires destructuring `country_id` from the request body alongside `email`, `phone`, `userData`.
 
-**`src/components/PopupPhoneInput.tsx` (line 50)**
-- `useState('+974')` → `useState(PHONE_COUNTRY_CODE)`
-- Import `PHONE_COUNTRY_CODE` from `@/config/country`
+This is a **backward-compatible change** — Qatar frontend sends `country_id: 'qa'` at the top level too, so both will work correctly.
 
-### 2. Hardcoded `"Qatar"` in address forms (2 files, 5 locations)
-**`src/pages/CheckoutPage.tsx`**
-- Line 60: `country: 'Qatar'` → `country: COUNTRY_NAME`
-- Line 148: `country: 'Qatar'` → `country: COUNTRY_NAME`
-- Line 167: `country: 'Qatar'` → `country: COUNTRY_NAME`
-- Line 658: `value="Qatar"` → `value={COUNTRY_NAME}`
-- Import `COUNTRY_NAME` from `@/config/country`
+### 2. Kuwait Reviews (0 reviews currently)
+- The `SERPER_API_KEY` secret is configured in Supabase
+- The `fetch-and-store-reviews` edge function already supports Kuwait (Place ID `ChIJud10oHuQzz8RMLZClbrsXVc`)
+- The `ReviewsPage.tsx` already filters by `COUNTRY_ID` and uses the correct place ID for the "Write Review" button
+- Currently 60 reviews exist for `qa`, 0 for `kw`
+- **Action**: Call the edge function with `{ "country_id": "kw" }` to fetch, translate, and store Kuwait reviews
 
-**`src/components/CheckoutModal.tsx` (line 1171)**
-- `value="Qatar"` → `value={COUNTRY_NAME}` (already imports `COUNTRY_NAME`)
+### 3. No Duplicated Kuwait Tap Functions
+Confirmed: there are no `tap-kw-*` or similar duplicated functions. The existing `tap-create-charge`, `tap-webhook`, `tap-retry-payment`, and `tap-check-status` already handle multi-country dynamically. No deletion or duplication needed.
 
-**`src/components/AddressManager.tsx` (line 559)**
-- `value="Qatar"` → `value={COUNTRY_NAME}` (already imports `COUNTRY_NAME` or add import)
+---
 
-### 3. DataContext: site_config query not filtered by country (1 file)
-**`src/contexts/DataContext.tsx`**
-- Line 81-82: Default `currency_code: 'QAR'` → `currency_code: DEFAULT_CURRENCY` and `currency_symbol: DEFAULT_CURRENCY_SYMBOL`
-- Line 265: Add `.eq('country_code', COUNTRY_ID)` to the `site_config` query so it fetches the Kuwait row
-- Import `COUNTRY_ID, DEFAULT_CURRENCY, DEFAULT_CURRENCY_SYMBOL` from `@/config/country`
+## Implementation Plan
 
-### 4. Fetch Kuwait Reviews (one-time action)
-Call the `fetch-and-store-reviews` edge function with `{ "country_id": "kw" }` to pull Google reviews for the Kuwait store (Place ID: `ChIJud10oHuQzz8RMLZClbrsXVc`), translate them to Arabic, and store them permanently. Currently the `qatar_reviews` table has 0 rows with `country_id = 'kw'`.
+### File Change: `supabase/functions/auth-signup/index.ts`
+- Line 23: Destructure `country_id` from request body alongside `email`, `phone`, `userData`
+- Line 28: Update to `const countryId = userData?.country_id || country_id || SERVER_COUNTRY_ID_FALLBACK;`
+- This ensures the frontend's top-level `country_id: 'kw'` is used, falling back to `userData.country_id`, then env var, then `'qa'`
+- Fully backward-compatible: Qatar frontend sends the same structure
 
-### Summary
-- **5 files** need code changes (PhoneNumberInput, PopupPhoneInput, CheckoutPage, CheckoutModal, AddressManager, DataContext)
-- **1 edge function call** needed to fetch Kuwait reviews
-- No edge function code changes needed
-- No database changes needed
-- No duplicated Kuwait tap functions to delete (none exist)
+### Action: Fetch Kuwait Reviews
+- Call `fetch-and-store-reviews` edge function with body `{ "country_id": "kw" }`
+- This will pull reviews from Google Place ID `ChIJud10oHuQzz8RMLZClbrsXVc`, translate to Arabic, and store in `qatar_reviews` table with `country_id = 'kw'`
+
+### Total changes: 1 edge function file, 1 edge function call
 
