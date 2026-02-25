@@ -7,6 +7,7 @@ import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from '@/integrations/supabase/client';
 import { retryWithBackoff } from '@/utils/retryWithBackoff';
+import { PHONE_COUNTRY_CODE } from '@/config/country';
 
 interface Country {
   id: string;
@@ -47,7 +48,7 @@ export const PhoneNumberInput = ({
   placeholder = "55555555"
 }: PhoneNumberInputProps) => {
   const [countries, setCountries] = useState<Country[]>([]);
-  const [selectedCountryCode, setSelectedCountryCode] = useState<string>('+974');
+  const [selectedCountryCode, setSelectedCountryCode] = useState<string>(PHONE_COUNTRY_CODE);
   const [phoneNumber, setPhoneNumber] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);

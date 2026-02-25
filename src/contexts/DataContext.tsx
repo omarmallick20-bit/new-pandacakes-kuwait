@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { supabase } from '@/integrations/supabase/client';
 import { getCachedCategories, setCachedCategories } from '@/utils/categoryCache';
 import { withTimeoutAutoAbort } from '@/utils/withTimeoutAbort';
-import { COUNTRY_ID } from '@/config/country';
+import { COUNTRY_ID, DEFAULT_CURRENCY, DEFAULT_CURRENCY_SYMBOL } from '@/config/country';
 
 interface Category {
   id: string;
@@ -78,8 +78,8 @@ const DEFAULT_SITE_CONFIG: SiteConfig = {
   id: 'default',
   vat_enabled: false,
   vat_percentage: 0,
-  currency_code: 'QAR',
-  currency_symbol: 'QAR'
+  currency_code: DEFAULT_CURRENCY,
+  currency_symbol: DEFAULT_CURRENCY_SYMBOL
 };
 
 export function DataProvider({ children }: { children: ReactNode }) {
@@ -263,6 +263,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
             .from('site_config')
             .select('id, vat_enabled, vat_percentage, currency_code, currency_symbol')
             .eq('is_active', true)
+            .eq('country_code', COUNTRY_ID)
             .limit(1)
             .abortSignal(signal)
             .maybeSingle();

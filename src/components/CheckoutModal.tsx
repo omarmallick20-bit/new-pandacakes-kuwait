@@ -1168,7 +1168,7 @@ export function CheckoutModal({
                   </div>
                   <div>
                     <Label htmlFor="country" className="text-[10px] sm:text-sm">{t('checkout_country')}</Label>
-                    <Input id="country" value="Qatar" disabled className="bg-muted text-xs sm:text-sm h-8 sm:h-10 mt-1" />
+                    <Input id="country" value={COUNTRY_NAME} disabled className="bg-muted text-xs sm:text-sm h-8 sm:h-10 mt-1" />
                   </div>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2">
