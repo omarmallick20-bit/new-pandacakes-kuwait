@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { DEFAULT_CURRENCY } from '@/config/country';
 import { formatOrderItemCustomizations } from '@/utils/orderHelpers';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSearchParams } from 'react-router-dom';
@@ -527,13 +528,11 @@ export default function ProfilePage() {
                             <p className="text-foreground font-semibold text-2xl text-tiffany">
                               {customerProfile.loyalty_points} Points
                             </p>
-                            {customerProfile?.country_id === 'qa' && (
-                              <div className="text-xs text-muted-foreground space-y-1 mt-2">
-                                <p className="font-medium">• 50 BakePoints = 1 QAR discount</p>
-                                <p className="font-medium">• Valid for 12 months from earning</p>
-                                <p className="font-medium">• Redeem at checkout</p>
-                              </div>
-                            )}
+                            <div className="text-xs text-muted-foreground space-y-1 mt-2">
+                              <p className="font-medium">• 500 BakePoints = 1 {DEFAULT_CURRENCY} discount</p>
+                              <p className="font-medium">• Valid for 12 months from earning</p>
+                              <p className="font-medium">• Redeem at checkout</p>
+                            </div>
                           </div>
                         )}
 

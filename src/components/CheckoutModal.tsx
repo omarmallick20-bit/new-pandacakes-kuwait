@@ -635,7 +635,7 @@ export function CheckoutModal({
     const pointsToRedeem = maxRedeemablePoints;
     setAppliedBakePoints(pointsToRedeem);
     const discountAmount = calculateDiscount(pointsToRedeem);
-    toast.success(language === 'ar' ? `سيتم تطبيق ${toArabicNumerals(String(pointsToRedeem))} نقطة BakePoints! ستوفر ${toArabicNumerals(discountAmount.toFixed(2))} ر.ق` : `${pointsToRedeem} BakePoints will be applied! You'll save QAR ${discountAmount.toFixed(2)}`);
+    toast.success(language === 'ar' ? `سيتم تطبيق ${toArabicNumerals(String(pointsToRedeem))} نقطة BakePoints! ستوفر ${toArabicNumerals(discountAmount.toFixed(2))} ${currencyLabel}` : `${pointsToRedeem} BakePoints will be applied! You'll save ${currencyLabel} ${discountAmount.toFixed(2)}`);
   };
 
   const handleRemoveBakePoints = () => {
@@ -1322,7 +1322,7 @@ export function CheckoutModal({
                             <span className="text-sm font-medium text-green-600">
                               {voucher.discount_percentage 
                                 ? `${language === 'ar' ? toArabicNumerals(String(voucher.discount_percentage)) : voucher.discount_percentage}${language === 'ar' ? '٪ خصم' : '% off'}` 
-                                : `${language === 'ar' ? toArabicNumerals(String(voucher.discount_amount)) + ' ر.ق خصم' : 'QAR ' + voucher.discount_amount + ' off'}`}
+                                : `${language === 'ar' ? toArabicNumerals(String(voucher.discount_amount)) + ' ' + currencyLabel + ' خصم' : currencyLabel + ' ' + voucher.discount_amount + ' off'}`}
                             </span>
                           </div>
                           {((language === 'ar' && (voucher as any).description_ar) || voucher.description_en) && (

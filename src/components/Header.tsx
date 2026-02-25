@@ -136,7 +136,7 @@ export function Header() {
           <Link to="/" className="flex items-center space-x-2">
             <img src="/logo.png" alt="Panda Cakes Logo" className="h-7 w-7 rounded-lg" />
             <span className="font-bold text-xs md:text-lg font-display text-foreground whitespace-nowrap">
-              {t('brand_name')} 🇶🇦
+              {t('brand_name')} 🇰🇼
             </span>
           </Link>
         </div>

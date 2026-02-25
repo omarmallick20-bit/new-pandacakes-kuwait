@@ -57,7 +57,7 @@ const CakeCard = React.memo(({
   discountsMap
 }: CakeCardProps & { discountsMap: Map<string, any> }) => {
   const navigate = useNavigate();
-  const { language } = useTranslation();
+  const { language, currencyLabel } = useTranslation();
   const enrichedCake = applyItemDiscount(cake, discountsMap);
   const discountInfo = calculateDiscount(enrichedCake);
   
@@ -83,15 +83,15 @@ const CakeCard = React.memo(({
           {discountInfo.hasDiscount ? (
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground line-through">
-                {cake.price.toFixed(0)} {language === 'ar' ? 'ر.ق' : 'QAR'}
+                {cake.price.toFixed(0)} {currencyLabel}
               </span>
               <span className="text-xl font-bold text-destructive">
-                {discountInfo.discountedPrice.toFixed(1)} {language === 'ar' ? 'ر.ق' : 'QAR'}
+                {discountInfo.discountedPrice.toFixed(1)} {currencyLabel}
               </span>
             </div>
           ) : (
             <span className="text-xl font-bold text-tiffany">
-              {language === 'ar' ? 'ر.ق' : 'QAR'} {cake.price.toFixed(2)}
+              {currencyLabel} {cake.price.toFixed(2)}
             </span>
           )}
           {cake.preparation_time && <div className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -108,7 +108,7 @@ CakeCard.displayName = 'CakeCard';
 export default function OrderPage() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const { t, translateCategory, language } = useTranslation();
+  const { t, translateCategory, language, currencyLabel } = useTranslation();
 
   // Fetch active item discounts from item_discounts table
   const { discountsMap, isLoading: discountsLoading } = useItemDiscounts();
@@ -281,16 +281,16 @@ export default function OrderPage() {
                               {discountInfo.hasDiscount ? (
                                 <div className="flex items-center gap-1.5">
                                   <span className="text-[10px] text-muted-foreground line-through">
-                                    {cake.price.toFixed(0)} {language === 'ar' ? 'ر.ق' : 'QAR'}
+                                    {cake.price.toFixed(0)} {currencyLabel}
                                   </span>
                                   <span className="text-xs font-semibold text-destructive">
-                                    {discountInfo.discountedPrice.toFixed(1)} {language === 'ar' ? 'ر.ق' : 'QAR'}
+                                    {discountInfo.discountedPrice.toFixed(1)} {currencyLabel}
                                   </span>
                                 </div>
                               ) : (
                                 <div className="inline-flex items-center px-2 py-0.5 border border-tiffany rounded-full">
                                   <span className="text-xs font-semibold text-tiffany">
-                                    {language === 'ar' ? 'ر.ق' : 'QAR'} {cake.price.toFixed(0)}
+                                    {currencyLabel} {cake.price.toFixed(0)}
                                   </span>
                                 </div>
                               )}

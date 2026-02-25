@@ -42,7 +42,7 @@ interface GlobalSearchModalProps {
 
 export function GlobalSearchModal({ open, onOpenChange }: GlobalSearchModalProps) {
   const navigate = useNavigate();
-  const { t, translateCategory, language, toArabicNumerals } = useTranslation();
+  const { t, translateCategory, language, toArabicNumerals, currencyLabel } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResults>({
     cakes: [],
@@ -260,16 +260,16 @@ export function GlobalSearchModal({ open, onOpenChange }: GlobalSearchModalProps
                           {discountInfo.hasDiscount ? (
                             <div className="flex items-center gap-1.5">
                               <span className="text-[10px] text-muted-foreground line-through">
-                                {toArabicNumerals(cake.price.toFixed(0))} {language === 'ar' ? 'ر.ق' : 'QAR'}
+                                {toArabicNumerals(cake.price.toFixed(0))} {currencyLabel}
                               </span>
                               <span className="text-xs font-semibold text-destructive">
-                                {toArabicNumerals(discountInfo.discountedPrice.toFixed(1))} {language === 'ar' ? 'ر.ق' : 'QAR'}
+                                {toArabicNumerals(discountInfo.discountedPrice.toFixed(1))} {currencyLabel}
                               </span>
                             </div>
                           ) : (
                             <div className="inline-flex items-center px-2 py-0.5 border border-tiffany rounded-full">
                               <span className="text-xs font-semibold text-tiffany">
-                                {language === 'ar' ? 'ر.ق' : 'QAR'} {toArabicNumerals(cake.price.toFixed(0))}
+                                {currencyLabel} {toArabicNumerals(cake.price.toFixed(0))}
                               </span>
                             </div>
                           )}
