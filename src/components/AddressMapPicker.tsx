@@ -41,8 +41,8 @@ export default function AddressMapPicker({
   const [isLoadingToken, setIsLoadingToken] = useState(true);
   const searchTimeoutRef = useRef<NodeJS.Timeout>();
 
-  // Default to Doha, Qatar [lng, lat] for Mapbox
-  const defaultCenter: [number, number] = [51.5310, 25.2854];
+  // Default to Kuwait City, Kuwait [lng, lat] for Mapbox
+  const defaultCenter: [number, number] = [47.9783, 29.3759];
 
   // Fetch Mapbox token from site_config
   useEffect(() => {
@@ -128,8 +128,8 @@ export default function AddressMapPicker({
       map.current.on('load', () => {
         // Initial reverse geocode
         reverseGeocode(
-          initialPosition?.lat || 25.2854,
-          initialPosition?.lng || 51.531
+          initialPosition?.lat || 29.3759,
+          initialPosition?.lng || 47.9783
         );
         setIsMapReady(true);
       });
@@ -158,7 +158,7 @@ export default function AddressMapPicker({
       const feature = data.features?.[0];
 
       let street = '';
-      let city = 'Doha';
+      let city = 'Kuwait City';
 
       if (feature) {
         // Extract street from feature
@@ -204,7 +204,7 @@ export default function AddressMapPicker({
     try {
       // Search with Mapbox Geocoding API
       const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxToken}&country=qa&language=en&limit=5`
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxToken}&country=kw&language=en&limit=5`
       );
 
       if (!response.ok) {
@@ -343,7 +343,7 @@ export default function AddressMapPicker({
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
               type="text"
-              placeholder="Search for a location in Qatar..."
+              placeholder="Search for a location in Kuwait..."
               value={searchQuery}
               onChange={(e) => handleSearchInput(e.target.value)}
               className="pl-9"

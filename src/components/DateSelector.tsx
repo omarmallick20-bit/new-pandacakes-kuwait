@@ -22,7 +22,7 @@ interface DateSelectorProps {
   blockedSlots?: BlockedSlot[];
 }
 
-const DOHA_TIMEZONE = 'Asia/Qatar';
+const KUWAIT_TIMEZONE = 'Asia/Kuwait';
 
 export const DateSelector: React.FC<DateSelectorProps> = ({
   selectedDate,
@@ -39,9 +39,9 @@ export const DateSelector: React.FC<DateSelectorProps> = ({
   // Check if selected date is beyond the 5 quick-select options (calendar selection)
   const isCalendarDateSelected = selectedDate && !dateOptions.some(opt => isSameDay(opt.date, selectedDate));
 
-  // Get today in Doha timezone for calendar min date
-  const dohaToday = toZonedTime(new Date(), DOHA_TIMEZONE);
-  dohaToday.setHours(0, 0, 0, 0);
+  // Get today in local timezone for calendar min date
+  const localToday = toZonedTime(new Date(), KUWAIT_TIMEZONE);
+  localToday.setHours(0, 0, 0, 0);
 
   return (
     <div className={cn("w-full overflow-hidden", className)}>
@@ -147,7 +147,7 @@ export const DateSelector: React.FC<DateSelectorProps> = ({
                 }}
                 disabled={(date) => {
                   // Disable past dates
-                  return date < dohaToday;
+                  return date < localToday;
                 }}
                 initialFocus
                 className="pointer-events-auto"

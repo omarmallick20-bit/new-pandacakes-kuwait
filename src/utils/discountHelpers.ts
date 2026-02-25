@@ -2,6 +2,8 @@
  * Discount calculation utilities for product pricing
  */
 
+import { DEFAULT_CURRENCY } from '@/config/country';
+
 export interface DiscountInfo {
   hasDiscount: boolean;
   originalPrice: number;
@@ -35,12 +37,10 @@ export function calculateDiscount(item: DiscountableItem): DiscountInfo {
 
   const now = new Date();
   
-  // Check if discount is within valid date range
   const isWithinDateRange = 
     (!discount_valid_from || new Date(discount_valid_from) <= now) &&
     (!discount_valid_until || new Date(discount_valid_until) >= now);
 
-  // No discount if outside date range or no discount values set
   if (!isWithinDateRange || (!discount_percentage && !discount_amount)) {
     return {
       hasDiscount: false,
@@ -54,7 +54,6 @@ export function calculateDiscount(item: DiscountableItem): DiscountInfo {
 
   let discountedPrice = price;
   
-  // Apply percentage discount first, then fixed amount
   if (discount_percentage && discount_percentage > 0) {
     discountedPrice = price * (1 - discount_percentage / 100);
   } else if (discount_amount && discount_amount > 0) {
@@ -66,7 +65,7 @@ export function calculateDiscount(item: DiscountableItem): DiscountInfo {
   return {
     hasDiscount,
     originalPrice: price,
-    discountedPrice: Math.round(discountedPrice * 10) / 10, // Round to 1 decimal
+    discountedPrice: Math.round(discountedPrice * 10) / 10,
     discountPercentage: hasDiscount ? discount_percentage || null : null,
     discountAmount: hasDiscount ? discount_amount || null : null,
     showBadge: hasDiscount && show_discount_badge
@@ -76,6 +75,6 @@ export function calculateDiscount(item: DiscountableItem): DiscountInfo {
 /**
  * Format price for display
  */
-export function formatPrice(price: number, currency: string = 'QAR'): string {
+export function formatPrice(price: number, currency: string = DEFAULT_CURRENCY): string {
   return `${currency} ${price.toFixed(price % 1 === 0 ? 0 : 1)}`;
 }
