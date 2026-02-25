@@ -1,5 +1,6 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import translations, { TranslationKey } from '@/i18n/translations';
+import { DEFAULT_CURRENCY, DEFAULT_CURRENCY_SYMBOL } from '@/config/country';
 
 const categoryTranslations: Record<string, string> = {
   "Valentine Corner": "ركن الفالنتاين",
@@ -193,7 +194,7 @@ export function useTranslation() {
     return monthAbbrev;
   };
 
-  const currencyLabel = language === 'ar' ? 'ر.ق' : 'QAR';
+  const currencyLabel = language === 'ar' ? DEFAULT_CURRENCY_SYMBOL : DEFAULT_CURRENCY;
 
   return { t, language, toggleLanguage, translateCategory, translateDay, translateMonth, toArabicNumerals, translateVariant, translatePrepTime, currencyLabel };
 }

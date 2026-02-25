@@ -77,7 +77,7 @@ export function ProfileModal({
     loadMore,
     refetch
   } = useOrders(10);
-  const { t } = useTranslation();
+  const { t, currencyLabel } = useTranslation();
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [showBakePointsInfo, setShowBakePointsInfo] = useState(false);
   const [selectedOrderForPaymentDetails, setSelectedOrderForPaymentDetails] = useState<any>(null);
@@ -560,7 +560,7 @@ export function ProfileModal({
                               </button>
                             </div>
                             <p className="text-2xl font-bold text-primary">{customerProfile.loyalty_points}</p>
-                            {customerProfile?.country_id === 'qa' && <p className="text-xs text-muted-foreground mt-1">50 BakePoints = 1 QAR</p>}
+                            <p className="text-xs text-muted-foreground mt-1">500 BakePoints = 1 {currencyLabel}</p>
                           </div>}
 
                         <Button onClick={() => setIsEditing(true)} variant="outline" className="w-full">

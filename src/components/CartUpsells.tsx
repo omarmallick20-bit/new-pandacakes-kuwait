@@ -25,7 +25,7 @@ interface CartUpsellsProps {
 
 export function CartUpsells({ cartItems }: CartUpsellsProps) {
   const { dispatch } = useAppContext();
-  const { language } = useTranslation();
+  const { language, currencyLabel } = useTranslation();
   const [addedUpsells, setAddedUpsells] = useState<Set<string>>(new Set());
   const [upsellProducts, setUpsellProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -190,7 +190,7 @@ export function CartUpsells({ cartItems }: CartUpsellsProps) {
                 <div className="p-2">
                   <p className="text-xs font-medium line-clamp-1">{product.name}</p>
                   <p className="text-xs text-primary font-semibold">
-                    {product.price} {language === 'ar' ? 'ر.ق' : 'QAR'}
+                    {product.price} {currencyLabel}
                   </p>
                   <Button
                     size="sm"

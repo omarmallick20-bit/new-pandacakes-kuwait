@@ -19,7 +19,7 @@ import { DeliveryZoneMap } from '@/components/DeliveryZoneMap';
 import { toast } from "sonner";
 import { UpsellModal } from "@/components/UpsellModal";
 import { PaymentModal } from "@/components/PaymentModal";
-import { COUNTRY_ID, COUNTRY_NAME } from '@/config/country';
+import { COUNTRY_ID, COUNTRY_NAME, DEFAULT_CURRENCY } from '@/config/country';
 export default function CheckoutPage() {
   const {
     state,
@@ -513,7 +513,7 @@ export default function CheckoutPage() {
                         </p>}
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">{item.price * item.quantity} QAR</p>
+                      <p className="font-medium">{item.price * item.quantity} {DEFAULT_CURRENCY}</p>
                     </div>
                   </div>)}
 
@@ -523,24 +523,24 @@ export default function CheckoutPage() {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span>Subtotal</span>
-                    <span>{subtotal} QAR</span>
+                    <span>{subtotal} {DEFAULT_CURRENCY}</span>
                   </div>
                   
                   {fulfillmentType === 'delivery' && <div className="flex justify-between">
                       <span>Delivery Fee</span>
-                      <span>{deliveryFee} QAR</span>
+                      <span>{deliveryFee} {DEFAULT_CURRENCY}</span>
                     </div>}
                   
                   <Separator />
                   
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total</span>
-                    <span>{total} QAR</span>
+                    <span>{total} {DEFAULT_CURRENCY}</span>
                   </div>
                 </div>
 
                 <Button className="w-full" variant="hero" size="lg" onClick={handleCompleteOrder}>
-                  Complete Order - {total.toFixed(2)} QAR
+                  Complete Order - {total.toFixed(2)} {DEFAULT_CURRENCY}
                 </Button>
 
                 
