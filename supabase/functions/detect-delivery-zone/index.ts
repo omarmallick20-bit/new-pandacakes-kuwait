@@ -6,6 +6,13 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Country bounding boxes for fallback detection
+const COUNTRY_BOUNDS: Record<string, { latMin: number; latMax: number; lngMin: number; lngMax: number; label: string }> = {
+  qa: { latMin: 24.4, latMax: 26.3, lngMin: 50.5, lngMax: 51.7, label: 'Qatar' },
+  kw: { latMin: 28.5, latMax: 30.1, lngMin: 46.5, lngMax: 48.5, label: 'Kuwait' },
+  sa: { latMin: 16.0, latMax: 32.2, lngMin: 34.5, lngMax: 55.7, label: 'Saudi Arabia' },
+};
+
 // Point-in-polygon algorithm using ray casting
 function pointInPolygon(point: [number, number], polygon: number[][][]): boolean {
   const [lng, lat] = point;
@@ -26,13 +33,13 @@ function pointInPolygon(point: [number, number], polygon: number[][][]): boolean
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { latitude, longitude } = await req.json();
+    const { latitude, longitude, country_id } = await req.json();
+    const countryId = country_id || 'qa';
 
     if (!latitude || !longitude) {
       return new Response(
@@ -41,19 +48,18 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Detecting delivery zone for coordinates: ${latitude}, ${longitude}`);
+    console.log(`Detecting delivery zone for coordinates: ${latitude}, ${longitude}, country: ${countryId}`);
 
-    // Create Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Fetch all active delivery zones
+    // Fetch all active delivery zones for the given country
     const { data: zones, error } = await supabase
       .from('delivery_zones')
       .select('*')
       .eq('is_active', true)
-      .eq('country_id', 'qa');
+      .eq('country_id', countryId);
 
     if (error) {
       console.error('Error fetching zones:', error);
@@ -72,7 +78,6 @@ serve(async (req) => {
           if (pointInPolygon([longitude, latitude], coordinates)) {
             console.log(`Point found in zone: ${zone.zone_name}`);
             
-            // Check if zone is non-serviceable (is_active = false)
             if (zone.is_active === false) {
               return new Response(
                 JSON.stringify({
@@ -86,7 +91,6 @@ serve(async (req) => {
               );
             }
             
-            // Serviceable zone found
             return new Response(
               JSON.stringify({
                 zone_id: zone.id,
@@ -105,28 +109,31 @@ serve(async (req) => {
       }
     }
 
-    // No specific zone found - check if in Qatar bounds (fallback)
-    const isInQatarBounds = (
-      latitude >= 24.4 && latitude <= 26.3 && // Qatar latitude range
-      longitude >= 50.5 && longitude <= 51.7   // Qatar longitude range
-    );
-
-    if (isInQatarBounds) {
-      console.log('Point in Qatar but outside defined delivery zones - NOT serviceable');
-      return new Response(
-        JSON.stringify({
-          zone_id: null,
-          zone_name: 'Outside delivery zones',
-          delivery_fee: null,
-          delivery_time_minutes: null,
-          is_serviceable: false
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    // No specific zone found - check if in country bounds (fallback)
+    const bounds = COUNTRY_BOUNDS[countryId];
+    if (bounds) {
+      const isInBounds = (
+        latitude >= bounds.latMin && latitude <= bounds.latMax &&
+        longitude >= bounds.lngMin && longitude <= bounds.lngMax
       );
+
+      if (isInBounds) {
+        console.log(`Point in ${bounds.label} but outside defined delivery zones - NOT serviceable`);
+        return new Response(
+          JSON.stringify({
+            zone_id: null,
+            zone_name: 'Outside delivery zones',
+            delivery_fee: null,
+            delivery_time_minutes: null,
+            is_serviceable: false
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
-    // No zone found - location is outside Qatar
-    console.log('Point is outside Qatar delivery area');
+    // No zone found - location is outside country
+    console.log('Point is outside delivery area');
     return new Response(
       JSON.stringify({
         zone_id: null,

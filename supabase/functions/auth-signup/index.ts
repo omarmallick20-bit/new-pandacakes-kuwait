@@ -9,8 +9,8 @@ const corsHeaders = {
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-// Server-side country enforcement: always use this, ignore client-provided country_id
-const SERVER_COUNTRY_ID = Deno.env.get('COUNTRY_ID') || 'qa';
+// Country ID: prefer client-provided value, fall back to env var, then 'qa'
+const SERVER_COUNTRY_ID_FALLBACK = Deno.env.get('COUNTRY_ID') || 'qa';
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -24,7 +24,9 @@ serve(async (req) => {
 
     console.log('Creating customer profile for:', email || phone);
     console.log('User data received:', JSON.stringify(userData));
-    console.log('Server country_id enforced:', SERVER_COUNTRY_ID);
+    // Use client-provided country_id (from frontend COUNTRY_ID), fall back to server env
+    const countryId = userData?.country_id || SERVER_COUNTRY_ID_FALLBACK;
+    console.log('Using country_id:', countryId);
 
     // OPTIMIZED: Use targeted lookup instead of listUsers() which fetches ALL users
     let user = null;
@@ -109,8 +111,8 @@ serve(async (req) => {
           birthdate: userData.birthdate || existingCustomer.birthdate,
           loyalty_points: existingCustomer.loyalty_points || 0,
           loyalty_code: existingCustomer.loyalty_code,
-          preferred_country: SERVER_COUNTRY_ID,
-          country_id: SERVER_COUNTRY_ID,
+          preferred_country: countryId,
+          country_id: countryId,
           phone_verified: true,
           created_via_dashboard: false,
           email: isRealEmail ? email : (existingCustomer.email || null),
@@ -154,8 +156,8 @@ serve(async (req) => {
         last_name: userData.last_name,
         whatsapp_number: userData.whatsapp_number || phone || null,
         birthdate: userData.birthdate,
-        preferred_country: SERVER_COUNTRY_ID,
-        country_id: SERVER_COUNTRY_ID,
+        preferred_country: countryId,
+        country_id: countryId,
         phone_verified: true,
         email: isRealEmail ? email : null
       });

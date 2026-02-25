@@ -7,6 +7,13 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Multi-country currency & phone mapping
+const COUNTRY_CONFIG: Record<string, { currency: string; phoneCode: string; decimals: number }> = {
+  qa: { currency: 'QAR', phoneCode: '974', decimals: 2 },
+  kw: { currency: 'KWD', phoneCode: '965', decimals: 3 },
+  sa: { currency: 'SAR', phoneCode: '966', decimals: 2 },
+};
+
 interface OrderItemData {
   productId: string;
   productName: string;
@@ -31,7 +38,6 @@ interface OrderData {
   totalAmount: number;
   countryId: string;
   cakeDetails: any;
-  // Voucher and BakePoints data
   originalAmount?: number;
   voucherId?: string | null;
   voucherDiscount?: number;
@@ -51,7 +57,6 @@ interface ChargeRequest {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -63,35 +68,30 @@ serve(async (req) => {
       throw new Error('Payment gateway not configured');
     }
 
-
-
-
     const { amount, customerInfo, orderData }: ChargeRequest = await req.json();
 
-    // Generate a unique session ID for this payment attempt (not an order ID!)
+    // Resolve country config
+    const countryId = orderData.countryId || 'qa';
+    const cc = COUNTRY_CONFIG[countryId] || COUNTRY_CONFIG.qa;
+    const decimalFactor = Math.pow(10, cc.decimals);
+
     const sessionId = crypto.randomUUID();
+    console.log('Creating Tap charge for session:', sessionId, 'Amount:', amount, cc.currency);
 
-    console.log('Creating Tap charge for session:', sessionId, 'Amount:', amount, 'QAR');
-
-    // Validate amount (QAR with 2 decimal places)
     if (!amount || amount <= 0) {
       throw new Error('Invalid amount');
     }
-
     if (!orderData || !orderData.customerId) {
       throw new Error('Order data is required');
     }
 
-    // Round to 2 decimal places for QAR
-    const qarAmount = Math.round(amount * 100) / 100;
+    // Round to correct decimal places for the currency
+    const roundedAmount = Math.round(amount * decimalFactor) / decimalFactor;
 
-    // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
-    // Store full order data in pending_checkouts table (expires in 30 mins)
-    // This avoids Tap metadata length limit of 1000 chars
     const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
     
     const { error: storeError } = await supabaseClient
@@ -111,26 +111,21 @@ serve(async (req) => {
     console.log('BakePoints to redeem:', orderData.bakePointsApplied || 0);
     console.log('Voucher discount:', orderData.voucherDiscount || 0);
 
-    // Get app URL for redirect (user goes back to frontend after payment)
-    const appUrl = req.headers.get('origin') || 'https://pandacakes.qa';
-
-    // Webhook URL for Tap to call after payment
+    const appUrl = req.headers.get('origin') || 'https://pandacakes.me';
     const webhookUrl = `${supabaseUrl}/functions/v1/tap-webhook`;
 
     console.log('Webhook URL:', webhookUrl);
     console.log('Redirect URL:', `${appUrl}/payment-success`);
 
-    // Store MINIMAL data in Tap metadata (must be under 1000 chars total)
-    // The webhook will retrieve full order data from pending_checkouts using session_id
     const minimalMetadata = {
       session_id: sessionId,
       customer_id: orderData.customerId,
       total: orderData.totalAmount
     };
 
-    // Create charge via Tap Payments API
-    // IMPORTANT: We do NOT create an order in the database here!
-    // The order will only be created by tap-webhook after successful payment
+    // Strip phone country code prefix
+    const phoneRegex = new RegExp(`^${cc.phoneCode}`);
+
     const tapResponse = await fetch('https://api.tap.company/v2/charges', {
       method: 'POST',
       headers: {
@@ -138,8 +133,8 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        amount: qarAmount,
-        currency: 'QAR',
+        amount: roundedAmount,
+        currency: cc.currency,
         merchant: { id: '27353015' },
         customer_initiated: true,
         threeDSecure: true,
@@ -148,26 +143,20 @@ serve(async (req) => {
         metadata: minimalMetadata,
         reference: {
           transaction: `txn_${sessionId.slice(0, 8)}`,
-          order: sessionId, // Using session ID as temporary reference
+          order: sessionId,
         },
         customer: {
           first_name: customerInfo.firstName,
           last_name: customerInfo.lastName || '',
           email: customerInfo.email || 'noreply@pandacakes.me',
           phone: {
-            country_code: '974',
-            number: customerInfo.phone.replace(/[^0-9]/g, '').replace(/^974/, ''),
+            country_code: cc.phoneCode,
+            number: customerInfo.phone.replace(/[^0-9]/g, '').replace(phoneRegex, ''),
           },
         },
-        source: {
-          id: 'src_all',
-        },
-        redirect: {
-          url: `${appUrl}/payment-success`,
-        },
-        post: {
-          url: webhookUrl,
-        },
+        source: { id: 'src_all' },
+        redirect: { url: `${appUrl}/payment-success` },
+        post: { url: webhookUrl },
       }),
     });
 
@@ -190,13 +179,9 @@ serve(async (req) => {
     console.log('Tap charge created:', {
       id: chargeData.id,
       status: chargeData.status,
-      response: chargeData.response,
-      card: chargeData.card,
-      security: chargeData.security,
       session: sessionId,
     });
 
-    // Build redirect URL with charge ID
     const redirectUrl = chargeData.transaction?.url;
     if (!redirectUrl) {
       console.error('No redirect URL in Tap response:', chargeData);
@@ -210,9 +195,7 @@ serve(async (req) => {
         sessionId: sessionId,
         redirectUrl: redirectUrl,
       }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
     console.error('Error in tap-create-charge:', error);
@@ -221,10 +204,7 @@ serve(async (req) => {
         success: false,
         error: error.message || 'Payment initialization failed',
       }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
