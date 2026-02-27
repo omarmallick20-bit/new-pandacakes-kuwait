@@ -1,67 +1,103 @@
 
 
-# Fix Qatar References Still Present in Kuwait Deployment
+# Delivery Zone & Country Validation Fixes
 
-## Root Causes Found
+## Issues Found
 
-There are **three distinct issues** causing Qatar content to appear in the Kuwait deployment:
+1. **CheckoutModal `fetchUserAddresses`** (line 428-466): Fetches ALL user addresses without filtering by `country_id`. A QA user logging into KW sees their QA addresses and can select them for delivery.
 
-### Issue 1: Qatar flag emoji hardcoded in Header (line 139)
-**File:** `src/components/Header.tsx` line 139
-```
-{t('brand_name')} 🇶🇦
-```
-The Qatar flag `🇶🇦` is hardcoded next to the mobile brand name. This needs to be changed to the Kuwait flag `🇰🇼`.
+2. **CompactMap pickup map** (line 27): Uses Qatar Google Maps embed URL (`pb=...25.209984...51.574197...PANDA CAKES`). The ContactPage correctly uses the Kuwait embed (`pb=...29.293500...47.906448...PANDA CAKES`).
 
-### Issue 2: `currencyLabel` in `useTranslation.ts` is hardcoded to QAR
-**File:** `src/hooks/useTranslation.ts` line 196
+3. **Min order value from wrong zone**: When a QA address is selected, its `delivery_zone_id` joins to a QA zone, loading QA min_order_value (e.g., 100 QAR shown as 100 KWD).
+
+4. **No checkout validation gate**: Even if an address is non-serviceable, the UI allows proceeding if `is_serviceable` is not explicitly `false` on the stored address record.
+
+## Implementation Plan
+
+### 1. Filter addresses by country_id in CheckoutModal
+**File:** `src/components/CheckoutModal.tsx` line 437-441
+
+Add `.eq('country_id', COUNTRY_ID)` to the address query so only KW addresses load:
 ```ts
-const currencyLabel = language === 'ar' ? 'ر.ق' : 'QAR';
+.eq('customer_id', user.id)
+.eq('country_id', COUNTRY_ID)  // Only show addresses for current country
+.order('is_primary', { ascending: false });
 ```
-This is used by `PriceDisplay`, `CategoryPage`, `CakeDetailPage`, `GlobalSearchModal`, and more. It should use the dynamic values from `src/config/country.ts` (`DEFAULT_CURRENCY` / `DEFAULT_CURRENCY_SYMBOL`).
 
-**Fix:** Import `DEFAULT_CURRENCY, DEFAULT_CURRENCY_SYMBOL` from `@/config/country` and change to:
+### 2. Filter addresses by country_id in AddressManager
+**File:** `src/components/AddressManager.tsx` line 107-111
+
+Add `.eq('country_id', COUNTRY_ID)` so profile page only shows KW addresses:
 ```ts
-const currencyLabel = language === 'ar' ? DEFAULT_CURRENCY_SYMBOL : DEFAULT_CURRENCY;
+.eq('customer_id', user.id)
+.eq('country_id', COUNTRY_ID)
+.order('created_at', { ascending: false });
 ```
-This will output `'د.ك'` (Arabic) / `'KWD'` (English) for Kuwait.
 
-### Issue 3: Hardcoded `QAR` / `ر.ق` strings scattered across 5 files
+### 3. Fix CompactMap to use Kuwait Google Maps embed
+**File:** `src/components/CompactMap.tsx` line 27
 
-These files have inline currency strings instead of using `currencyLabel` or `formatCurrency`:
+Replace the Qatar embed URL with the Kuwait one from ContactPage:
+```
+src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3479.6194374260135!2d47.90644827552532!3d29.293500275310365!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3fcf907ba074ddb9%3A0x575decba9542b630!2sPANDA%20CAKES!5e0!3m2!1sen!2sqa!4v1771672383039!5m2!1sen!2sqa"
+```
 
-| File | Lines | Occurrences |
-|------|-------|-------------|
-| `src/pages/OrderPage.tsx` | 86, 89, 94, 284, 287, 293 | 6 hardcoded `QAR`/`ر.ق` |
-| `src/pages/CheckoutPage.tsx` | 516, 526, 531, 538, 543 | 5 hardcoded `QAR` |
-| `src/components/CheckoutModal.tsx` | 638, 1325 | 2 hardcoded `QAR`/`ر.ق` |
-| `src/components/GlobalSearchModal.tsx` | 263, 266, 272 | 3 hardcoded `QAR`/`ر.ق` |
-| `src/components/CartUpsells.tsx` | 193 | 1 hardcoded `QAR`/`ر.ق` |
+### 4. Add checkout delivery validation gate
+**File:** `src/components/CheckoutModal.tsx` in `canProceedToNext()` (line 654-677)
 
-All of these need to be replaced with the dynamic `currencyLabel` from `useTranslation` (which will be fixed in Issue 2).
+In the `'address'` case for delivery, validate the selected address is serviceable and belongs to a KW zone:
+```ts
+case 'address':
+  if (isGift && (!giftRecipientName.trim() || !giftRecipientPhone.trim())) return false;
+  if (fulfillmentType === 'pickup') return deliveryDate && deliveryTime;
+  // For delivery: validate address is serviceable
+  if (selectedAddress) {
+    const addr = savedAddresses.find(a => a.id === selectedAddress);
+    if (addr && addr.is_serviceable === false) return false;
+    if (addr && addr.country_id && addr.country_id !== COUNTRY_ID) return false;
+  }
+  return (selectedAddress || (showNewAddressForm && newAddress.street_address && newAddress.city)) && deliveryDate && deliveryTime;
+```
 
-### Issue 4: BakePoints display in ProfilePage and ProfileModal still references QA
-**Files:**
-- `src/pages/ProfilePage.tsx` line 530: `customerProfile?.country_id === 'qa'` — this condition means KW users never see BakePoints info
-- `src/components/ProfileModal.tsx` line 563: Same `=== 'qa'` check with hardcoded `50 BakePoints = 1 QAR`
+### 5. Add visual warning for non-serviceable saved addresses
+**File:** `src/components/CheckoutModal.tsx` around line 1070-1090
 
-These should either check for `'kw'` or use `COUNTRY_ID` from config, and display the correct rate (500 BakePoints = 1 KWD).
+After the address `<Select>`, show a warning if selected address is non-serviceable:
+```tsx
+{selectedAddressData && selectedAddressData.is_serviceable === false && (
+  <div className="p-3 bg-destructive/10 border border-destructive rounded-lg">
+    <p className="text-sm text-destructive font-semibold">This address is outside our delivery area</p>
+    <p className="text-xs text-muted-foreground">Please select a different address or add a new one within Kuwait</p>
+  </div>
+)}
+```
 
----
+### 6. Fix BakePoints calculation ratio in CheckoutModal
+**File:** `src/components/CheckoutModal.tsx` line 626
 
-## Implementation Summary
+Currently hardcoded `* 50` (QA ratio). Should use `getPointsRedemptionInfo().rate`:
+```ts
+import { calculateDiscount, getPointsRedemptionInfo } from '@/utils/pointsDisplay';
+// ...
+const pointsRate = getPointsRedemptionInfo().rate; // 500 for KW
+const maxRedeemablePoints = Math.floor(Math.min(availablePoints, (subtotal + deliveryFee - discount) * pointsRate) / pointsRate) * pointsRate;
+```
+
+And line 631 minimum check should use `pointsRate` instead of `50`:
+```ts
+if (!user || !customerProfile || maxRedeemablePoints < pointsRate) return;
+```
+
+### Summary
 
 | # | File | Change |
 |---|------|--------|
-| 1 | `src/components/Header.tsx` | `🇶🇦` → `🇰🇼` on line 139 |
-| 2 | `src/hooks/useTranslation.ts` | Import country config, make `currencyLabel` dynamic |
-| 3 | `src/pages/OrderPage.tsx` | Replace 6 hardcoded `QAR`/`ر.ق` with `currencyLabel` |
-| 4 | `src/pages/CheckoutPage.tsx` | Replace 5 hardcoded `QAR` with `currencyLabel` |
-| 5 | `src/components/CheckoutModal.tsx` | Replace 2 hardcoded `QAR`/`ر.ق` with dynamic currency |
-| 6 | `src/components/GlobalSearchModal.tsx` | Replace 3 hardcoded `QAR`/`ر.ق` with `currencyLabel` |
-| 7 | `src/components/CartUpsells.tsx` | Replace 1 hardcoded `QAR`/`ر.ق` with `currencyLabel` |
-| 8 | `src/pages/ProfilePage.tsx` | Fix `=== 'qa'` check → use `COUNTRY_ID`, update rate text |
-| 9 | `src/components/ProfileModal.tsx` | Fix `=== 'qa'` check → use `COUNTRY_ID`, update rate text |
+| 1 | CheckoutModal.tsx | Filter addresses by `country_id = COUNTRY_ID` |
+| 2 | AddressManager.tsx | Filter addresses by `country_id = COUNTRY_ID` |
+| 3 | CompactMap.tsx | Replace Qatar map embed with Kuwait embed |
+| 4 | CheckoutModal.tsx | Block checkout if address not serviceable or wrong country |
+| 5 | CheckoutModal.tsx | Show warning for non-serviceable selected address |
+| 6 | CheckoutModal.tsx | Fix BakePoints rate from 50 (QA) to 500 (KW) |
 
-**Total: 9 files, ~25 individual string replacements.** No database or edge function changes needed — this is purely a frontend hardcoded-currency cleanup.
+No edge function changes needed. No database changes. Qatar functions untouched.
 
