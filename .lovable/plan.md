@@ -1,65 +1,38 @@
 
-Implementation steps
 
-1) Confirm edge-function inventory and duplicate-trigger source (no deletions)
-- Keep all edge functions unchanged/deployed as-is.
-- Confirmed only one `send-otp` and one `verify-otp` function exist (no duplicate OTP function pair).
-- Use existing logs as baseline:
-  - `send-otp` called twice for `+974 51209482`:
-    - `signup_verification` at `00:53:43Z`
-    - `phone_verification` at `00:56:28Z`
-  - This is a flow-level double trigger, not duplicate edge functions.
+## Problem Analysis
 
-2) Fix repeated post-signup phone verification loop
-- Update `src/contexts/AuthContext.tsx` (`updateCustomerProfile` create-path fallback):
-  - When creating a missing `Customers` row, auto-populate from `user.user_metadata.phone_number`.
-  - Set `phone_verified: true` when a phone exists from verified signup metadata.
-  - Persist `phone_country_code` from metadata/default config.
-- Update `src/pages/SignupPage.tsx`:
-  - Replace hardcoded initial `+974` with `PHONE_COUNTRY_CODE`.
-  - In profile-save step, include `whatsapp_number` and `phone_verified: true` in `updateCustomerProfile` payload so PhoneGuard does not force a second OTP cycle after signup.
-- Keep `send-otp`/`verify-otp` functions intact (no deletion, no QA-impacting removal).
+**Root cause chain:**
+1. `createPendingOrder()` in `CheckoutModal.tsx` (line 686) does NOT include `country_id` or `payment_currency` in the order insert
+2. The DB column `orders.country_id` defaults to `'qa'`
+3. The `auto_correct_order_country` trigger tries to fix it by reading from the customer's or address's `country_id`
+4. But many Kuwait customers have `country_id: 'qa'` (the DB column default) — confirmed: customers with `phone_country_code: +965` still have `country_id: qa`
+5. Result: Kuwait orders get `QA-` prefix order numbers and `QAR` payment currency
 
-3) Reduce signup perceived slowness in profile completion step
-- Update `src/pages/SignupPage.tsx`:
-  - Make `update-email` invocation non-blocking for navigation (timeout-guarded or deferred).
-  - Do not block `Profile saved successfully` + redirect on slow/500 email update.
-- This removes the long wait caused by the `update-email` 500 path observed in logs.
+**Secondary issues:**
+- `CustomCakeForm.tsx` has hardcoded "QAR" price ranges
+- Translation key `pay_amounts_qar` text is already correct for KW ("All amounts in KWD") but the key name is misleading (cosmetic, not a bug)
 
-4) Fix Kuwait address map UI text/currency issues
-- Update `src/components/DeliveryZoneMap.tsx`:
-  - Replace placeholder text:
-    - from `"Search for a location in Qatar..."`
-    - to dynamic `"Search for a location in ${COUNTRY_NAME}..."`
-  - Replace hardcoded map search country:
-    - from `country=kw`
-    - to `country=${COUNTRY_ID}`.
-  - Replace hardcoded delivery fee currency:
-    - from `Delivery Fee: {deliveryZone.delivery_fee} QAR`
-    - to dynamic currency using config/translation (KWD in Kuwait deployment).
+## Implementation Plan
 
-5) Verify with focused checks
-- OTP:
-  - Run signup once and confirm only one OTP send for signup flow.
-  - Confirm no immediate redirect to `/phone-setup` after successful signup/profile save.
-- Speed:
-  - Confirm profile-save no longer hangs when `update-email` fails/slow.
-- Address map:
-  - Confirm search placeholder says Kuwait.
-  - Confirm zone fee renders `1 KWD` (not `1 QAR`) for KW zone.
-- Logs:
-  - Re-check `send-otp`, `verify-otp`, and `update-email` logs after fix to ensure behavior matches expected flow.
+### 1. Fix `createPendingOrder` in CheckoutModal.tsx (critical)
+Add `country_id: COUNTRY_ID` and `payment_currency: DEFAULT_CURRENCY` to the order insert object at line 686-713.
 
-Technical details (file-level)
-- `src/contexts/AuthContext.tsx`
-  - Harden fallback profile creation fields (`whatsapp_number`, `phone_verified`, `phone_country_code`) from auth metadata.
-- `src/pages/SignupPage.tsx`
-  - Use `PHONE_COUNTRY_CODE` default.
-  - Ensure profile update writes verified phone fields.
-  - Make `update-email` non-blocking/timeout-safe.
-- `src/components/DeliveryZoneMap.tsx`
-  - Dynamic country placeholder text.
-  - Dynamic mapbox country filter.
-  - Dynamic delivery fee currency label.
-- No edge function deletion.
-- No QA function removal or breaking change.
+### 2. Fix customer profile country_id on signup/login
+In `AuthContext.tsx`, ensure `country_id: COUNTRY_ID` is set when creating or updating customer profiles (the fallback path). This prevents the auto-correct trigger from pulling wrong data.
+
+### 3. Add DB guard trigger
+Create a migration with a `BEFORE INSERT` trigger on orders that enforces: if `country_id` is null or empty, derive it from the address first, then customer, then reject. Additionally, ensure `payment_currency` matches the country's currency. This acts as a safety net.
+
+### 4. Fix hardcoded QAR in CustomCakeForm.tsx
+Replace hardcoded "QAR" price estimates with `DEFAULT_CURRENCY` from config.
+
+### 5. Fix existing KW customers with wrong country_id
+Update customers who have `phone_country_code = '+965'` but `country_id = 'qa'` to `country_id = 'kw'` via data update (not migration).
+
+## Files to modify
+- `src/components/CheckoutModal.tsx` — add `country_id` and `payment_currency` to `createPendingOrder`
+- `src/contexts/AuthContext.tsx` — ensure `country_id: COUNTRY_ID` in profile create/update
+- `src/components/CustomCakeForm.tsx` — replace hardcoded QAR with dynamic currency
+- New DB migration — add enforcement trigger for `country_id`/`payment_currency` consistency on orders
+
