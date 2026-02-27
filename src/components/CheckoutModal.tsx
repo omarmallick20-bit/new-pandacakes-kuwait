@@ -23,7 +23,7 @@ import { CartItem } from '@/types';
 import { generateTimeSlotsWithStatus, getCurrentDohaTime, BlockedSlot, RawBlockedSlot, expandBlockedSlots, isStoreCurrentlyClosed } from '@/utils/timeSlots';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { calculateDiscount } from '@/utils/pointsDisplay';
+import { calculateDiscount, getPointsRedemptionInfo } from '@/utils/pointsDisplay';
 import { clearCartInDB, clearCartFromLocalStorage, setCheckoutModalOpen } from '@/utils/cartSync';
 import { retryWithBackoff } from '@/utils/retryWithBackoff';
 import { COUNTRY_ID, COUNTRY_NAME } from '@/config/country';
@@ -437,6 +437,7 @@ export function CheckoutModal({
           .from('addresses')
           .select('*, delivery_zones(delivery_fee, delivery_time_minutes, min_order_value)')
           .eq('customer_id', user.id)
+          .eq('country_id', COUNTRY_ID)
           .order('is_primary', { ascending: false });
         if (error) throw error;
         // Flatten delivery_time_minutes and min_order_value from joined table
@@ -623,12 +624,12 @@ export function CheckoutModal({
 
   // Calculate maximum redeemable BakePoints
   const availablePoints = customerProfile?.loyalty_points || 0;
-  const maxRedeemablePoints = Math.floor(Math.min(availablePoints, (subtotal + deliveryFee - discount) * 50 // Can't redeem more than order total (50 points = 1 QAR)
-  ) / 50) * 50;
+  const pointsRate = getPointsRedemptionInfo().rate; // 500 for KW
+  const maxRedeemablePoints = Math.floor(Math.min(availablePoints, (subtotal + deliveryFee - discount) * pointsRate) / pointsRate) * pointsRate;
   // BakePoints redemption is now UI-only until order is placed
   // Points are only deducted from database AFTER successful order/payment
   const handleRedeemBakePoints = () => {
-    if (!user || !customerProfile || maxRedeemablePoints < 50) return;
+    if (!user || !customerProfile || maxRedeemablePoints < pointsRate) return;
     
     // Just set local state - no database call yet!
     // Points will be deducted only after successful order placement
@@ -665,6 +666,12 @@ export function CheckoutModal({
           return false;
         }
         if (fulfillmentType === 'pickup') return deliveryDate && deliveryTime;
+        // For delivery: validate address is serviceable and belongs to current country
+        if (selectedAddress) {
+          const addr = savedAddresses.find(a => a.id === selectedAddress);
+          if (addr && addr.is_serviceable === false) return false;
+          if (addr && addr.country_id && addr.country_id !== COUNTRY_ID) return false;
+        }
         return (selectedAddress || showNewAddressForm && newAddress.street_address && newAddress.city) && deliveryDate && deliveryTime;
       case 'payment':
         // If total is 0 and pickup, no payment method needed
@@ -1089,6 +1096,18 @@ export function CheckoutModal({
                       </SelectItem>)}
                   </SelectContent>
                 </Select>
+
+                {/* Warning for non-serviceable addresses */}
+                {selectedAddress && savedAddresses.find(a => a.id === selectedAddress)?.is_serviceable === false && (
+                  <div className="p-3 bg-destructive/10 border border-destructive rounded-lg">
+                    <p className="text-sm text-destructive font-semibold">
+                      {language === 'ar' ? 'هذا العنوان خارج نطاق التوصيل' : 'This address is outside our delivery area'}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {language === 'ar' ? 'يرجى اختيار عنوان آخر أو إضافة عنوان جديد داخل الكويت' : `Please select a different address or add a new one within ${COUNTRY_NAME}`}
+                    </p>
+                  </div>
+                )}
                 
                 <div className="text-center pt-1 sm:pt-2">
                   <Button type="button" variant="outline" size="sm" onClick={() => setShowNewAddressForm(true)} className="text-[10px] sm:text-sm h-7 sm:h-9">

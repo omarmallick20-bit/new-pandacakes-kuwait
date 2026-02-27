@@ -108,6 +108,7 @@ export default function AddressManager() {
             .from('addresses')
             .select('*')
             .eq('customer_id', user.id)
+            .eq('country_id', COUNTRY_ID)
             .order('created_at', { ascending: false });
 
           if (error) throw error;

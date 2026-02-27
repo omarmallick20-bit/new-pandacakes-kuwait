@@ -24,7 +24,7 @@ export function CompactMap({
       <CardContent>
         <div className={`rounded-lg overflow-hidden shadow-sm ${height}`}>
           <iframe 
-            src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d28878.39581486397!2d51.574197!3d25.209984!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3e45cfd07986c83d%3A0xf63a0d6de5f4d17a!2sPANDA%20CAKES!5e0!3m2!1sen!2sqa!4v1758026332523!5m2!1sen!2sqa"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3479.6194374260135!2d47.90644827552532!3d29.293500275310365!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3fcf907ba074ddb9%3A0x575decba9542b630!2sPANDA%20CAKES!5e0!3m2!1sen!2sqa!4v1771672383039!5m2!1sen!2sqa"
             className="w-full h-full border-0"
             allowFullScreen
             loading="lazy" 
@@ -33,7 +33,7 @@ export function CompactMap({
           />
         </div>
         <div className="mt-2 text-xs text-muted-foreground text-center">
-          Panda Cakes - Kuwait
+          Panda Cakes - Kuwait 🇰🇼
         </div>
       </CardContent>
     </Card>
