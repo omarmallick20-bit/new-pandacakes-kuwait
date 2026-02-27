@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { UpsellModal } from "@/components/UpsellModal";
 import { PaymentModal } from "@/components/PaymentModal";
 import { COUNTRY_ID, COUNTRY_NAME, DEFAULT_CURRENCY } from '@/config/country';
+import { formatAmount } from '@/utils/currencyHelpers';
 export default function CheckoutPage() {
   const {
     state,
@@ -540,7 +541,7 @@ export default function CheckoutPage() {
                 </div>
 
                 <Button className="w-full" variant="hero" size="lg" onClick={handleCompleteOrder}>
-                  Complete Order - {total.toFixed(2)} {DEFAULT_CURRENCY}
+                  Complete Order - {formatAmount(total)} {DEFAULT_CURRENCY}
                 </Button>
 
                 

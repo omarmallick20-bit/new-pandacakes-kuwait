@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { deleteCartItemFromDB } from '@/utils/cartSync';
 import { withTimeout } from '@/utils/withTimeoutAbort';
 import { useTranslation } from '@/hooks/useTranslation';
+import { formatAmount } from '@/utils/currencyHelpers';
 
 export default function CartPage() {
   const navigate = useNavigate();
@@ -308,7 +309,7 @@ export default function CartPage() {
                         <div key={title} className="break-words">
                           <span className="font-medium">{translateVariant(title)}:</span>{' '}
                           {Array.isArray(data.selected) ? data.selected.map(s => translateVariant(s)).join('، ') : translateVariant(data.selected)}
-                          {data.price > 0 && <span className="text-primary"> (+{currencyLabel} {toArabicNumerals(data.price.toFixed(2))})</span>}
+                          {data.price > 0 && <span className="text-primary"> (+{currencyLabel} {toArabicNumerals(formatAmount(data.price))})</span>}
                         </div>
                       ))}
                     </div>
@@ -362,10 +363,10 @@ export default function CartPage() {
                   {item.originalPrice && item.originalPrice > item.price ? (
                     <div className="flex flex-col items-end gap-0.5">
                       <span className="text-xs text-muted-foreground line-through">
-                        {currencyLabel} {toArabicNumerals((item.originalPrice * item.quantity).toFixed(2))}
+                        {currencyLabel} {toArabicNumerals(formatAmount(item.originalPrice * item.quantity))}
                       </span>
                       <span className="font-bold text-destructive whitespace-nowrap text-sm sm:text-base">
-                        {currencyLabel} {toArabicNumerals((item.price * item.quantity).toFixed(2))}
+                        {currencyLabel} {toArabicNumerals(formatAmount(item.price * item.quantity))}
                       </span>
                       {item.itemDiscount?.percentage && (
                         <span className="text-[10px] text-green-600 font-medium">
@@ -375,7 +376,7 @@ export default function CartPage() {
                     </div>
                   ) : (
                     <span className="font-bold text-primary whitespace-nowrap text-sm sm:text-base">
-                      {currencyLabel} {toArabicNumerals((item.price * item.quantity).toFixed(2))}
+                      {currencyLabel} {toArabicNumerals(formatAmount(item.price * item.quantity))}
                     </span>
                   )}
                 </div>
@@ -389,11 +390,11 @@ export default function CartPage() {
           <div className="space-y-2 text-xs sm:text-sm">
             <div className="flex justify-between">
               <span>{t('cart_subtotal')}</span>
-              <span className="whitespace-nowrap">{currencyLabel} {toArabicNumerals(subtotal.toFixed(2))}</span>
+              <span className="whitespace-nowrap">{currencyLabel} {toArabicNumerals(formatAmount(subtotal))}</span>
             </div>
             <div className="flex justify-between text-base sm:text-lg font-bold text-foreground border-t pt-2">
               <span>{t('cart_total')}</span>
-              <span className="text-primary whitespace-nowrap">{currencyLabel} {toArabicNumerals(subtotal.toFixed(2))}</span>
+              <span className="text-primary whitespace-nowrap">{currencyLabel} {toArabicNumerals(formatAmount(subtotal))}</span>
             </div>
           </div>
 
@@ -457,7 +458,7 @@ export default function CartPage() {
               <div className="flex flex-col">
                 <span className="text-xs text-muted-foreground">{t('cart_total')}</span>
                 <span className="text-lg sm:text-xl font-bold text-primary">
-                  {currencyLabel} {toArabicNumerals(subtotal.toFixed(2))}
+                  {currencyLabel} {toArabicNumerals(formatAmount(subtotal))}
                 </span>
               </div>
               

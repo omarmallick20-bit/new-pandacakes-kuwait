@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/hooks/useTranslation';
+import { formatAmount } from '@/utils/currencyHelpers';
 
 interface PriceDisplayProps {
   originalPrice: number;
@@ -33,7 +34,7 @@ export function PriceDisplay({
   if (!hasDiscount || discountedPrice === undefined) {
     return (
       <span className={cn(`text-tiffany ${sizeClasses[size].discount}`, className)}>
-        {displayCurrency} {toArabicNumerals(originalPrice.toFixed(0))}
+        {displayCurrency} {toArabicNumerals(formatAmount(originalPrice))}
       </span>
     );
   }
@@ -49,13 +50,13 @@ export function PriceDisplay({
         'text-muted-foreground line-through',
         sizeClasses[size].original
       )}>
-        {toArabicNumerals(originalPrice.toFixed(0))} {displayCurrency}
+        {toArabicNumerals(formatAmount(originalPrice))} {displayCurrency}
       </span>
       <span className={cn(
         'text-destructive',
         sizeClasses[size].discount
       )}>
-        {toArabicNumerals(discountedPrice.toFixed(1))} {displayCurrency}
+        {toArabicNumerals(formatAmount(discountedPrice))} {displayCurrency}
       </span>
     </div>
   );

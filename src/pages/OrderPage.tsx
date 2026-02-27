@@ -13,6 +13,7 @@ import { DiscountBadge } from '@/components/DiscountBadge';
 import { useItemDiscounts, applyItemDiscount } from '@/hooks/useItemDiscounts';
 import { useTranslation } from '@/hooks/useTranslation';
 import { COUNTRY_ID } from '@/config/country';
+import { formatAmount } from '@/utils/currencyHelpers';
 
 interface Category {
   id: string;
@@ -83,15 +84,15 @@ const CakeCard = React.memo(({
           {discountInfo.hasDiscount ? (
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground line-through">
-                {cake.price.toFixed(0)} {currencyLabel}
+                {formatAmount(cake.price)} {currencyLabel}
               </span>
               <span className="text-xl font-bold text-destructive">
-                {discountInfo.discountedPrice.toFixed(1)} {currencyLabel}
+                {formatAmount(discountInfo.discountedPrice)} {currencyLabel}
               </span>
             </div>
           ) : (
             <span className="text-xl font-bold text-tiffany">
-              {currencyLabel} {cake.price.toFixed(2)}
+              {currencyLabel} {formatAmount(cake.price)}
             </span>
           )}
           {cake.preparation_time && <div className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -281,16 +282,16 @@ export default function OrderPage() {
                               {discountInfo.hasDiscount ? (
                                 <div className="flex items-center gap-1.5">
                                   <span className="text-[10px] text-muted-foreground line-through">
-                                    {cake.price.toFixed(0)} {currencyLabel}
+                                    {formatAmount(cake.price)} {currencyLabel}
                                   </span>
                                   <span className="text-xs font-semibold text-destructive">
-                                    {discountInfo.discountedPrice.toFixed(1)} {currencyLabel}
+                                    {formatAmount(discountInfo.discountedPrice)} {currencyLabel}
                                   </span>
                                 </div>
                               ) : (
                                 <div className="inline-flex items-center px-2 py-0.5 border border-tiffany rounded-full">
                                   <span className="text-xs font-semibold text-tiffany">
-                                    {currencyLabel} {cake.price.toFixed(0)}
+                                    {currencyLabel} {formatAmount(cake.price)}
                                   </span>
                                 </div>
                               )}
