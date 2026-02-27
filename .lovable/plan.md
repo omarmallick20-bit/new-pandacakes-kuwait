@@ -1,52 +1,23 @@
 
 
 ## Problem
-KWD requires 3 decimal places (e.g., `20.000`) but prices throughout the app use hardcoded `.toFixed(2)`, `.toFixed(0)`, or `.toFixed(1)`. The config already has `CURRENCY_DECIMALS = 3` for KWD — it's just not being used.
+KW menu items' `custom_sections` JSON is missing `title_ar` and `name_ar` fields (only 3/396 have them), while QA items have full Arabic translations (407/409). This happened because KW cakes were duplicated from QA but the Arabic fields in `custom_sections` were lost.
 
-## Solution
-Create a single `formatPrice` helper that respects `CURRENCY_DECIMALS` and replace all hardcoded `toFixed` calls for prices across the app.
+## Approach: Two-pronged fix
 
-## Implementation
+### 1. Database: Copy Arabic translations from QA to KW counterparts (376 items)
+Write a SQL migration that for each KW menu item with a matching QA item (by name), copies the `title_ar` and `name_ar` values from QA's `custom_sections` into the KW item's `custom_sections`.
 
-### 1. Add `formatAmount` to `currencyHelpers.ts`
-Add a display-focused helper: `formatAmount(amount: number): string` that returns `amount.toFixed(CURRENCY_DECIMALS)` — a simple replacement for all the scattered `.toFixed(2)` calls.
+This handles 376 of 396 KW items with sections.
 
-### 2. Update `PriceDisplay.tsx`
-Replace `.toFixed(0)` and `.toFixed(1)` with `formatAmount()`.
+### 2. Frontend fallback: Already handled
+The remaining 20 KW items use standard section titles ("Flavour", "Size", "Colour") and common option names ("Mix", "Vanilla & Chocolate", etc.) — all already translated by the `variantTranslations` map in `useTranslation.ts`. The `CustomVariantSelector` component already falls back to `translateVariant()` when `title_ar`/`name_ar` is missing. No frontend changes needed.
 
-### 3. Update `discountHelpers.ts`
-- Fix `discountedPrice` rounding from `Math.round(x * 10) / 10` to use `CURRENCY_DECIMALS`-aware rounding.
-- Fix `formatPrice()` from `.toFixed(0 or 1)` to use `CURRENCY_DECIMALS`.
+### Implementation
+- Single SQL migration that:
+  1. For each KW item matching a QA item by name, rebuilds `custom_sections` by copying `title_ar` from QA sections (matched by title) and `name_ar` from QA options (matched by option name)
+  2. Uses a PL/pgSQL function to iterate sections and options, matching by title/name
 
-### 4. Update `CakeDetailPage.tsx`
-Replace all `.toFixed(0)`, `.toFixed(1)`, `.toFixed(2)` price formatting with `formatAmount()`.
-
-### 5. Update `CheckoutModal.tsx`
-Replace ~15 instances of `.toFixed(2)` with `formatAmount()`.
-
-### 6. Update `CartPage.tsx`
-Replace ~7 instances of `.toFixed(2)` with `formatAmount()`.
-
-### 7. Update `OrderPage.tsx`
-Replace `.toFixed(0)`, `.toFixed(1)`, `.toFixed(2)` with `formatAmount()`.
-
-### 8. Update `ProfilePage.tsx`
-Replace `.toFixed(2) QAR` with `formatAmount()` and `DEFAULT_CURRENCY` — also fixes remaining hardcoded "QAR" strings.
-
-### 9. Update `PaymentDetailsModal.tsx`
-Already uses `formatQAR` which calls `formatCurrency` — this already respects `CURRENCY_DECIMALS`. No change needed.
-
-### 10. Update `CheckoutPage.tsx`
-Replace `.toFixed(2)` with `formatAmount()`.
-
-## Files to modify
-- `src/utils/currencyHelpers.ts` — add `formatAmount` 
-- `src/components/PriceDisplay.tsx`
-- `src/utils/discountHelpers.ts`
-- `src/pages/CakeDetailPage.tsx`
-- `src/components/CheckoutModal.tsx`
-- `src/pages/CartPage.tsx`
-- `src/pages/OrderPage.tsx`
-- `src/pages/ProfilePage.tsx`
-- `src/pages/CheckoutPage.tsx`
+### Files
+- New migration: `supabase/migrations/XXXX_copy_ar_translations_to_kw.sql`
 
