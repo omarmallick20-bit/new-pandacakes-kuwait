@@ -69,6 +69,14 @@ export function formatCurrencyInput(amount: number): string {
   return amount.toFixed(CURRENCY_DECIMALS);
 }
 
+/**
+ * Format amount for display with correct decimal places (respects CURRENCY_DECIMALS)
+ * Use this instead of hardcoded .toFixed(2) for price displays
+ */
+export function formatAmount(amount: number): string {
+  return amount.toFixed(CURRENCY_DECIMALS);
+}
+
 // Backward-compatible aliases
 export const formatQAR = formatCurrency;
 export const validateQARAmount = validateAmount;

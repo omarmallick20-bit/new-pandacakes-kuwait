@@ -27,6 +27,7 @@ import { calculateDiscount, getPointsRedemptionInfo } from '@/utils/pointsDispla
 import { clearCartInDB, clearCartFromLocalStorage, setCheckoutModalOpen } from '@/utils/cartSync';
 import { retryWithBackoff } from '@/utils/retryWithBackoff';
 import { COUNTRY_ID, COUNTRY_NAME, DEFAULT_CURRENCY } from '@/config/country';
+import { formatAmount } from '@/utils/currencyHelpers';
 
 // Session timeout constants
 const SESSION_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
@@ -591,7 +592,7 @@ export function CheckoutModal({
           final_amount: subtotal - discountAmt
         });
         
-        toast.success(t('checkout_voucher_applied').replace('{amount}', discountAmt.toFixed(2)));
+        toast.success(t('checkout_voucher_applied').replace('{amount}', formatAmount(discountAmt)));
       } else {
         toast.error(data.error_message || (language === 'ar' ? 'قسيمة غير صالحة' : 'Invalid voucher'));
         setAppliedVoucher(null);
@@ -636,7 +637,7 @@ export function CheckoutModal({
     const pointsToRedeem = maxRedeemablePoints;
     setAppliedBakePoints(pointsToRedeem);
     const discountAmount = calculateDiscount(pointsToRedeem);
-    toast.success(language === 'ar' ? `سيتم تطبيق ${toArabicNumerals(String(pointsToRedeem))} نقطة BakePoints! ستوفر ${toArabicNumerals(discountAmount.toFixed(2))} ${currencyLabel}` : `${pointsToRedeem} BakePoints will be applied! You'll save ${currencyLabel} ${discountAmount.toFixed(2)}`);
+    toast.success(language === 'ar' ? `سيتم تطبيق ${toArabicNumerals(String(pointsToRedeem))} نقطة BakePoints! ستوفر ${toArabicNumerals(formatAmount(discountAmount))} ${currencyLabel}` : `${pointsToRedeem} BakePoints will be applied! You'll save ${currencyLabel} ${formatAmount(discountAmount)}`);
   };
 
   const handleRemoveBakePoints = () => {
@@ -963,7 +964,7 @@ export function CheckoutModal({
       const fulfillmentText = fulfillmentType === 'pickup' 
         ? (language === 'ar' ? 'استلام من المتجر' : 'Store Pickup') 
         : (language === 'ar' ? 'توصيل' : 'Delivery');
-      const formattedTotal = `${toArabicNumerals(total.toFixed(2))} ${currencyLabel}`;
+      const formattedTotal = `${toArabicNumerals(formatAmount(total))} ${currencyLabel}`;
 
       // Enhanced success toast with order details
       toast.success(
@@ -1364,7 +1365,7 @@ export function CheckoutModal({
                     {appliedVoucher.code}
                   </Badge>
                   <span className="text-sm text-green-700">
-                    -{currencyLabel} {appliedVoucher.discount_amount.toFixed(2)}
+                   -{currencyLabel} {formatAmount(appliedVoucher.discount_amount)}
                   </span>
                 </div>
                 <Button variant="ghost" size="sm" onClick={removeVoucher} className="text-red-600 hover:text-red-700">
@@ -1391,7 +1392,7 @@ export function CheckoutModal({
                         {t('checkout_available')} {customerProfile.loyalty_points} BakePoints
                       </div>
                       <div className="text-xs text-amber-700">
-                        {maxRedeemablePoints} {t('checkout_can_use')} (= {currencyLabel} {calculateDiscount(maxRedeemablePoints).toFixed(2)})
+                        {maxRedeemablePoints} {t('checkout_can_use')} (= {currencyLabel} {formatAmount(calculateDiscount(maxRedeemablePoints))})
                       </div>
                     </div>
                   </div>
@@ -1418,7 +1419,7 @@ export function CheckoutModal({
                       {appliedBakePoints} BakePoints
                     </Badge>
                     <span className="text-sm text-green-700">
-                      -{currencyLabel} {calculateDiscount(appliedBakePoints).toFixed(2)}
+                      -{currencyLabel} {formatAmount(calculateDiscount(appliedBakePoints))}
                     </span>
                   </div>
                   <Button variant="ghost" size="sm" onClick={handleRemoveBakePoints} className="text-red-600 hover:text-red-700">
@@ -1476,10 +1477,10 @@ export function CheckoutModal({
                   {item.originalPrice && item.originalPrice > item.price ? (
                     <div className="flex flex-col items-end">
                       <span className="text-xs text-muted-foreground line-through whitespace-nowrap">
-                        {currencyLabel} {(item.originalPrice * item.quantity).toFixed(2)}
+                        {currencyLabel} {formatAmount(item.originalPrice * item.quantity)}
                       </span>
                       <span className="font-medium text-destructive whitespace-nowrap">
-                        {currencyLabel} {(item.price * item.quantity).toFixed(2)}
+                        {currencyLabel} {formatAmount(item.price * item.quantity)}
                       </span>
                       {item.itemDiscount?.percentage && (
                         <span className="text-[10px] text-green-600">
@@ -1489,7 +1490,7 @@ export function CheckoutModal({
                     </div>
                   ) : (
                     <div className="font-medium whitespace-nowrap">
-                      {currencyLabel} {(item.price * item.quantity).toFixed(2)}
+                      {currencyLabel} {formatAmount(item.price * item.quantity)}
                     </div>
                   )}
                 </div>
@@ -1499,27 +1500,27 @@ export function CheckoutModal({
             <div className="border-t pt-3 space-y-1">
               <div className="flex justify-between text-xs sm:text-sm">
                 <span>{t('checkout_subtotal')}</span>
-                <span className="whitespace-nowrap">{currencyLabel} {subtotal.toFixed(2)}</span>
+                <span className="whitespace-nowrap">{currencyLabel} {formatAmount(subtotal)}</span>
               </div>
               <div className="flex justify-between text-xs sm:text-sm">
                   <span>{t('checkout_delivery_fee')}</span>
-                  <span className="whitespace-nowrap">{currencyLabel} {deliveryFee.toFixed(2)}</span>
+                  <span className="whitespace-nowrap">{currencyLabel} {formatAmount(deliveryFee)}</span>
                 </div>
               {appliedVoucher && <div className="flex justify-between text-xs sm:text-sm text-green-600">
                   <span className="break-words pr-2">{t('checkout_discount')} ({appliedVoucher.code})</span>
-                  <span className="whitespace-nowrap">-{currencyLabel} {appliedVoucher.discount_amount.toFixed(2)}</span>
+                  <span className="whitespace-nowrap">-{currencyLabel} {formatAmount(appliedVoucher.discount_amount)}</span>
                 </div>}
               {appliedBakePoints > 0 && <div className="flex justify-between text-xs sm:text-sm text-amber-600">
                   <span className="whitespace-nowrap">BakePoints ({appliedBakePoints})</span>
-                  <span className="whitespace-nowrap">-{currencyLabel} {calculateDiscount(appliedBakePoints).toFixed(2)}</span>
+                  <span className="whitespace-nowrap">-{currencyLabel} {formatAmount(calculateDiscount(appliedBakePoints))}</span>
                 </div>}
               {vatSettings.enabled && vatAmount > 0 && <div className="flex justify-between text-xs sm:text-sm">
                   <span>{t('checkout_vat')} ({vatSettings.percentage}%)</span>
-                  <span className="whitespace-nowrap">{currencyLabel} {vatAmount.toFixed(2)}</span>
+                  <span className="whitespace-nowrap">{currencyLabel} {formatAmount(vatAmount)}</span>
                 </div>}
               <div className="flex justify-between font-semibold text-sm sm:text-base">
                 <span>{t('checkout_total')}</span>
-                <span className="text-primary whitespace-nowrap">{currencyLabel} {total.toFixed(2)}</span>
+                <span className="text-primary whitespace-nowrap">{currencyLabel} {formatAmount(total)}</span>
               </div>
             </div>
           </CardContent>

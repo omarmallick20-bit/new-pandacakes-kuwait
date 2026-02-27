@@ -2,7 +2,7 @@
  * Discount calculation utilities for product pricing
  */
 
-import { DEFAULT_CURRENCY } from '@/config/country';
+import { DEFAULT_CURRENCY, CURRENCY_DECIMALS } from '@/config/country';
 
 export interface DiscountInfo {
   hasDiscount: boolean;
@@ -65,7 +65,7 @@ export function calculateDiscount(item: DiscountableItem): DiscountInfo {
   return {
     hasDiscount,
     originalPrice: price,
-    discountedPrice: Math.round(discountedPrice * 10) / 10,
+    discountedPrice: Math.round(discountedPrice * Math.pow(10, CURRENCY_DECIMALS)) / Math.pow(10, CURRENCY_DECIMALS),
     discountPercentage: hasDiscount ? discount_percentage || null : null,
     discountAmount: hasDiscount ? discount_amount || null : null,
     showBadge: hasDiscount && show_discount_badge
@@ -76,5 +76,5 @@ export function calculateDiscount(item: DiscountableItem): DiscountInfo {
  * Format price for display
  */
 export function formatPrice(price: number, currency: string = DEFAULT_CURRENCY): string {
-  return `${currency} ${price.toFixed(price % 1 === 0 ? 0 : 1)}`;
+  return `${currency} ${price.toFixed(CURRENCY_DECIMALS)}`;
 }

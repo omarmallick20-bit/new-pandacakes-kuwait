@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { DEFAULT_CURRENCY } from '@/config/country';
+import { formatAmount } from '@/utils/currencyHelpers';
 import { formatOrderItemCustomizations } from '@/utils/orderHelpers';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSearchParams } from 'react-router-dom';
@@ -611,7 +612,7 @@ export default function ProfilePage() {
                               {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                             </Badge>
                               <p className="text-sm font-medium mt-1">
-                                {order.total_amount.toFixed(2)} QAR
+                                {formatAmount(order.total_amount)} {DEFAULT_CURRENCY}
                               </p>
                             </div>
                           </div>
@@ -654,7 +655,7 @@ export default function ProfilePage() {
                                     </span>
                                   )}
                                 </span>
-                                <span>{(item.total_price || item.unit_price)?.toFixed(2)} QAR</span>
+                                <span>{formatAmount((item.total_price || item.unit_price) ?? 0)} {DEFAULT_CURRENCY}</span>
                               </div>
                             ))}
                           </div>
@@ -668,28 +669,28 @@ export default function ProfilePage() {
                               {order.original_amount && order.original_amount !== order.total_amount && (
                                 <div className="flex justify-between text-muted-foreground">
                                   <span>Subtotal</span>
-                                  <span>{order.original_amount.toFixed(2)} QAR</span>
+                                  <span>{formatAmount(order.original_amount)} {DEFAULT_CURRENCY}</span>
                                 </div>
                               )}
                               
                               {order.delivery_fee && order.delivery_fee > 0 && (
                                 <div className="flex justify-between text-muted-foreground">
                                   <span>Delivery Fee</span>
-                                  <span>{order.delivery_fee.toFixed(2)} QAR</span>
+                                  <span>{formatAmount(order.delivery_fee)} {DEFAULT_CURRENCY}</span>
                                 </div>
                               )}
                               
                               {order.voucher_discount_amount && order.voucher_discount_amount > 0 && (
                                 <div className="flex justify-between text-green-600">
                                   <span>Voucher Discount</span>
-                                  <span>-{order.voucher_discount_amount.toFixed(2)} QAR</span>
+                                  <span>-{formatAmount(order.voucher_discount_amount)} {DEFAULT_CURRENCY}</span>
                                 </div>
                               )}
                               
                               {order.bakepoints_discount_amount && order.bakepoints_discount_amount > 0 && (
                                 <div className="flex justify-between text-amber-600">
                                   <span>BakePoints Discount</span>
-                                  <span>-{order.bakepoints_discount_amount.toFixed(2)} QAR</span>
+                                  <span>-{formatAmount(order.bakepoints_discount_amount)} {DEFAULT_CURRENCY}</span>
                                 </div>
                               )}
                             </div>

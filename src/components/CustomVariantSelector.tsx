@@ -5,6 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card } from '@/components/ui/card';
 import { useTranslation } from '@/hooks/useTranslation';
+import { formatAmount } from '@/utils/currencyHelpers';
 
 export interface CustomSectionOption {
   name: string;
@@ -76,7 +77,7 @@ export function CustomVariantSelector({
 
   const formatPrice = (price: number) => {
     if (price === 0) return '';
-    return `+${currencyLabel} ${toArabicNumerals(price.toFixed(2))}`;
+    return `+${currencyLabel} ${toArabicNumerals(formatAmount(price))}`;
   };
 
   if (customSections.length === 0) return null;
@@ -159,7 +160,7 @@ export function CustomVariantSelector({
               <SelectContent>
                 {section.options.map(opt => (
                   <SelectItem key={opt.name} value={opt.name}>
-                    {language === 'ar' ? (opt.name_ar || translateVariant(opt.name)) : opt.name} {opt.price > 0 && `(+${currencyLabel} ${toArabicNumerals(opt.price.toFixed(2))})`}
+                    {language === 'ar' ? (opt.name_ar || translateVariant(opt.name)) : opt.name} {opt.price > 0 && `(+${currencyLabel} ${toArabicNumerals(formatAmount(opt.price))})`}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -172,7 +173,7 @@ export function CustomVariantSelector({
         <div className="pt-4 border-t">
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">{t('cake_customization_total')}</span>
-            <span className="font-semibold text-primary">{currencyLabel} {toArabicNumerals(totalPrice.toFixed(2))}</span>
+            <span className="font-semibold text-primary">{currencyLabel} {toArabicNumerals(formatAmount(totalPrice))}</span>
           </div>
         </div>
       )}

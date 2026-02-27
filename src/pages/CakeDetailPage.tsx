@@ -20,6 +20,7 @@ import { calculateDiscount, DiscountableItem } from '@/utils/discountHelpers';
 import { DiscountBadge } from '@/components/DiscountBadge';
 import { useItemDiscounts, applyItemDiscount } from '@/hooks/useItemDiscounts';
 import { COUNTRY_ID } from '@/config/country';
+import { formatAmount } from '@/utils/currencyHelpers';
 
 interface MenuItemFlavor {
   name: string;
@@ -546,8 +547,8 @@ export default function CakeDetailPage() {
                     const discountInfo = calculateDiscount(menuItem);
                     return discountInfo.hasDiscount ? (
                       <div className="flex items-center gap-2">
-                        <span className="text-muted-foreground line-through text-lg">{toArabicNumerals(menuItem.price.toFixed(0))} {currencyLabel}</span>
-                        <span className="text-destructive font-bold text-xl">{toArabicNumerals(discountInfo.discountedPrice.toFixed(1))} {currencyLabel}</span>
+                        <span className="text-muted-foreground line-through text-lg">{toArabicNumerals(formatAmount(menuItem.price))} {currencyLabel}</span>
+                        <span className="text-destructive font-bold text-xl">{toArabicNumerals(formatAmount(discountInfo.discountedPrice))} {currencyLabel}</span>
                       </div>
                     ) : (
                       <p className="text-tiffany font-bold text-xl">{currencyLabel} {toArabicNumerals(String(menuItem.price))}</p>
@@ -605,12 +606,12 @@ export default function CakeDetailPage() {
             <div className="p-4 bg-card rounded-2xl">
               <div className="flex justify-between items-center">
                 <span className="text-lg font-semibold text-foreground">{t('cake_total_price')}</span>
-                <span className="text-2xl font-black text-tiffany">{currencyLabel} {toArabicNumerals(finalPrice.toFixed(2))}</span>
+                <span className="text-2xl font-black text-tiffany">{currencyLabel} {toArabicNumerals(formatAmount(finalPrice))}</span>
               </div>
               {(totalVariantPrice > 0 || legacyPrice > 0) && <div className="text-sm text-muted-foreground mt-2 space-y-1">
-                  <div>{t('cake_base_price')} {currencyLabel} {toArabicNumerals(menuItem.price.toFixed(2))}</div>
-                  {totalVariantPrice > 0 && <div>{t('cake_customizations')} +{currencyLabel} {toArabicNumerals(totalVariantPrice.toFixed(2))}</div>}
-                  {legacyPrice > 0 && <div>{t('cake_options')} +{currencyLabel} {toArabicNumerals(legacyPrice.toFixed(2))}</div>}
+                  <div>{t('cake_base_price')} {currencyLabel} {toArabicNumerals(formatAmount(menuItem.price))}</div>
+                  {totalVariantPrice > 0 && <div>{t('cake_customizations')} +{currencyLabel} {toArabicNumerals(formatAmount(totalVariantPrice))}</div>}
+                  {legacyPrice > 0 && <div>{t('cake_options')} +{currencyLabel} {toArabicNumerals(formatAmount(legacyPrice))}</div>}
                 </div>}
             </div>
 
@@ -667,8 +668,8 @@ export default function CakeDetailPage() {
                       const discountInfo = calculateDiscount(cake as unknown as DiscountableItem);
                       return discountInfo.hasDiscount ? (
                         <div className="flex items-center gap-2">
-                          <span className="text-sm text-muted-foreground line-through">{toArabicNumerals(cake.price.toFixed(0))} {currencyLabel}</span>
-                          <span className="text-destructive font-bold">{toArabicNumerals(discountInfo.discountedPrice.toFixed(1))} {currencyLabel}</span>
+                          <span className="text-sm text-muted-foreground line-through">{toArabicNumerals(formatAmount(cake.price))} {currencyLabel}</span>
+                          <span className="text-destructive font-bold">{toArabicNumerals(formatAmount(discountInfo.discountedPrice))} {currencyLabel}</span>
                         </div>
                       ) : (
                         <p className="text-tiffany font-bold">{currencyLabel} {toArabicNumerals(String(cake.price))}</p>
