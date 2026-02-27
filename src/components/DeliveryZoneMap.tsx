@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { COUNTRY_ID } from '@/config/country';
+import { COUNTRY_ID, COUNTRY_NAME, DEFAULT_CURRENCY } from '@/config/country';
 import { Skeleton } from '@/components/ui/skeleton';
 import { withTimeoutAutoAbort } from '@/utils/withTimeoutAbort';
 
@@ -368,7 +368,7 @@ export const DeliveryZoneMap: React.FC<DeliveryZoneMapProps> = ({
 
     try {
 const response = await fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxToken}&country=kw&language=en&limit=5`,
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxToken}&country=${COUNTRY_ID}&language=en&limit=5`,
         { signal: controller.signal }
       );
 
@@ -536,7 +536,7 @@ const response = await fetch(
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
             type="text"
-            placeholder="Search for a location in Qatar..."
+            placeholder={`Search for a location in ${COUNTRY_NAME}...`}
             value={searchQuery}
             onChange={(e) => handleSearchInput(e.target.value)}
             className="pl-9"
@@ -617,7 +617,7 @@ const response = await fetch(
                   Zone: {deliveryZone.zone_name}
                 </p>
                 <p className="text-sm font-semibold">
-                  Delivery Fee: {deliveryZone.delivery_fee} QAR
+                  Delivery Fee: {deliveryZone.delivery_fee} {DEFAULT_CURRENCY}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   Estimated Time: {deliveryZone.delivery_time_minutes} minutes

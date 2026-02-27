@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2, ArrowLeft, Phone, CheckCircle2 } from "lucide-react";
 import { PhoneNumberInput } from "@/components/PhoneNumberInput";
-import { COUNTRY_ID } from "@/config/country";
+import { COUNTRY_ID, PHONE_COUNTRY_CODE } from "@/config/country";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -85,7 +85,7 @@ export default function SignupPage() {
   const [isCompletingProfile, setIsCompletingProfile] = useState(false);
 
   // Phone & OTP state
-  const [phoneNumber, setPhoneNumber] = useState('+974 ');
+  const [phoneNumber, setPhoneNumber] = useState(PHONE_COUNTRY_CODE + ' ');
   const [otpCode, setOtpCode] = useState('');
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -423,7 +423,10 @@ export default function SignupPage() {
         birthdate: formData.birthdate || null,
         has_completed_initial_setup: true,
         country_id: COUNTRY_ID,
-        preferred_country: COUNTRY_ID
+        preferred_country: COUNTRY_ID,
+        whatsapp_number: phoneNumber.replace(/\s/g, ''),
+        phone_verified: true,
+        phone_country_code: PHONE_COUNTRY_CODE,
       } as any);
 
       if (profileError) {
@@ -432,20 +435,20 @@ export default function SignupPage() {
         return;
       }
 
-      // 3. If real email provided, update auth email too
+      // 3. If real email provided, update auth email too (fire-and-forget, non-blocking)
       if (isRealEmail) {
-        const { error: emailError } = await supabase.functions.invoke('update-email', {
+        supabase.functions.invoke('update-email', {
           body: {
             user_id: user?.id,
             new_email: formData.email.trim()
           }
-        });
-        if (emailError) {
-          console.warn('Email auth update failed (non-blocking):', emailError);
-        } else {
-          // Refresh session so the updated email is available in user context (no confirmation emails sent)
-          await supabase.auth.refreshSession();
-        }
+        }).then(({ error: emailError }) => {
+          if (emailError) {
+            console.warn('Email auth update failed (non-blocking):', emailError);
+          } else {
+            supabase.auth.refreshSession();
+          }
+        }).catch(err => console.warn('Email update exception (non-blocking):', err));
       }
 
       toast.success('Profile saved successfully!');
