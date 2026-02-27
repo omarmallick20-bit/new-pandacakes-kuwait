@@ -26,7 +26,7 @@ import { cn } from '@/lib/utils';
 import { calculateDiscount, getPointsRedemptionInfo } from '@/utils/pointsDisplay';
 import { clearCartInDB, clearCartFromLocalStorage, setCheckoutModalOpen } from '@/utils/cartSync';
 import { retryWithBackoff } from '@/utils/retryWithBackoff';
-import { COUNTRY_ID, COUNTRY_NAME } from '@/config/country';
+import { COUNTRY_ID, COUNTRY_NAME, DEFAULT_CURRENCY } from '@/config/country';
 
 // Session timeout constants
 const SESSION_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
@@ -685,6 +685,8 @@ export function CheckoutModal({
   const createPendingOrder = async () => {
     const orderData = {
       customer_id: user?.id,
+      country_id: COUNTRY_ID,
+      payment_currency: DEFAULT_CURRENCY,
       total_amount: total,
       delivery_fee: deliveryFee,
       original_amount: subtotal, // Items subtotal only, delivery fee tracked separately

@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { MessageCircle, Palette, Cake, Users, Calendar, Image, Sparkles } from "lucide-react";
+import { DEFAULT_CURRENCY } from '@/config/country';
 
 export default function CustomCakeForm() {
   const { toast } = useToast();
@@ -316,17 +317,17 @@ Please provide a quote and confirm availability for this custom cake order. Than
               <div>
                 <p className="font-medium">Basic Custom Cakes:</p>
                 <ul className="list-disc list-inside text-muted-foreground">
-                  <li>Small (8"): 150-250 QAR</li>
-                  <li>Medium (10"): 250-400 QAR</li>
-                  <li>Large (12"): 400-600 QAR</li>
+                  <li>Small (8&quot;): 150-250 {DEFAULT_CURRENCY}</li>
+                  <li>Medium (10&quot;): 250-400 {DEFAULT_CURRENCY}</li>
+                  <li>Large (12&quot;): 400-600 {DEFAULT_CURRENCY}</li>
                 </ul>
               </div>
               <div>
                 <p className="font-medium">Premium Features:</p>
                 <ul className="list-disc list-inside text-muted-foreground">
-                  <li>Fondant work: +50-150 QAR</li>
-                  <li>Custom figures: +100-300 QAR</li>
-                  <li>Multi-tier: +200-500 QAR</li>
+                  <li>Fondant work: +50-150 {DEFAULT_CURRENCY}</li>
+                  <li>Custom figures: +100-300 {DEFAULT_CURRENCY}</li>
+                  <li>Multi-tier: +200-500 {DEFAULT_CURRENCY}</li>
                 </ul>
               </div>
             </div>
