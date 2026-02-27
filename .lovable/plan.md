@@ -1,38 +1,52 @@
 
 
-## Problem Analysis
+## Problem
+KWD requires 3 decimal places (e.g., `20.000`) but prices throughout the app use hardcoded `.toFixed(2)`, `.toFixed(0)`, or `.toFixed(1)`. The config already has `CURRENCY_DECIMALS = 3` for KWD — it's just not being used.
 
-**Root cause chain:**
-1. `createPendingOrder()` in `CheckoutModal.tsx` (line 686) does NOT include `country_id` or `payment_currency` in the order insert
-2. The DB column `orders.country_id` defaults to `'qa'`
-3. The `auto_correct_order_country` trigger tries to fix it by reading from the customer's or address's `country_id`
-4. But many Kuwait customers have `country_id: 'qa'` (the DB column default) — confirmed: customers with `phone_country_code: +965` still have `country_id: qa`
-5. Result: Kuwait orders get `QA-` prefix order numbers and `QAR` payment currency
+## Solution
+Create a single `formatPrice` helper that respects `CURRENCY_DECIMALS` and replace all hardcoded `toFixed` calls for prices across the app.
 
-**Secondary issues:**
-- `CustomCakeForm.tsx` has hardcoded "QAR" price ranges
-- Translation key `pay_amounts_qar` text is already correct for KW ("All amounts in KWD") but the key name is misleading (cosmetic, not a bug)
+## Implementation
 
-## Implementation Plan
+### 1. Add `formatAmount` to `currencyHelpers.ts`
+Add a display-focused helper: `formatAmount(amount: number): string` that returns `amount.toFixed(CURRENCY_DECIMALS)` — a simple replacement for all the scattered `.toFixed(2)` calls.
 
-### 1. Fix `createPendingOrder` in CheckoutModal.tsx (critical)
-Add `country_id: COUNTRY_ID` and `payment_currency: DEFAULT_CURRENCY` to the order insert object at line 686-713.
+### 2. Update `PriceDisplay.tsx`
+Replace `.toFixed(0)` and `.toFixed(1)` with `formatAmount()`.
 
-### 2. Fix customer profile country_id on signup/login
-In `AuthContext.tsx`, ensure `country_id: COUNTRY_ID` is set when creating or updating customer profiles (the fallback path). This prevents the auto-correct trigger from pulling wrong data.
+### 3. Update `discountHelpers.ts`
+- Fix `discountedPrice` rounding from `Math.round(x * 10) / 10` to use `CURRENCY_DECIMALS`-aware rounding.
+- Fix `formatPrice()` from `.toFixed(0 or 1)` to use `CURRENCY_DECIMALS`.
 
-### 3. Add DB guard trigger
-Create a migration with a `BEFORE INSERT` trigger on orders that enforces: if `country_id` is null or empty, derive it from the address first, then customer, then reject. Additionally, ensure `payment_currency` matches the country's currency. This acts as a safety net.
+### 4. Update `CakeDetailPage.tsx`
+Replace all `.toFixed(0)`, `.toFixed(1)`, `.toFixed(2)` price formatting with `formatAmount()`.
 
-### 4. Fix hardcoded QAR in CustomCakeForm.tsx
-Replace hardcoded "QAR" price estimates with `DEFAULT_CURRENCY` from config.
+### 5. Update `CheckoutModal.tsx`
+Replace ~15 instances of `.toFixed(2)` with `formatAmount()`.
 
-### 5. Fix existing KW customers with wrong country_id
-Update customers who have `phone_country_code = '+965'` but `country_id = 'qa'` to `country_id = 'kw'` via data update (not migration).
+### 6. Update `CartPage.tsx`
+Replace ~7 instances of `.toFixed(2)` with `formatAmount()`.
+
+### 7. Update `OrderPage.tsx`
+Replace `.toFixed(0)`, `.toFixed(1)`, `.toFixed(2)` with `formatAmount()`.
+
+### 8. Update `ProfilePage.tsx`
+Replace `.toFixed(2) QAR` with `formatAmount()` and `DEFAULT_CURRENCY` — also fixes remaining hardcoded "QAR" strings.
+
+### 9. Update `PaymentDetailsModal.tsx`
+Already uses `formatQAR` which calls `formatCurrency` — this already respects `CURRENCY_DECIMALS`. No change needed.
+
+### 10. Update `CheckoutPage.tsx`
+Replace `.toFixed(2)` with `formatAmount()`.
 
 ## Files to modify
-- `src/components/CheckoutModal.tsx` — add `country_id` and `payment_currency` to `createPendingOrder`
-- `src/contexts/AuthContext.tsx` — ensure `country_id: COUNTRY_ID` in profile create/update
-- `src/components/CustomCakeForm.tsx` — replace hardcoded QAR with dynamic currency
-- New DB migration — add enforcement trigger for `country_id`/`payment_currency` consistency on orders
+- `src/utils/currencyHelpers.ts` — add `formatAmount` 
+- `src/components/PriceDisplay.tsx`
+- `src/utils/discountHelpers.ts`
+- `src/pages/CakeDetailPage.tsx`
+- `src/components/CheckoutModal.tsx`
+- `src/pages/CartPage.tsx`
+- `src/pages/OrderPage.tsx`
+- `src/pages/ProfilePage.tsx`
+- `src/pages/CheckoutPage.tsx`
 
