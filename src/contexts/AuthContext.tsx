@@ -277,12 +277,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Step 3: If no customer record exists, create one first
       if (!existingData) {
         console.log('updateCustomerProfile: No customer record found, creating one...');
+        const authPhone = user.user_metadata?.phone_number;
         const createData = {
           id: user.id,
           first_name: user.user_metadata?.first_name || user.user_metadata?.given_name || '',
           last_name: user.user_metadata?.last_name || user.user_metadata?.family_name || '',
           country_id: COUNTRY_ID,
           preferred_country: COUNTRY_ID,
+          ...(authPhone ? {
+            whatsapp_number: authPhone.replace(/\s/g, ''),
+            phone_verified: true,
+            phone_country_code: PHONE_COUNTRY_CODE,
+          } : {}),
           ...profileData
         };
 
