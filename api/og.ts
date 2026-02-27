@@ -40,11 +40,11 @@ async function fetchCakeData(cakeId: string): Promise<CakeData | null> {
 }
 
 function generateOGHtml(cake: CakeData | null, origin: string, cakeId: string): string {
-  const title = cake ? `${cake.name} - PANDA CAKES` : 'PANDA CAKES I Qatar I Birthday Cakes I Custom Cakes I Same Day Delivery';
-  const description = cake?.description || 'Discover handcrafted cakes, cupcakes, and sweet treats at PANDA CAKES Qatar.';
-  const imageUrl = cake?.image_url || `${origin}/logo.png`;
+  const title = cake ? `${cake.name} - PANDA CAKES` : 'PANDA CAKES I Kuwait I Birthday Cakes I Custom Cakes I Same Day Delivery';
+  const description = cake?.description || 'Discover handcrafted cakes, cupcakes, and sweet treats at PANDA CAKES Kuwait.';
+  const imageUrl = cake?.image_url || `${origin}/og-image.png`;
   const pageUrl = `${origin}/cake/${cakeId}`;
-  const price = cake ? `${cake.price} QAR` : '';
+  const price = cake ? `${cake.price} KWD` : '';
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -65,9 +65,9 @@ function generateOGHtml(cake: CakeData | null, origin: string, cakeId: string): 
   <meta property="og:image" content="${imageUrl}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:site_name" content="PANDA CAKES Qatar">
+  <meta property="og:site_name" content="PANDA CAKES Kuwait">
   ${price ? `<meta property="product:price:amount" content="${cake?.price}">
-  <meta property="product:price:currency" content="QAR">` : ''}
+  <meta property="product:price:currency" content="KWD">` : ''}
   
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
