@@ -55,6 +55,7 @@ export function WebsitePopup() {
           .from('website_popups')
           .select('*')
           .eq('is_active', true)
+          .eq('country_id', COUNTRY_ID)
           .or(`valid_from.is.null,valid_from.lte.${now}`)
           .or(`valid_until.is.null,valid_until.gte.${now}`)
           .order('created_at', { ascending: false });
