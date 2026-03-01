@@ -21,8 +21,11 @@ const SUCCESS_PATTERN = /^00(\s|$)/;
 const FCC_FETCH_TIMEOUT_MS = 15000;
 
 // Proxy-aware fetch: routes through Fixie HTTP proxy if HTTPS_PROXY is set
-async function proxyFetch(url: string, headers: Record<string, string>): Promise<{ ok: boolean; status: number; text: string; contentType: string }> {
-  let proxyUrl: string | undefined = Deno.env.get('HTTPS_PROXY') || Deno.env.get('HTTP_PROXY');
+async function proxyFetch(url: string, headers: Record<string, string>, countryId?: string): Promise<{ ok: boolean; status: number; text: string; contentType: string }> {
+  // Select proxy based on country: KW uses its own Fixie proxy, others use default (Qatar)
+  let proxyUrl: string | undefined = countryId === 'kw'
+    ? (Deno.env.get('HTTPS_PROXY_KW') || Deno.env.get('HTTP_PROXY_KW'))
+    : (Deno.env.get('HTTPS_PROXY') || Deno.env.get('HTTP_PROXY'));
   
   // Validate proxy URL -- fall back to direct fetch if placeholder or invalid
   if (proxyUrl && (proxyUrl.includes('PLACEHOLDER') || !proxyUrl.startsWith('http'))) {
@@ -176,7 +179,7 @@ async function proxyFetch(url: string, headers: Record<string, string>): Promise
 }
 
 // Send SMS via FCC API with both P parameter and X-API-KEY header
-async function sendSmsViaFcc(phone: string, message: string): Promise<{ success: boolean; error?: string }> {
+async function sendSmsViaFcc(phone: string, message: string, countryId?: string): Promise<{ success: boolean; error?: string }> {
   const startTime = Date.now();
   const fccApiKey = Deno.env.get('FCC_API_KEY');
   
@@ -215,7 +218,7 @@ async function sendSmsViaFcc(phone: string, message: string): Promise<{ success:
       'Accept': 'text/plain',
       'User-Agent': 'PandaCakes/1.0',
       'X-API-KEY': fccApiKey,
-    });
+    }, countryId);
 
     const fetchDuration = Date.now() - startTime;
     console.log(`⏱️ [send-otp] FCC fetch completed in ${fetchDuration}ms`);
@@ -274,7 +277,7 @@ serve(async (req) => {
   }
 
   try {
-    const { phone_number, user_id, purpose } = await req.json();
+    const { phone_number, user_id, purpose, country_id } = await req.json();
     const isPasswordReset = purpose === 'password_reset';
     const isSignupVerification = purpose === 'signup_verification';
 
@@ -386,7 +389,7 @@ serve(async (req) => {
     }
 
     const message = `${otpCode} is your Panda Cakes code. Don't share it.`;
-    const smsResult = await sendSmsViaFcc(smsPhoneNumber, message);
+    const smsResult = await sendSmsViaFcc(smsPhoneNumber, message, country_id);
 
     if (smsResult.success) {
       return new Response(

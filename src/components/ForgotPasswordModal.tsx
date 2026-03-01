@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { COUNTRY_ID } from '@/config/country';
 import {
   Dialog,
   DialogContent,
@@ -108,7 +109,7 @@ export function ForgotPasswordModal({ open, onOpenChange }: ForgotPasswordModalP
     try {
       const { data, error, timedOut } = await invokeWithTimeout<{ success?: boolean; error?: string; error_code?: string }>(
         'send-otp',
-        { phone_number: phoneNumber, purpose: 'password_reset' }
+        { phone_number: phoneNumber, purpose: 'password_reset', country_id: COUNTRY_ID }
       );
 
       // Ignore stale responses

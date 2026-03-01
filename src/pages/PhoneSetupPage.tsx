@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { COUNTRY_ID } from '@/config/country';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PhoneNumberInput } from '@/components/PhoneNumberInput';
@@ -180,7 +181,7 @@ export default function PhoneSetupPage() {
       
       const { data, error, timedOut } = await invokeWithTimeout<{ success?: boolean; error?: string }>(
         'send-otp',
-        { phone_number: phoneToSend, user_id: user.id }
+        { phone_number: phoneToSend, user_id: user.id, country_id: COUNTRY_ID }
       );
 
       // Ignore stale responses
