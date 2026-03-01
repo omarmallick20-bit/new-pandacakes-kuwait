@@ -613,9 +613,6 @@ const response = await fetch(
                   <CheckCircle className="h-4 w-4" />
                   <span className="font-medium text-sm">✓ Delivery Available</span>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  Zone: {deliveryZone.zone_name}
-                </p>
                 <p className="text-sm font-semibold">
                   Delivery Fee: {deliveryZone.delivery_fee} {DEFAULT_CURRENCY}
                 </p>
