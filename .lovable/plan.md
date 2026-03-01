@@ -1,44 +1,16 @@
 
 
-## Problem
+## UI change: Show "applicable items only" message when product-specific voucher has zero discount
 
-The `send-otp` edge function uses `HTTPS_PROXY` / `HTTP_PROXY` secrets to route SMS through Fixie. Both Qatar and Kuwait share the same Supabase project, but Kuwait has a **different Fixie proxy URL**. Currently the secrets only contain Qatar's proxy, so Kuwait OTP sends either fail or go through the wrong proxy/IP.
+When a product-specific voucher (like the Kuromi voucher) is applied but no eligible items are in the cart, the discount calculates to 0. Currently it shows `-QAR 0.00` which is confusing. Instead, show an informative message.
 
-The screenshot also shows a "+974" (Qatar) country code on the Kuwait signup page — that's a separate issue with the phone input defaulting to Qatar.
+### Changes in `src/components/CheckoutModal.tsx`
 
-## Fix
+**3 locations to update:**
 
-### 1. Add Kuwait proxy secrets
+1. **Voucher applied badge (line 1380-1382):** When `appliedVoucher.applicable_products` exists and `discount_amount === 0`, show "This voucher applies to certain items only" (Arabic: "هذه القسيمة تنطبق على منتجات معينة فقط") instead of `-QAR 0.00`.
 
-Add two new secrets (without touching the existing Qatar ones):
-- `HTTPS_PROXY_KW` = `http://fixie:aPBbymPS2fIwVPD@ventoux.usefixie.com:80`
-- `HTTP_PROXY_KW` = `http://fixie:aPBbymPS2fIwVPD@ventoux.usefixie.com:80`
+2. **Order summary discount line (line 1522-1525):** Hide the discount row entirely when `discount_amount === 0` — no point showing a zero-value line.
 
-### 2. Update `send-otp` edge function to select proxy by country
-
-**`supabase/functions/send-otp/index.ts`** — In `proxyFetch`, accept a `countryId` parameter. Pick the proxy env var based on country:
-- If `countryId === 'kw'` → read `HTTPS_PROXY_KW` / `HTTP_PROXY_KW`
-- Otherwise → read `HTTPS_PROXY` / `HTTP_PROXY` (Qatar default)
-
-Thread `country_id` from the request body through to `sendSmsViaFcc` → `proxyFetch`.
-
-### 3. Update all frontend callers to pass `country_id`
-
-Add `country_id: COUNTRY_ID` to every `send-otp` invocation:
-- `src/pages/SignupPage.tsx` (line 236)
-- `src/components/ForgotPasswordModal.tsx` (line 110)
-- `src/pages/PhoneSetupPage.tsx` (line 183)
-- `src/components/ProfileModal.tsx` (line 176)
-- `src/pages/ProfilePage.tsx` (line 135)
-
-All files already import or can import `COUNTRY_ID` from `@/config/country`.
-
-### Files to modify
-- `supabase/functions/send-otp/index.ts` — country-aware proxy selection
-- `src/pages/SignupPage.tsx` — pass `country_id`
-- `src/components/ForgotPasswordModal.tsx` — pass `country_id`
-- `src/pages/PhoneSetupPage.tsx` — pass `country_id`
-- `src/components/ProfileModal.tsx` — pass `country_id`
-- `src/pages/ProfilePage.tsx` — pass `country_id`
-- 2 new Supabase secrets: `HTTPS_PROXY_KW`, `HTTP_PROXY_KW`
+3. **Toast message (line 608):** When `discountAmt === 0` and `applicableProducts` is set, show "Voucher applied — valid for certain items only" instead of "Voucher applied! Discount: 0.00".
 
