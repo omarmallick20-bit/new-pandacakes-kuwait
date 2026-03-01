@@ -605,7 +605,11 @@ export function CheckoutModal({
           applicable_products: applicableProducts || undefined
         });
         
-        toast.success(t('checkout_voucher_applied').replace('{amount}', formatAmount(discountAmt)));
+        if (discountAmt === 0 && applicableProducts && applicableProducts.length > 0) {
+          toast.success(language === 'ar' ? 'تم تطبيق القسيمة — صالحة لمنتجات معينة فقط' : 'Voucher applied — valid for certain items only');
+        } else {
+          toast.success(t('checkout_voucher_applied').replace('{amount}', formatAmount(discountAmt)));
+        }
       } else {
         toast.error(data.error_message || (language === 'ar' ? 'قسيمة غير صالحة' : 'Invalid voucher'));
         setAppliedVoucher(null);
@@ -1378,7 +1382,9 @@ export function CheckoutModal({
                     {appliedVoucher.code}
                   </Badge>
                   <span className="text-sm text-green-700">
-                   -{currencyLabel} {formatAmount(appliedVoucher.discount_amount)}
+                   {appliedVoucher.applicable_products && appliedVoucher.discount_amount === 0
+                     ? (language === 'ar' ? 'هذه القسيمة تنطبق على منتجات معينة فقط' : 'This voucher applies to certain items only')
+                     : `-${currencyLabel} ${formatAmount(appliedVoucher.discount_amount)}`}
                   </span>
                 </div>
                 <Button variant="ghost" size="sm" onClick={removeVoucher} className="text-red-600 hover:text-red-700">
@@ -1519,7 +1525,7 @@ export function CheckoutModal({
                   <span>{t('checkout_delivery_fee')}</span>
                   <span className="whitespace-nowrap">{currencyLabel} {formatAmount(deliveryFee)}</span>
                 </div>
-              {appliedVoucher && <div className="flex justify-between text-xs sm:text-sm text-green-600">
+              {appliedVoucher && appliedVoucher.discount_amount > 0 && <div className="flex justify-between text-xs sm:text-sm text-green-600">
                   <span className="break-words pr-2">{t('checkout_discount')} ({appliedVoucher.code})</span>
                   <span className="whitespace-nowrap">-{currencyLabel} {formatAmount(appliedVoucher.discount_amount)}</span>
                 </div>}
