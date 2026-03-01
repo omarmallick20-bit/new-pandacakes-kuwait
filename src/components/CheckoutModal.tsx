@@ -93,6 +93,7 @@ export function CheckoutModal({
     code: string;
     discount_amount: number;
     final_amount: number;
+    applicable_products?: string[];
   } | null>(null);
   const [isValidatingVoucher, setIsValidatingVoucher] = useState(false);
   const [availableVouchers, setAvailableVouchers] = useState<{
@@ -582,15 +583,26 @@ export function CheckoutModal({
       if (error) throw error;
       
       if (data.is_valid) {
-        // Calculate discount for UI preview (don't record usage yet!)
+        // Calculate discount - if voucher has applicable_products, only discount those items
+        const applicableProducts: string[] | null = data.applicable_products && data.applicable_products.length > 0
+          ? data.applicable_products
+          : null;
+        
+        const discountBase = applicableProducts
+          ? state.cart
+              .filter(item => applicableProducts.includes(item.cake.id))
+              .reduce((sum, item) => sum + item.price * item.quantity, 0)
+          : subtotal;
+        
         const discountAmt = data.discount_percentage > 0
-          ? Math.round(subtotal * data.discount_percentage / 100 * 100) / 100
-          : data.discount_amount || 0;
+          ? Math.round(discountBase * data.discount_percentage / 100 * 100) / 100
+          : Math.min(data.discount_amount || 0, discountBase);
         
         setAppliedVoucher({
           code: voucherCode.trim().toUpperCase(),
           discount_amount: discountAmt,
-          final_amount: subtotal - discountAmt
+          final_amount: subtotal - discountAmt,
+          applicable_products: applicableProducts || undefined
         });
         
         toast.success(t('checkout_voucher_applied').replace('{amount}', formatAmount(discountAmt)));

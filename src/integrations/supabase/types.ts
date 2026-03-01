@@ -2363,6 +2363,7 @@ export type Database = {
           voucher_code_param: string
         }
         Returns: {
+          applicable_products: string[]
           discount_amount: number
           discount_percentage: number
           error_message: string
