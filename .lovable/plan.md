@@ -1,36 +1,44 @@
 
 
-## Problem: Product-specific vouchers apply discount to entire cart
+## Problem
 
-The voucher `PCWAX73D` has `applicable_products` set to two Kuromi cake IDs, but the discount is applied to the **entire cart subtotal** instead of only those specific items. Two layers are broken:
+The `send-otp` edge function uses `HTTPS_PROXY` / `HTTP_PROXY` secrets to route SMS through Fixie. Both Qatar and Kuwait share the same Supabase project, but Kuwait has a **different Fixie proxy URL**. Currently the secrets only contain Qatar's proxy, so Kuwait OTP sends either fail or go through the wrong proxy/IP.
 
-1. **Database function `validate_voucher`**: Completely ignores the `applicable_products` column. It validates the voucher and returns `discount_percentage`/`discount_amount` without any product filtering.
-
-2. **Frontend `CheckoutModal.tsx` (line 586-588)**: Calculates discount as `subtotal * percentage / 100` — applying it to the full cart regardless.
-
-Neither layer knows which cart items match the voucher's product list.
+The screenshot also shows a "+974" (Qatar) country code on the Kuwait signup page — that's a separate issue with the phone input defaulting to Qatar.
 
 ## Fix
 
-### 1. Database: Return `applicable_products` from `validate_voucher`
+### 1. Add Kuwait proxy secrets
 
-Add `applicable_products` as a new OUT parameter to `validate_voucher` so the frontend knows which products the discount applies to.
+Add two new secrets (without touching the existing Qatar ones):
+- `HTTPS_PROXY_KW` = `http://fixie:aPBbymPS2fIwVPD@ventoux.usefixie.com:80`
+- `HTTP_PROXY_KW` = `http://fixie:aPBbymPS2fIwVPD@ventoux.usefixie.com:80`
 
-**Migration**: `ALTER` the function to add `applicable_products uuid[]` as an output, populated from `voucher_record.applicable_products`.
+### 2. Update `send-otp` edge function to select proxy by country
 
-### 2. Frontend: Calculate discount only on matching items
+**`supabase/functions/send-otp/index.ts`** — In `proxyFetch`, accept a `countryId` parameter. Pick the proxy env var based on country:
+- If `countryId === 'kw'` → read `HTTPS_PROXY_KW` / `HTTP_PROXY_KW`
+- Otherwise → read `HTTPS_PROXY` / `HTTP_PROXY` (Qatar default)
 
-**`src/components/CheckoutModal.tsx`** — After validation succeeds (line 584-594):
+Thread `country_id` from the request body through to `sendSmsViaFcc` → `proxyFetch`.
 
-- If `data.applicable_products` is non-null and non-empty, sum only the cart items whose `item.cake.id` is in the list
-- Apply the discount percentage/amount to that subset total, not the full `subtotal`
-- Store the `applicable_products` array in the `appliedVoucher` state so the order summary can show which items are discounted
+### 3. Update all frontend callers to pass `country_id`
 
-### 3. Store applicable_products in appliedVoucher state
+Add `country_id: COUNTRY_ID` to every `send-otp` invocation:
+- `src/pages/SignupPage.tsx` (line 236)
+- `src/components/ForgotPasswordModal.tsx` (line 110)
+- `src/pages/PhoneSetupPage.tsx` (line 183)
+- `src/components/ProfileModal.tsx` (line 176)
+- `src/pages/ProfilePage.tsx` (line 135)
 
-Update the `appliedVoucher` state type to include `applicable_products?: string[]`, and pass it through to the order data so the webhook/backend can also apply the discount correctly per-item.
+All files already import or can import `COUNTRY_ID` from `@/config/country`.
 
 ### Files to modify
-- New SQL migration: add `applicable_products` OUT parameter to `validate_voucher`
-- `src/components/CheckoutModal.tsx`: product-filtered discount calculation
+- `supabase/functions/send-otp/index.ts` — country-aware proxy selection
+- `src/pages/SignupPage.tsx` — pass `country_id`
+- `src/components/ForgotPasswordModal.tsx` — pass `country_id`
+- `src/pages/PhoneSetupPage.tsx` — pass `country_id`
+- `src/components/ProfileModal.tsx` — pass `country_id`
+- `src/pages/ProfilePage.tsx` — pass `country_id`
+- 2 new Supabase secrets: `HTTPS_PROXY_KW`, `HTTP_PROXY_KW`
 
