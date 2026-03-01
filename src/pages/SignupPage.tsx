@@ -233,7 +233,7 @@ export default function SignupPage() {
       console.log('📱 [Signup] Sending OTP to:', phoneNumber);
       const { data, error, timedOut } = await invokeWithTimeout<{ success?: boolean; error?: string }>(
         'send-otp',
-        { phone_number: phoneNumber, purpose: 'signup_verification' }
+        { phone_number: phoneNumber, purpose: 'signup_verification', country_id: COUNTRY_ID }
       );
 
       if (requestId !== sendOtpRequestIdRef.current) return false;

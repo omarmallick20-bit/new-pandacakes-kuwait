@@ -19,6 +19,7 @@ import { PhoneNumberInput } from "./PhoneNumberInput";
 import { formatPhoneWithCode } from "@/utils/phoneFormatting";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { COUNTRY_ID } from "@/config/country";
 import { useTranslation } from "@/hooks/useTranslation";
 
 interface ProfileModalProps {
@@ -176,7 +177,8 @@ export function ProfileModal({
     const { error, timedOut } = await invokeWithTimeout('send-otp', {
       phone_number: phoneToUse,
       user_id: user?.id,
-      purpose: 'phone_change'
+      purpose: 'phone_change',
+      country_id: COUNTRY_ID
     });
 
     // Stale response guard
