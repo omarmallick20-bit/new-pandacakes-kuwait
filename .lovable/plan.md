@@ -1,26 +1,21 @@
 
 
-## Make submit buttons clearly highlight when all fields are filled
+## Changes
 
-### Problem
-The submit buttons on Login, Signup, and Address Setup pages use `bg-tiffany` which maps to a light pastel teal (`hsl(180 35% 70%)`). Combined with `disabled:opacity-50`, the visual difference between enabled and disabled is too subtle — users can't tell when the form is ready.
+### 1. Label renames (all address forms)
 
-### Solution
-Replace the button background with `#1B9689` (a rich, saturated teal) for the enabled state, keeping the disabled state muted via the existing `disabled:opacity-50`.
+| Current | New |
+|---------|-----|
+| Building No. & Flat Number * | Block and Building Details * |
+| City | Area |
 
-Two approaches — I recommend **Option A** for minimal blast radius:
+**Files:** `src/pages/AddressSetupPage.tsx`, `src/pages/CheckoutPage.tsx`, `src/components/AddressManager.tsx`, `src/components/CheckoutModal.tsx`
 
-**Option A — Inline style override on each button:**
-Change `bg-tiffany hover:bg-tiffany/90` → `bg-[#1B9689] hover:bg-[#1B9689]/90` on every submit button across the three pages. This keeps the `tiffany` CSS variable unchanged for other uses (badges, links, etc.).
+Update placeholder text accordingly (e.g., "e.g., Block 3, Building 45" instead of "e.g., Building 123, Flat 4A"; "e.g., Salmiya, Hawalli" instead of "e.g., Kuwait City, Hawalli").
 
-**Option B — Update the CSS variable:**
-Change `--tiffany-blue` from `180 35% 70%` to match `#1B9689` globally. This would affect every element using `bg-tiffany` site-wide, which may have unintended side effects.
+### 2. Hide zone name from customer view
 
-### Files to modify (Option A)
+**File:** `src/components/DeliveryZoneMap.tsx` (line 616-618)
 
-1. **`src/pages/LoginPage.tsx`** — 2 submit buttons (email + phone tabs): `bg-tiffany` → `bg-[#1B9689]`
-2. **`src/pages/SignupPage.tsx`** — 2 submit buttons (send OTP + save profile): `bg-tiffany` → `bg-[#1B9689]`
-3. **`src/pages/AddressSetupPage.tsx`** — 1 submit button: `bg-tiffany` → `bg-[#1B9689]`
-
-Each change is a single className swap per button — no logic changes needed.
+Remove the `Zone: {deliveryZone.zone_name}` paragraph from the delivery info shown to the customer. The zone data remains stored in state and passed to the database — only the UI display line is removed.
 
