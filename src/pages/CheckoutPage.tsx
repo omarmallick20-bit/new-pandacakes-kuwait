@@ -92,6 +92,7 @@ export default function CheckoutPage() {
         .from('addresses')
         .select('id')
         .eq('customer_id', user.id)
+        .eq('country_id', COUNTRY_ID)
         .limit(1);
 
       if (error) throw error;
@@ -111,7 +112,7 @@ export default function CheckoutPage() {
       const {
         data,
         error
-      } = await supabase.from('addresses').select('*').eq('customer_id', user.id).order('is_primary', {
+      } = await supabase.from('addresses').select('*').eq('customer_id', user.id).eq('country_id', COUNTRY_ID).order('is_primary', {
         ascending: false
       });
       if (error) throw error;
