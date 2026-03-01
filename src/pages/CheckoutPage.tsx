@@ -608,10 +608,10 @@ export default function CheckoutPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="building_flat">Building No. & Flat Number *</Label>
+                <Label htmlFor="building_flat">Block and Building Details *</Label>
                 <Input 
                   id="building_flat" 
-                  placeholder="e.g., Building 123, Flat 4A" 
+                  placeholder="e.g., Block 3, Building 45"
                   value={newAddress.building_flat}
                   onChange={e => setNewAddress({
                     ...newAddress,
@@ -637,7 +637,7 @@ export default function CheckoutPage() {
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="city">City</Label>
+                  <Label htmlFor="city">Area</Label>
                   <Input id="city" value={newAddress.city} onChange={e => setNewAddress({
                   ...newAddress,
                   city: e.target.value

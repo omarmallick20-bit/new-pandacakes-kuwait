@@ -1177,7 +1177,7 @@ export function CheckoutModal({
                     <Input id="building_flat" value={newAddress.building_flat} onChange={e => setNewAddress({
                 ...newAddress,
                 building_flat: e.target.value
-              })} placeholder="e.g., Building 123, Flat 4A" className="text-xs sm:text-sm h-8 sm:h-10 mt-1" required />
+              })} placeholder="e.g., Block 3, Building 45" className="text-xs sm:text-sm h-8 sm:h-10 mt-1" required />
                   </div>
                   <div>
                     <Label htmlFor="street" className="text-[10px] sm:text-sm">
@@ -1196,7 +1196,7 @@ export function CheckoutModal({
                     <Input id="city" value={newAddress.city} onChange={e => setNewAddress({
                 ...newAddress,
                 city: e.target.value
-              })} placeholder="e.g., Doha, Al Rayyan" className="text-xs sm:text-sm h-8 sm:h-10 mt-1" required />
+              })} placeholder="e.g., Salmiya, Hawalli" className="text-xs sm:text-sm h-8 sm:h-10 mt-1" required />
                   </div>
                   <div>
                     <Label htmlFor="landmarks" className="text-[10px] sm:text-sm">{t('checkout_landmarks')}</Label>
