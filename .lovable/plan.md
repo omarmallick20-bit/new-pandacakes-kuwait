@@ -1,16 +1,26 @@
 
 
-## UI change: Show "applicable items only" message when product-specific voucher has zero discount
+## Make submit buttons clearly highlight when all fields are filled
 
-When a product-specific voucher (like the Kuromi voucher) is applied but no eligible items are in the cart, the discount calculates to 0. Currently it shows `-QAR 0.00` which is confusing. Instead, show an informative message.
+### Problem
+The submit buttons on Login, Signup, and Address Setup pages use `bg-tiffany` which maps to a light pastel teal (`hsl(180 35% 70%)`). Combined with `disabled:opacity-50`, the visual difference between enabled and disabled is too subtle — users can't tell when the form is ready.
 
-### Changes in `src/components/CheckoutModal.tsx`
+### Solution
+Replace the button background with `#1B9689` (a rich, saturated teal) for the enabled state, keeping the disabled state muted via the existing `disabled:opacity-50`.
 
-**3 locations to update:**
+Two approaches — I recommend **Option A** for minimal blast radius:
 
-1. **Voucher applied badge (line 1380-1382):** When `appliedVoucher.applicable_products` exists and `discount_amount === 0`, show "This voucher applies to certain items only" (Arabic: "هذه القسيمة تنطبق على منتجات معينة فقط") instead of `-QAR 0.00`.
+**Option A — Inline style override on each button:**
+Change `bg-tiffany hover:bg-tiffany/90` → `bg-[#1B9689] hover:bg-[#1B9689]/90` on every submit button across the three pages. This keeps the `tiffany` CSS variable unchanged for other uses (badges, links, etc.).
 
-2. **Order summary discount line (line 1522-1525):** Hide the discount row entirely when `discount_amount === 0` — no point showing a zero-value line.
+**Option B — Update the CSS variable:**
+Change `--tiffany-blue` from `180 35% 70%` to match `#1B9689` globally. This would affect every element using `bg-tiffany` site-wide, which may have unintended side effects.
 
-3. **Toast message (line 608):** When `discountAmt === 0` and `applicableProducts` is set, show "Voucher applied — valid for certain items only" instead of "Voucher applied! Discount: 0.00".
+### Files to modify (Option A)
+
+1. **`src/pages/LoginPage.tsx`** — 2 submit buttons (email + phone tabs): `bg-tiffany` → `bg-[#1B9689]`
+2. **`src/pages/SignupPage.tsx`** — 2 submit buttons (send OTP + save profile): `bg-tiffany` → `bg-[#1B9689]`
+3. **`src/pages/AddressSetupPage.tsx`** — 1 submit button: `bg-tiffany` → `bg-[#1B9689]`
+
+Each change is a single className swap per button — no logic changes needed.
 
