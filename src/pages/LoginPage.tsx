@@ -194,7 +194,7 @@ export default function LoginPage() {
 
                 <Button
                   type="submit"
-                  className="w-full bg-tiffany hover:bg-tiffany/90 text-background"
+                  className="w-full bg-[#1B9689] hover:bg-[#1B9689]/90 text-white"
                   disabled={isLoading}
                 >
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -237,7 +237,7 @@ export default function LoginPage() {
 
                 <Button
                   type="submit"
-                  className="w-full bg-tiffany hover:bg-tiffany/90 text-background"
+                  className="w-full bg-[#1B9689] hover:bg-[#1B9689]/90 text-white"
                   disabled={isLoading}
                 >
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
