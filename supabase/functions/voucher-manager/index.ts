@@ -18,24 +18,23 @@ serve(async (req) => {
     );
 
     const { action, voucher_code, customer_id, order_amount, voucher_data, country_id } = await req.json();
-    // Use client-provided country_id, default to 'qa' for backward compatibility
-    const COUNTRY_CODE = country_id || 'qa';
+    const countryCode = country_id || 'qa';
 
     switch (action) {
       case 'validate':
-        return await validateVoucher(supabase, voucher_code, customer_id, order_amount);
+        return await validateVoucher(supabase, voucher_code, customer_id, order_amount, countryCode);
       
       case 'apply':
-        return await applyVoucher(supabase, voucher_code, customer_id, order_amount);
+        return await applyVoucher(supabase, voucher_code, customer_id, order_amount, countryCode);
       
       case 'create':
-        return await createVoucher(supabase, voucher_data);
+        return await createVoucher(supabase, voucher_data, countryCode);
       
       case 'create_birthday_vouchers':
-        return await createBirthdayVouchers(supabase);
+        return await createBirthdayVouchers(supabase, countryCode);
       
       case 'get_customer_vouchers':
-        return await getCustomerVouchers(supabase, customer_id);
+        return await getCustomerVouchers(supabase, customer_id, countryCode);
       
       default:
         return new Response(JSON.stringify({ error: 'Invalid action' }), {
@@ -53,14 +52,14 @@ serve(async (req) => {
   }
 });
 
-async function validateVoucher(supabase: any, voucher_code: string, customer_id: string, order_amount: number) {
+async function validateVoucher(supabase: any, voucher_code: string, customer_id: string, order_amount: number, countryCode: string) {
   try {
     const { data, error } = await supabase
       .rpc('validate_voucher', {
         voucher_code_param: voucher_code,
         customer_id_param: customer_id,
         order_amount_param: order_amount,
-        country_code_param: COUNTRY_CODE
+        country_code_param: countryCode
       });
 
     if (error) {
@@ -83,14 +82,14 @@ async function validateVoucher(supabase: any, voucher_code: string, customer_id:
   }
 }
 
-async function applyVoucher(supabase: any, voucher_code: string, customer_id: string, order_amount: number) {
+async function applyVoucher(supabase: any, voucher_code: string, customer_id: string, order_amount: number, countryCode: string) {
   try {
     const { data, error } = await supabase
       .rpc('apply_voucher', {
         voucher_code_param: voucher_code,
         customer_id_param: customer_id,
         order_amount_param: order_amount,
-        country_code_param: COUNTRY_CODE
+        country_code_param: countryCode
       });
 
     if (error) {
@@ -113,9 +112,8 @@ async function applyVoucher(supabase: any, voucher_code: string, customer_id: st
   }
 }
 
-async function createVoucher(supabase: any, voucher_data: any) {
+async function createVoucher(supabase: any, voucher_data: any, countryCode: string) {
   try {
-    // Generate voucher code if not provided
     if (!voucher_data.voucher_code) {
       const { data: codeData, error: codeError } = await supabase
         .rpc('generate_voucher_code');
@@ -131,7 +129,7 @@ async function createVoucher(supabase: any, voucher_data: any) {
       .from('vouchers')
       .insert({
         ...voucher_data,
-        country_id: COUNTRY_CODE
+        country_id: countryCode
       })
       .select()
       .single();
@@ -156,10 +154,10 @@ async function createVoucher(supabase: any, voucher_data: any) {
   }
 }
 
-async function createBirthdayVouchers(supabase: any) {
+async function createBirthdayVouchers(supabase: any, countryCode: string) {
   try {
     const { data, error } = await supabase
-      .rpc('create_birthday_vouchers', { country_code: COUNTRY_CODE });
+      .rpc('create_birthday_vouchers', { country_code: countryCode });
 
     if (error) {
       throw error;
@@ -181,15 +179,14 @@ async function createBirthdayVouchers(supabase: any) {
   }
 }
 
-async function getCustomerVouchers(supabase: any, customer_id: string) {
+async function getCustomerVouchers(supabase: any, customer_id: string, countryCode: string) {
   try {
     const { data, error } = await supabase
       .from('vouchers')
       .select('*')
       .eq('customer_id', customer_id)
-      .eq('country_id', COUNTRY_CODE)
+      .eq('country_id', countryCode)
       .gte('valid_until', new Date().toISOString().split('T')[0])
-      .lt('usage_count', supabase.rpc('max_usage'))
       .order('created_at', { ascending: false });
 
     if (error) {
