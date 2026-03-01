@@ -81,6 +81,7 @@ export function ProfileModal({
   const { t, currencyLabel } = useTranslation();
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [showBakePointsInfo, setShowBakePointsInfo] = useState(false);
+  const [countryBakePoints, setCountryBakePoints] = useState<number>(0);
   const [selectedOrderForPaymentDetails, setSelectedOrderForPaymentDetails] = useState<any>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -113,6 +114,24 @@ export function ProfileModal({
       refetch();
     }
   }, [isOpen, activeTab, isAuthReady]);
+
+  // Fetch country-specific BakePoints balance
+  useEffect(() => {
+    if (isOpen && user && isAuthReady) {
+      const fetchPoints = async () => {
+        try {
+          const { data, error } = await supabase.rpc('get_available_bakepoints', {
+            p_customer_id: user.id,
+            p_country_id: COUNTRY_ID
+          });
+          if (!error) setCountryBakePoints(data || 0);
+        } catch (err) {
+          console.error('Error fetching country BakePoints:', err);
+        }
+      };
+      fetchPoints();
+    }
+  }, [isOpen, user, isAuthReady]);
 
   // Initialize edit data when modal opens or customerProfile changes
   useEffect(() => {
@@ -551,7 +570,7 @@ export function ProfileModal({
                             <p className="text-lg">{new Date(customerProfile.birthdate).toLocaleDateString()}</p>
                           </div>}
 
-                        {customerProfile?.loyalty_points !== undefined && <div className="space-y-1">
+                        {customerProfile && <div className="space-y-1">
                             <div className="flex items-center gap-2">
                               <label className="text-sm font-medium text-muted-foreground">
                                 {getPointsLabel(customerProfile?.country_id)}
@@ -561,7 +580,7 @@ export function ProfileModal({
                                 <HelpCircle className="h-3 w-3 text-muted-foreground group-hover:text-foreground transition-colors" />
                               </button>
                             </div>
-                            <p className="text-2xl font-bold text-primary">{customerProfile.loyalty_points}</p>
+                            <p className="text-2xl font-bold text-primary">{countryBakePoints}</p>
                             <p className="text-xs text-muted-foreground mt-1">500 BakePoints = 1 {currencyLabel}</p>
                           </div>}
 

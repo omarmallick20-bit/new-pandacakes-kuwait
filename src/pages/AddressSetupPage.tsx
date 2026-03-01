@@ -86,6 +86,7 @@ export default function AddressSetupPage() {
             .from('addresses')
             .select('*')
             .eq('customer_id', user.id)
+            .eq('country_id', COUNTRY_ID)
             .limit(1);
 
           if (error) throw error;

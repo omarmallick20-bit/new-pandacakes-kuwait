@@ -105,6 +105,7 @@ export function CheckoutModal({
   }[]>([]);
   const [appliedBakePoints, setAppliedBakePoints] = useState<number>(0);
   const [isRedeemingPoints, setIsRedeemingPoints] = useState(false);
+  const [countryBakePoints, setCountryBakePoints] = useState<number>(0);
   const [giftRecipientName, setGiftRecipientName] = useState('');
   const [giftRecipientPhone, setGiftRecipientPhone] = useState('');
   const [showNewAddressForm, setShowNewAddressForm] = useState(false);
@@ -283,14 +284,35 @@ export function CheckoutModal({
     };
   }, [isOpen]);
 
+  // Fetch country-specific BakePoints balance via RPC
+  const fetchCountryBakePoints = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase.rpc('get_available_bakepoints', {
+        p_customer_id: user.id,
+        p_country_id: COUNTRY_ID
+      });
+      if (error) {
+        console.error('Error fetching country BakePoints:', error);
+        setCountryBakePoints(0);
+        return;
+      }
+      setCountryBakePoints(data || 0);
+    } catch (err) {
+      console.error('Error fetching country BakePoints:', err);
+      setCountryBakePoints(0);
+    }
+  };
+
   useEffect(() => {
     if (user && isOpen) {
-      // OPTIMIZED: Run all 4 fetches in parallel instead of sequentially
+      // OPTIMIZED: Run all 5 fetches in parallel instead of sequentially
       Promise.all([
         fetchUserAddresses(),
         fetchVatSettings(),
         fetchBlockedSlots(),
-        fetchAvailableVouchers()
+        fetchAvailableVouchers(),
+        fetchCountryBakePoints()
       ]);
       setCurrentStep('gift');
       setAppliedBakePoints(0);
@@ -641,7 +663,7 @@ export function CheckoutModal({
   const total = subtotal + deliveryFee - discount - bakePointsDiscount + vatAmount;
 
   // Calculate maximum redeemable BakePoints
-  const availablePoints = customerProfile?.loyalty_points || 0;
+  const availablePoints = countryBakePoints;
   const pointsRate = getPointsRedemptionInfo().rate; // 500 for KW
   const maxRedeemablePoints = Math.floor(Math.min(availablePoints, (subtotal + deliveryFee - discount) * pointsRate) / pointsRate) * pointsRate;
   // BakePoints redemption is now UI-only until order is placed
@@ -1396,7 +1418,7 @@ export function CheckoutModal({
         </Card>
 
         {/* BakePoints Redemption */}
-        {customerProfile && customerProfile.loyalty_points >= 50 && <Card>
+        {customerProfile && countryBakePoints >= 50 && <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
@@ -1408,7 +1430,7 @@ export function CheckoutModal({
                   <div className="flex items-center justify-between p-3 bg-amber-50 border border-amber-200 rounded-lg">
                     <div>
                       <div className="text-sm font-medium text-amber-900">
-                        {t('checkout_available')} {customerProfile.loyalty_points} BakePoints
+                        {t('checkout_available')} {countryBakePoints} BakePoints
                       </div>
                       <div className="text-xs text-amber-700">
                         {maxRedeemablePoints} {t('checkout_can_use')} (= {currencyLabel} {formatAmount(calculateDiscount(maxRedeemablePoints))})
@@ -1426,11 +1448,11 @@ export function CheckoutModal({
                       </>}
                   </Button>
                   
-                  {maxRedeemablePoints < 50 && customerProfile.loyalty_points >= 50 && <p className="text-xs text-muted-foreground text-center">
+                  {maxRedeemablePoints < 50 && countryBakePoints >= 50 && <p className="text-xs text-muted-foreground text-center">
                       {t('checkout_order_total_low')}
                     </p>}
-                  {customerProfile.loyalty_points < 50 && <p className="text-xs text-muted-foreground text-center">
-                      {t('checkout_min_points')} ({customerProfile.loyalty_points})
+                  {countryBakePoints < 50 && <p className="text-xs text-muted-foreground text-center">
+                      {t('checkout_min_points')} ({countryBakePoints})
                     </p>}
                 </div> : <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
                   <div className="flex items-center gap-2">

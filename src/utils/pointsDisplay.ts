@@ -18,7 +18,16 @@ export const getPointsLabel = (countryId?: string | null): string => {
 };
 
 export const getPointsRedemptionInfo = (countryId?: string | null): PointsInfo => {
-  // Default to KWD/BakePoints (this website's default for all users)
+  if (countryId === 'qa') {
+    return {
+      label: 'BakePoints',
+      rate: 50, // 50 points = 1 QAR
+      expiryMonths: 12,
+      currency: 'QAR',
+      currencySymbol: 'ر.ق'
+    };
+  }
+  // Default to KWD/BakePoints (Kuwait)
   return {
     label: 'BakePoints',
     rate: 500, // 500 points = 1 KWD
@@ -26,8 +35,6 @@ export const getPointsRedemptionInfo = (countryId?: string | null): PointsInfo =
     currency: 'KWD',
     currencySymbol: 'د.ك'
   };
-  
-  // Note: If you expand to other countries in future, add conditional logic here
 };
 
 export const calculateDiscount = (points: number, countryId?: string | null): number => {
