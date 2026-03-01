@@ -574,7 +574,8 @@ export function CheckoutModal({
           action: 'validate',
           voucher_code: voucherCode.trim().toUpperCase(),
           customer_id: user.id,
-          order_amount: subtotal // Only item prices, not delivery fee
+          order_amount: subtotal, // Only item prices, not delivery fee
+          country_id: COUNTRY_ID
         }
       });
       
