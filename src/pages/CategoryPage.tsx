@@ -290,21 +290,6 @@ export default function CategoryPage() {
           </div>
         </div>
 
-        {/* Discount Banner - show max discount percentage if any items have discounts */}
-        {(() => {
-          const maxDiscountPercentage = enrichedItems.reduce((max, item) => {
-            const discountInfo = calculateDiscount(item);
-            return Math.max(max, discountInfo.discountPercentage || 0);
-          }, 0);
-          
-          return maxDiscountPercentage > 0 ? (
-            <div className="mb-6">
-              <div className="inline-flex items-center bg-destructive text-destructive-foreground px-4 py-2 rounded-full font-bold text-sm shadow-md">
-                {Math.round(maxDiscountPercentage)}{t('cat_off_selected')}
-              </div>
-            </div>
-          ) : null;
-        })()}
 
         {enrichedItems.length === 0 ? <div className="text-center py-16">
             <div className="bg-card-gradient rounded-3xl p-12 border border-tiffany/20 shadow-lg max-w-md mx-auto">
