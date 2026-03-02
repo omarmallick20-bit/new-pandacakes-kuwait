@@ -1934,24 +1934,24 @@ export type Database = {
         | { Args: { country_code?: string }; Returns: number }
       create_manual_order: {
         Args: {
-          p_cake_details?: Json
-          p_country_id?: string
+          p_cake_details: Json
+          p_country_id: string
           p_customer_id: string
-          p_customer_notes?: string
-          p_delivery_address_id?: string
-          p_delivery_fee?: number
-          p_delivery_zone_id?: string
-          p_estimated_delivery_time?: string
-          p_fulfillment_type?: string
-          p_loyalty_discount_amount?: number
-          p_payment_method?: string
-          p_pickup_contact_name?: string
-          p_pickup_contact_phone?: string
-          p_pickup_location?: string
-          p_pickup_time?: string
-          p_platform_source?: string
-          p_staff_notes?: string
-          p_total_amount?: number
+          p_customer_notes: string
+          p_delivery_address_id: string
+          p_delivery_fee: number
+          p_delivery_zone_id: string
+          p_estimated_delivery_time: string
+          p_fulfillment_type: string
+          p_loyalty_discount_amount: number
+          p_payment_method: string
+          p_pickup_contact_name: string
+          p_pickup_contact_phone: string
+          p_pickup_location: string
+          p_pickup_time: string
+          p_platform_source: string
+          p_staff_notes: string
+          p_total_amount: number
         }
         Returns: {
           order_id: string

@@ -11,6 +11,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { calculateDiscount, DiscountableItem } from '@/utils/discountHelpers';
 import { DiscountBadge } from '@/components/DiscountBadge';
 import { useItemDiscounts, applyItemDiscount } from '@/hooks/useItemDiscounts';
+import { useCategoryDiscounts } from '@/hooks/useCategoryDiscounts';
 import { useTranslation } from '@/hooks/useTranslation';
 import { COUNTRY_ID } from '@/config/country';
 import { formatAmount } from '@/utils/currencyHelpers';
@@ -113,6 +114,7 @@ export default function OrderPage() {
 
   // Fetch active item discounts from item_discounts table
   const { discountsMap, isLoading: discountsLoading } = useItemDiscounts();
+  const { categoryDiscounts } = useCategoryDiscounts();
 
   // Use centralized DataContext for categories and layout
   const {
@@ -366,8 +368,13 @@ export default function OrderPage() {
         gridTemplateColumns: `repeat(${isMobile ? layoutConfig?.mobile_columns || 2 : layoutConfig?.desktop_columns || 4}, 1fr)`,
         gap: `${isMobile ? layoutConfig?.mobile_gap || 16 : layoutConfig?.desktop_gap || 24}px`
       }}>
-            {categories.map(category => <div key={category.id} onClick={() => navigate(`/category/${category.id}`)} className="bg-card-gradient rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer border border-tiffany/20 group">
+            {categories.map(category => {
+              const catDiscount = categoryDiscounts.get(category.id);
+              return <div key={category.id} onClick={() => navigate(`/category/${category.id}`)} className="bg-card-gradient rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer border border-tiffany/20 group">
                 <div className="aspect-[4/3] md:aspect-square relative">
+                  {catDiscount && catDiscount > 0 && (
+                    <DiscountBadge percentage={catDiscount} />
+                  )}
                   <img src={category.image_url || '/placeholder.svg'} alt={category.name} loading="lazy" onError={e => {
               e.currentTarget.src = '/placeholder.svg';
             }} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
@@ -379,7 +386,8 @@ export default function OrderPage() {
                   </h3>
                   <div className="mt-2 h-1 bg-gradient-to-r from-tiffany to-sunshine rounded-full transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
                 </div>
-              </div>)}
+              </div>;
+            })}
           </div>}
       </div>
     </main>;
