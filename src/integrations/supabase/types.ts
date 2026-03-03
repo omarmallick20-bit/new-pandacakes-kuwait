@@ -2307,20 +2307,35 @@ export type Database = {
         }
         Returns: boolean
       }
-      redeem_bakepoints: {
-        Args: {
-          p_country_id?: string
-          p_customer_id: string
-          p_order_id?: string
-          p_points_to_redeem: number
-        }
-        Returns: {
-          discount_amount: number
-          message: string
-          new_balance: number
-          success: boolean
-        }[]
-      }
+      redeem_bakepoints:
+        | {
+            Args: {
+              p_country_id?: string
+              p_customer_id: string
+              p_order_id?: string
+              p_points_to_redeem: number
+            }
+            Returns: {
+              discount_amount: number
+              message: string
+              new_balance: number
+              success: boolean
+            }[]
+          }
+        | {
+            Args: {
+              p_country_id?: string
+              p_customer_id: string
+              p_order_id?: string
+              p_points_to_redeem: number
+            }
+            Returns: {
+              discount_amount: number
+              message: string
+              new_balance: number
+              success: boolean
+            }[]
+          }
       redeem_loyalty_points: {
         Args: {
           code: string

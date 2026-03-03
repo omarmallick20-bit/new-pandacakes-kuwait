@@ -210,7 +210,7 @@ export default function LoginPage() {
                   <PhoneNumberInput
                     value={formData.phoneNumber}
                     onChange={(value) => setFormData(prev => ({ ...prev, phoneNumber: value }))}
-                    placeholder="e.g., +974 xxxx xxxx"
+                    placeholder="Fill your number"
                     required
                     disabled={isLoading}
                   />
