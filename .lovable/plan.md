@@ -1,10 +1,10 @@
 
 
-## No code changes needed
+## Change phone placeholder text on Login page
 
-The "X% off Selected Cakes" banner has already been successfully removed from `CategoryPage.tsx` (confirmed at lines 289-290 — the block is gone). The screenshot you're seeing is from a cached version of the page.
+**File:** `src/pages/LoginPage.tsx`, line 213
 
-**To verify**: Do a hard refresh (Ctrl+Shift+R / Cmd+Shift+R) in the preview, then navigate to a category with active discounts. The banner should no longer appear at the top of the category page.
+Change `placeholder="e.g., +974 xxxx xxxx"` to `placeholder="Fill your number"`.
 
-The discount badges are correctly showing on the category cards in the main order/menu page via the `useCategoryDiscounts` hook, as intended.
+Single line edit, no other files affected.
 
