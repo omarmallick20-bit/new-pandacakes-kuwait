@@ -589,7 +589,11 @@ export default function ProfilePage() {
                       <p className="text-muted-foreground">No orders placed yet.</p>
                     </div>
                   ) : (
-                    orders.map((order) => (
+                    orders.map((order) => {
+                      const orderCurrency = order.payment_currency || DEFAULT_CURRENCY;
+                      const orderDecimals = orderCurrency === 'KWD' ? 3 : 2;
+                      const fmt = (amount: number) => `${amount.toFixed(orderDecimals)} ${orderCurrency}`;
+                      return (
                       <Card key={order.id}>
                         <CardContent className="p-4">
                           <div className="flex justify-between items-start mb-4">
