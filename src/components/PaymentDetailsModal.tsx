@@ -144,10 +144,10 @@ export function PaymentDetailsModal({ isOpen, onClose, order }: PaymentDetailsMo
                               {item.original_unit_price && item.original_unit_price > item.unit_price ? (
                                 <div className="space-y-0.5">
                                   <p className="text-xs text-muted-foreground line-through">
-                                    {item.quantity} × {formatQAR(item.original_unit_price)}
+                                    {item.quantity} × {formatOrderAmount(item.original_unit_price)}
                                   </p>
                                   <p className="text-sm font-medium text-destructive">
-                                    {item.quantity} × {formatQAR(item.unit_price)}
+                                    {item.quantity} × {formatOrderAmount(item.unit_price)}
                                   </p>
                                   {item.item_discount_percentage && (
                                     <p className="text-xs text-green-600">
@@ -155,16 +155,16 @@ export function PaymentDetailsModal({ isOpen, onClose, order }: PaymentDetailsMo
                                     </p>
                                   )}
                                   <p className="text-xs text-muted-foreground">
-                                    = {formatQAR(item.total_price)}
+                                    = {formatOrderAmount(item.total_price)}
                                   </p>
                                 </div>
                               ) : (
                                 <>
                                   <p className="text-sm font-medium">
-                                    {item.quantity} × {formatQAR(item.unit_price)}
+                                    {item.quantity} × {formatOrderAmount(item.unit_price)}
                                   </p>
                                   <p className="text-xs text-muted-foreground">
-                                    = {formatQAR(item.total_price)}
+                                    = {formatOrderAmount(item.total_price)}
                                   </p>
                                 </>
                               )}
@@ -188,27 +188,27 @@ export function PaymentDetailsModal({ isOpen, onClose, order }: PaymentDetailsMo
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span>{formatQAR(subtotal)}</span>
+                  <span>{formatOrderAmount(subtotal)}</span>
                 </div>
 
                 {deliveryFee > 0 && (
                   <div className="flex justify-between">
                     <span>Delivery Fee</span>
-                    <span>{formatQAR(deliveryFee)}</span>
+                    <span>{formatOrderAmount(deliveryFee)}</span>
                   </div>
                 )}
 
                 {voucherDiscount > 0 && (
                   <div className="flex justify-between text-green-600 dark:text-green-400">
                     <span>Voucher Discount</span>
-                    <span>-{formatQAR(voucherDiscount)}</span>
+                    <span>-{formatOrderAmount(voucherDiscount)}</span>
                   </div>
                 )}
 
                 {bakePointsDiscount > 0 && (
                   <div className="flex justify-between text-amber-600 dark:text-amber-400">
                     <span>BakePoints Discount</span>
-                    <span>-{formatQAR(bakePointsDiscount)}</span>
+                    <span>-{formatOrderAmount(bakePointsDiscount)}</span>
                   </div>
                 )}
 
@@ -216,7 +216,7 @@ export function PaymentDetailsModal({ isOpen, onClose, order }: PaymentDetailsMo
 
                 <div className="flex justify-between font-semibold text-base">
                   <span>Total</span>
-                  <span className="text-primary">{formatQAR(order.payment_amount || order.total_amount)}</span>
+                  <span className="text-primary">{formatOrderAmount(order.payment_amount || order.total_amount)}</span>
                 </div>
 
                 <div className="text-xs text-muted-foreground">
