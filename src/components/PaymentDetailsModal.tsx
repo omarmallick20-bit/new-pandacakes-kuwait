@@ -50,6 +50,10 @@ interface PaymentDetailsModalProps {
 }
 
 export function PaymentDetailsModal({ isOpen, onClose, order }: PaymentDetailsModalProps) {
+  const orderCurrency = order.payment_currency || DEFAULT_CURRENCY;
+  const orderDecimals = orderCurrency === 'KWD' ? 3 : 2;
+  const formatOrderAmount = (amount: number) => `${amount.toFixed(orderDecimals)} ${orderCurrency}`;
+
   const getPaymentStatusBadge = () => {
     const status = order.payment_status?.toLowerCase() || 'pending';
     
