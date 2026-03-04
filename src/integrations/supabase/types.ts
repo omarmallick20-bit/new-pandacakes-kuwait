@@ -2336,6 +2336,20 @@ export type Database = {
               success: boolean
             }[]
           }
+        | {
+            Args: {
+              p_country_id?: string
+              p_customer_id: string
+              p_order_id: string
+              p_points_to_redeem: number
+            }
+            Returns: {
+              discount_amount: number
+              message: string
+              remaining_points: number
+              success: boolean
+            }[]
+          }
       redeem_loyalty_points: {
         Args: {
           code: string
