@@ -4,7 +4,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { CreditCard, Banknote, CheckCircle2, XCircle, Clock, MapPin, Truck } from 'lucide-react';
-import { formatQAR } from '@/utils/currencyHelpers';
 import { DEFAULT_CURRENCY } from '@/config/country';
 import { formatOrderItemCustomizations, getSpecialInstructions } from '@/utils/orderHelpers';
 import { format } from 'date-fns';
