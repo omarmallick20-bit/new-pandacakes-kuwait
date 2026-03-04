@@ -589,7 +589,11 @@ export default function ProfilePage() {
                       <p className="text-muted-foreground">No orders placed yet.</p>
                     </div>
                   ) : (
-                    orders.map((order) => (
+                    orders.map((order) => {
+                      const orderCurrency = order.payment_currency || DEFAULT_CURRENCY;
+                      const orderDecimals = orderCurrency === 'KWD' ? 3 : 2;
+                      const fmt = (amount: number) => `${amount.toFixed(orderDecimals)} ${orderCurrency}`;
+                      return (
                       <Card key={order.id}>
                         <CardContent className="p-4">
                           <div className="flex justify-between items-start mb-4">
@@ -614,7 +618,7 @@ export default function ProfilePage() {
                               {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                             </Badge>
                               <p className="text-sm font-medium mt-1">
-                                {formatAmount(order.total_amount)} {DEFAULT_CURRENCY}
+                                {fmt(order.total_amount)}
                               </p>
                             </div>
                           </div>
@@ -657,7 +661,7 @@ export default function ProfilePage() {
                                     </span>
                                   )}
                                 </span>
-                                <span>{formatAmount((item.total_price || item.unit_price) ?? 0)} {DEFAULT_CURRENCY}</span>
+                                <span>{fmt((item.total_price || item.unit_price) ?? 0)}</span>
                               </div>
                             ))}
                           </div>
@@ -671,35 +675,36 @@ export default function ProfilePage() {
                               {order.original_amount && order.original_amount !== order.total_amount && (
                                 <div className="flex justify-between text-muted-foreground">
                                   <span>Subtotal</span>
-                                  <span>{formatAmount(order.original_amount)} {DEFAULT_CURRENCY}</span>
+                                  <span>{fmt(order.original_amount)}</span>
                                 </div>
                               )}
                               
                               {order.delivery_fee && order.delivery_fee > 0 && (
                                 <div className="flex justify-between text-muted-foreground">
                                   <span>Delivery Fee</span>
-                                  <span>{formatAmount(order.delivery_fee)} {DEFAULT_CURRENCY}</span>
+                                  <span>{fmt(order.delivery_fee)}</span>
                                 </div>
                               )}
                               
                               {order.voucher_discount_amount && order.voucher_discount_amount > 0 && (
                                 <div className="flex justify-between text-green-600">
                                   <span>Voucher Discount</span>
-                                  <span>-{formatAmount(order.voucher_discount_amount)} {DEFAULT_CURRENCY}</span>
+                                  <span>-{fmt(order.voucher_discount_amount)}</span>
                                 </div>
                               )}
                               
                               {order.bakepoints_discount_amount && order.bakepoints_discount_amount > 0 && (
                                 <div className="flex justify-between text-amber-600">
                                   <span>BakePoints Discount</span>
-                                  <span>-{formatAmount(order.bakepoints_discount_amount)} {DEFAULT_CURRENCY}</span>
+                                  <span>-{fmt(order.bakepoints_discount_amount)}</span>
                                 </div>
                               )}
                             </div>
                           )}
                         </CardContent>
                       </Card>
-                    ))
+                      );
+                    })
                   )}
                 </div>
               </CardContent>
