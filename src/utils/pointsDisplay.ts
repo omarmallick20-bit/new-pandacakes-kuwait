@@ -52,7 +52,9 @@ export const formatPointsExpiry = (expiryDate: string | Date): string => {
 };
 
 export const getCurrencyForOrder = (countryId?: string): string => {
-  return 'KWD'; // Kuwait-only website
+  if (countryId === 'qa') return 'QAR';
+  if (countryId === 'sa') return 'SAR';
+  return 'KWD';
 };
 
 export const getCurrencySymbol = (countryId?: string): string => {
