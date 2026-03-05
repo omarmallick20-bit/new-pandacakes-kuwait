@@ -1,20 +1,40 @@
 
 
-## Analysis: Currency display is already fixed in code
+## Problem
 
-The fix is **already implemented** in the current codebase (line 593-595 of ProfilePage.tsx):
+The order history in `ProfileModal.tsx` (the dialog version the user actually sees) has two bugs:
+
+1. **`getCurrencyForOrder()` in `src/utils/pointsDisplay.ts`** (line 55) is hardcoded to always return `'KWD'` regardless of country — so all orders show KWD.
+2. **Line 709 of `ProfileModal.tsx`** uses `.toFixed(2)` hardcoded instead of using the correct decimal places per currency (KWD=3, QAR=2).
+
+The `ProfilePage.tsx` was already fixed but the user sees `ProfileModal.tsx` — the modal version.
+
+## Fix
+
+### 1. `src/utils/pointsDisplay.ts` — Fix `getCurrencyForOrder`
 
 ```typescript
-const orderCurrency = order.payment_currency || DEFAULT_CURRENCY;
-const orderDecimals = orderCurrency === 'KWD' ? 3 : 2;
-const fmt = (amount: number) => `${amount.toFixed(orderDecimals)} ${orderCurrency}`;
+export const getCurrencyForOrder = (countryId?: string): string => {
+  if (countryId === 'qa') return 'QAR';
+  if (countryId === 'sa') return 'SAR';
+  return 'KWD';
+};
 ```
 
-The database confirms QA orders have `payment_currency = 'QAR'` correctly.
+### 2. `src/components/ProfileModal.tsx` — Line 709
 
-**The screenshot is from the production site (`kuwait.pandacakes.me`) which is running an older deployment** that still has the hardcoded `DEFAULT_CURRENCY`. The Lovable preview already has the fix.
+Replace:
+```
+{getCurrencyForOrder(order.country_id)} {order.total_amount?.toFixed(2)}
+```
+With dynamic formatting using `order.payment_currency` or `getCurrencyForOrder(order.country_id)`:
+```typescript
+{(() => {
+  const cur = order.payment_currency || getCurrencyForOrder(order.country_id);
+  const dec = cur === 'KWD' ? 3 : 2;
+  return `${order.total_amount?.toFixed(dec)} ${cur}`;
+})()}
+```
 
-**Action needed:** Publish/deploy the latest version to production. No further code changes are required — the fix just needs to reach the live site.
-
-To verify, you can check the Lovable preview at the profile orders tab — QA orders should already show QAR there.
+Two files, two small changes. This fixes the currency display for all orders in the modal the user is actually viewing.
 
