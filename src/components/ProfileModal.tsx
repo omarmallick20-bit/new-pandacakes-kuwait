@@ -706,7 +706,11 @@ export function ProfileModal({
                           {new Date(order.created_at).toLocaleDateString()}
                         </span>
                         <span className="font-semibold text-sm sm:text-base">
-                          {getCurrencyForOrder(order.country_id)} {order.total_amount?.toFixed(2)}
+                          {(() => {
+                            const cur = order.payment_currency || getCurrencyForOrder(order.country_id);
+                            const dec = cur === 'KWD' ? 3 : 2;
+                            return `${order.total_amount?.toFixed(dec)} ${cur}`;
+                          })()}
                         </span>
                       </div>
                     </div>
