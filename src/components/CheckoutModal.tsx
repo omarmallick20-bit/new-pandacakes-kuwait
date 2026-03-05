@@ -723,8 +723,11 @@ export function CheckoutModal({
     }
   };
   const createPendingOrder = async () => {
+    if (!user?.id) {
+      throw new Error('User session not found. Please log in again.');
+    }
     const orderData = {
-      customer_id: user?.id,
+      customer_id: user.id,
       country_id: COUNTRY_ID,
       payment_currency: DEFAULT_CURRENCY,
       total_amount: total,
@@ -793,6 +796,10 @@ export function CheckoutModal({
   // Direct card payment - skip PaymentModal, call tap-create-charge and redirect
   const handleDirectCardPayment = async () => {
     if (isProcessing) return;
+    if (!user?.id) {
+      toast.error('User session not found. Please log in again.');
+      return;
+    }
     setIsProcessing(true);
 
     const paymentTimeout = setTimeout(() => {
@@ -810,7 +817,7 @@ export function CheckoutModal({
       };
 
       const cardOrderData = {
-        customerId: user?.id || '',
+        customerId: user.id,
         cartItems: state.cart.map(item => ({
           productId: item.cake.id,
           productName: item.cake.name,
@@ -963,7 +970,7 @@ export function CheckoutModal({
         if (appliedBakePoints > 0) {
           try {
             const { error: bakePointsError } = await supabase.rpc('redeem_bakepoints', {
-              p_customer_id: user?.id,
+              p_customer_id: user.id,
               p_points_to_redeem: appliedBakePoints,
               p_order_id: order.id,
               p_country_id: COUNTRY_ID

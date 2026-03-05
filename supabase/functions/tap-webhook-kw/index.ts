@@ -79,6 +79,12 @@ serve(async (req) => {
     const orderData = pendingCheckout.order_data as any;
     console.log('Retrieved order data from pending_checkouts for session:', sessionId);
 
+    // Validate customerId exists and is non-empty
+    if (!orderData.customerId || typeof orderData.customerId !== 'string' || orderData.customerId.trim() === '') {
+      console.error('Missing or invalid customerId in order data for session:', sessionId);
+      throw new Error('Invalid checkout data - missing customer ID');
+    }
+
     // Validate currency dynamically based on order country
     const countryId = orderData.countryId || 'kw';
     const expectedCurrencyConfig = COUNTRY_CURRENCY[countryId] || COUNTRY_CURRENCY.kw;
