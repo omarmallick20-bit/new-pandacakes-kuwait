@@ -229,7 +229,7 @@ export default function OrderPage() {
                   <p className="text-muted-foreground mb-6">
                     {t('order_try_different')}
                   </p>
-                  <Button onClick={() => setSearchQuery('')} className="bg-tiffany hover:bg-tiffany/90 text-white">
+                  <Button onClick={() => setSearchQuery('')}>
                     {t('order_browse_all')}
                   </Button>
                 </div>
