@@ -66,13 +66,12 @@ const handler = async (req: Request): Promise<Response> => {
       customerEmail = custData?.email || null;
     }
 
-    // Skip if no real email found
-    if (!customerEmail || customerEmail.includes('@temp.pandacakes.qa')) {
-      console.log('No real email found for customer:', order.customer_id);
-      return new Response(
-        JSON.stringify({ success: true, skipped: true, reason: 'no_email' }),
-        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
+    const BUSINESS_EMAIL = 'kw@pandacakes.me';
+    const hasCustomerEmail = customerEmail && !customerEmail.includes('@temp.pandacakes.qa');
+
+    if (!hasCustomerEmail) {
+      customerEmail = null;
+      console.log('No real customer email found, will send to business only:', order.customer_id);
     }
 
     console.log('Using customer email:', customerEmail);
@@ -156,7 +155,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     const emailResponse = await resend.emails.send({
       from: "Panda Cakes <order-noreply@pandacakes.me>",
-      to: [customerEmail],
+      to: customerEmail ? [customerEmail] : [BUSINESS_EMAIL],
+      ...(customerEmail ? { cc: [BUSINESS_EMAIL] } : {}),
       subject: `Order Confirmed - #${order.order_number} 🎂`,
       html: `
 <!DOCTYPE html>
