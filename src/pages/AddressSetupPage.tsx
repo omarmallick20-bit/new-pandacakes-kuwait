@@ -350,7 +350,7 @@ export default function AddressSetupPage() {
 
             <Button
               type="submit"
-              className="w-full bg-[#1B9689] hover:bg-[#1B9689]/90 text-white"
+              className="w-full"
               disabled={isLoading || !formData.latitude || !formData.longitude || formData.is_serviceable === false}
             >
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

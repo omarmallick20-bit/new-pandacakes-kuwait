@@ -688,7 +688,7 @@ export default function SignupPage() {
             </Label>
           </div>
 
-          <Button type="submit" className="w-full bg-[#1B9689] hover:bg-[#1B9689]/90 text-white" disabled={isLoading || !termsAccepted || formData.fullName.trim().length === 0 || formData.password.length < 6}>
+          <Button type="submit" className="w-full" disabled={isLoading || !termsAccepted || formData.fullName.trim().length === 0 || formData.password.length < 6}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {t('signup_save_profile')}
           </Button>
