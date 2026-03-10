@@ -279,7 +279,7 @@ export default function CategoryPage() {
   return <main className="min-h-screen bg-hero-gradient">
       <div className="container max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
         <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
-          <Button variant="default" size="icon" onClick={handleBack} className="rounded-full bg-tiffany hover:bg-tiffany/90 text-white shadow-lg flex-shrink-0">
+          <Button variant="default" size="icon" onClick={handleBack} className="rounded-full shadow-lg flex-shrink-0">
             <ChevronLeft className="h-5 w-5" />
           </Button>
           <div className="min-w-0 flex-1">
