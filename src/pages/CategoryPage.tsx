@@ -406,7 +406,7 @@ export default function CategoryPage() {
                       </div>
                     )}
                     
-                    <Button className="w-full bg-tiffany hover:bg-tiffany/90 text-white group-hover:scale-105 transition-all duration-300">
+                    <Button className="w-full group-hover:scale-105 transition-all duration-300">
                       <ShoppingCart className="w-4 h-4 mr-2" />
                       {t('cake_add_to_cart')}
                     </Button>
