@@ -264,19 +264,17 @@ serve(async (req) => {
     }
 
     // Send order confirmation email (fire and forget)
+    // The send-order-email function handles email lookup from both auth.users and Customers table
     try {
-      const { data: authUser } = await supabase.auth.admin.getUserById(orderData.customerId);
-      if (authUser?.user?.email && !authUser.user.email.includes('@temp.pandacakes.qa')) {
-        await fetch(`${supabaseUrl}/functions/v1/send-order-email`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${supabaseKey}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ orderId: newOrder.id })
-        });
-        console.log('✅ Order confirmation email triggered for order:', newOrder.order_number);
-      }
+      await fetch(`${supabaseUrl}/functions/v1/send-order-email`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ orderId: newOrder.id })
+      });
+      console.log('✅ Order confirmation email triggered for order:', newOrder.order_number);
     } catch (emailError) {
       console.error('Failed to send order email (non-critical):', emailError);
     }
