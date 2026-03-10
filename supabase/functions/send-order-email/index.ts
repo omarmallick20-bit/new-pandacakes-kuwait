@@ -52,27 +52,30 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Get customer email from auth.users using service role
-    const { data: authUser, error: authError } = await supabase.auth.admin.getUserById(order.customer_id);
-    
-    if (authError || !authUser?.user?.email) {
-      console.log('No email found for customer:', order.customer_id);
+    // Get customer email - check auth.users first, then fall back to Customers table
+    const { data: authUser } = await supabase.auth.admin.getUserById(order.customer_id);
+    let customerEmail = authUser?.user?.email || null;
+
+    // If auth email is temp or missing, check Customers table
+    if (!customerEmail || customerEmail.includes('@temp.pandacakes.qa')) {
+      const { data: custData } = await supabase
+        .from('Customers')
+        .select('email')
+        .eq('id', order.customer_id)
+        .single();
+      customerEmail = custData?.email || null;
+    }
+
+    // Skip if no real email found
+    if (!customerEmail || customerEmail.includes('@temp.pandacakes.qa')) {
+      console.log('No real email found for customer:', order.customer_id);
       return new Response(
         JSON.stringify({ success: true, skipped: true, reason: 'no_email' }),
         { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
-    const customerEmail = authUser.user.email;
-
-    // Skip temp emails
-    if (customerEmail.includes('@temp.pandacakes.qa')) {
-      console.log('Skipping order email - temp email:', customerEmail);
-      return new Response(
-        JSON.stringify({ success: true, skipped: true, reason: 'temp_email' }),
-        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
-    }
+    console.log('Using customer email:', customerEmail);
 
     // Get customer name
     const { data: customer } = await supabase
