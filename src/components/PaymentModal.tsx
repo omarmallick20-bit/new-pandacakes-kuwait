@@ -95,7 +95,7 @@ export function PaymentModal({
     message: string;
   } | null>(null);
   const [showSupportModal, setShowSupportModal] = useState(false);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (isOpen) {

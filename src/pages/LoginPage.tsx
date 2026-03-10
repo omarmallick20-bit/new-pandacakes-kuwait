@@ -26,7 +26,7 @@ export default function LoginPage() {
     phonePassword: ''
   })
   const mountedRef = useRef(true)
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   
   const { signIn, signInWithOAuth, user, isAuthReady } = useAuth()
   const navigate = useNavigate()
