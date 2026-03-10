@@ -495,7 +495,7 @@ export default function SignupPage() {
           </div>
           <Button
             type="submit"
-            className="w-full bg-[#1B9689] hover:bg-[#1B9689]/90 text-white"
+            className="w-full"
             disabled={isSendingOtp || !phoneNumber || phoneNumber.length < 8}
           >
             {isSendingOtp ? (
