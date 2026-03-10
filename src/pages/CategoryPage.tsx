@@ -269,7 +269,7 @@ export default function CategoryPage() {
         <div className="text-center">
           <div className="bg-card-gradient rounded-3xl p-12 border border-tiffany/20 shadow-lg max-w-md mx-auto">
             <h1 className="text-2xl font-bold text-foreground mb-4">{t('cat_not_found')}</h1>
-            <Button onClick={() => navigate('/')} className="bg-tiffany hover:bg-tiffany/90 text-white">
+            <Button onClick={() => navigate('/')}>
               {t('cat_back_to_menu')}
             </Button>
           </div>
