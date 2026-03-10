@@ -155,7 +155,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     const emailResponse = await resend.emails.send({
       from: "Panda Cakes <order-noreply@pandacakes.me>",
-      to: [customerEmail],
+      to: customerEmail ? [customerEmail] : [BUSINESS_EMAIL],
+      ...(customerEmail ? { cc: [BUSINESS_EMAIL] } : {}),
       subject: `Order Confirmed - #${order.order_number} 🎂`,
       html: `
 <!DOCTYPE html>
