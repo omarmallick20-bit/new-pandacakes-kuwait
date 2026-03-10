@@ -193,7 +193,7 @@ async function sendSmsViaFcc(phone: string, message: string, countryId?: string)
 
   // Determine sender ID based on destination country
   const { code } = splitCountryCode(phone);
-  const INFOSMS_COUNTRIES = ['91', '20', '216', '213', '961', '977'];
+  const INFOSMS_COUNTRIES = ['91', '20', '216', '213', '961', '977', '966'];
   const senderId = INFOSMS_COUNTRIES.includes(code) ? 'InfoSMS' : 'PANDA CAKES';
 
   console.log(`📤 [send-otp] Sender ID: ${senderId} (country code: ${code})`);
