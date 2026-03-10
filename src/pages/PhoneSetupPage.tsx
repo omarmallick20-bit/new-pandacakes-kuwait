@@ -67,7 +67,7 @@ export default function PhoneSetupPage() {
   
   const mountedRef = useRef(true);
   const verifyingRef = useRef(false);
-  const cooldownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const cooldownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const sendOtpRequestIdRef = useRef(0); // Stale response guard
   const verifyOtpRequestIdRef = useRef(0); // Stale response guard
 

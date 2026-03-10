@@ -32,7 +32,7 @@ export default function AddressSetupPage() {
     is_serviceable: true
   });
   const mountedRef = useRef(true);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   const { user, isAuthReady } = useAuth();
   const navigate = useNavigate();

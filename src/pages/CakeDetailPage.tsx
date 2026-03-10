@@ -82,7 +82,7 @@ export default function CakeDetailPage() {
   // Fetch data with AbortController + timeout to handle navigation and stuck requests
   useEffect(() => {
     const abortController = new AbortController();
-    let timeoutId: NodeJS.Timeout;
+    let timeoutId: ReturnType<typeof setTimeout>;
     let loadingStartTime = Date.now();
 
     const fetchMenuItemData = async () => {

@@ -39,7 +39,7 @@ export default function AddressMapPicker({
   const [isSearching, setIsSearching] = useState(false);
   const [mapboxToken, setMapboxToken] = useState<string | null>(null);
   const [isLoadingToken, setIsLoadingToken] = useState(true);
-  const searchTimeoutRef = useRef<NodeJS.Timeout>();
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   // Default to Kuwait City, Kuwait [lng, lat] for Mapbox
   const defaultCenter: [number, number] = [47.9783, 29.3759];

@@ -102,8 +102,8 @@ export default function SignupPage() {
 
   const [claimableCustomerId, setClaimableCustomerId] = useState<string | null>(null);
   const mountedRef = useRef(true);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const cooldownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cooldownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const verifyingRef = useRef(false);
   const sendOtpRequestIdRef = useRef(0);
   const verifyOtpRequestIdRef = useRef(0);
