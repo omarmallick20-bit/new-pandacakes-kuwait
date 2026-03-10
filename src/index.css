@@ -39,6 +39,7 @@ All colors MUST be HSL.
 
     /* Brand colors */
     --tiffany-blue: 180 35% 70%;
+    --tiffany-active: 174 69% 35%;
     --tiffany-light: 180 25% 85%;
     --sunshine-yellow: 45 95% 65%;
     --cream: 45 25% 95%;
@@ -98,6 +99,7 @@ All colors MUST be HSL.
 
     /* Brand colors for dark mode */
     --tiffany-blue: 180 35% 60%;
+    --tiffany-active: 174 69% 35%;
     --tiffany-light: 180 25% 25%;
     --sunshine-yellow: 45 95% 65%;
     --cream: 0 0% 15%;

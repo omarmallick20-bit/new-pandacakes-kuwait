@@ -54,7 +54,8 @@ export default {
 				},
 				tiffany: {
 					DEFAULT: 'hsl(var(--tiffany-blue))',
-					light: 'hsl(var(--tiffany-light))'
+					light: 'hsl(var(--tiffany-light))',
+					active: 'hsl(var(--tiffany-active))'
 				},
 				sunshine: 'hsl(var(--sunshine-yellow))',
 				cream: 'hsl(var(--cream))',

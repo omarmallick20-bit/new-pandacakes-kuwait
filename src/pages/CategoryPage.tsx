@@ -269,7 +269,7 @@ export default function CategoryPage() {
         <div className="text-center">
           <div className="bg-card-gradient rounded-3xl p-12 border border-tiffany/20 shadow-lg max-w-md mx-auto">
             <h1 className="text-2xl font-bold text-foreground mb-4">{t('cat_not_found')}</h1>
-            <Button onClick={() => navigate('/')} className="bg-tiffany hover:bg-tiffany/90 text-white">
+            <Button onClick={() => navigate('/')}>
               {t('cat_back_to_menu')}
             </Button>
           </div>
@@ -279,7 +279,7 @@ export default function CategoryPage() {
   return <main className="min-h-screen bg-hero-gradient">
       <div className="container max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
         <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
-          <Button variant="default" size="icon" onClick={handleBack} className="rounded-full bg-tiffany hover:bg-tiffany/90 text-white shadow-lg flex-shrink-0">
+          <Button variant="default" size="icon" onClick={handleBack} className="rounded-full shadow-lg flex-shrink-0">
             <ChevronLeft className="h-5 w-5" />
           </Button>
           <div className="min-w-0 flex-1">
@@ -297,7 +297,7 @@ export default function CategoryPage() {
               <p className="text-muted-foreground mb-6">
                 {t('cat_coming_soon_desc')}
               </p>
-              <Button onClick={() => navigate('/')} className="bg-tiffany hover:bg-tiffany/90 text-white">
+              <Button onClick={() => navigate('/')}>
                 {t('cat_back_to_menu')}
               </Button>
             </div>
@@ -406,7 +406,7 @@ export default function CategoryPage() {
                       </div>
                     )}
                     
-                    <Button className="w-full bg-tiffany hover:bg-tiffany/90 text-white group-hover:scale-105 transition-all duration-300">
+                    <Button className="w-full group-hover:scale-105 transition-all duration-300">
                       <ShoppingCart className="w-4 h-4 mr-2" />
                       {t('cake_add_to_cart')}
                     </Button>

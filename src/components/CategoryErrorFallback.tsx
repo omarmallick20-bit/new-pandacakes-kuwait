@@ -37,7 +37,7 @@ export const CategoryErrorFallback = ({
           <Button
             onClick={onRetry}
             variant="default"
-            className="gap-2 bg-tiffany hover:bg-tiffany/90 text-white"
+            className="gap-2"
           >
             <RefreshCw className="w-4 h-4" />
             {t('cat_error_try_again')}

@@ -229,7 +229,7 @@ export default function OrderPage() {
                   <p className="text-muted-foreground mb-6">
                     {t('order_try_different')}
                   </p>
-                  <Button onClick={() => setSearchQuery('')} className="bg-tiffany hover:bg-tiffany/90 text-white">
+                  <Button onClick={() => setSearchQuery('')}>
                     {t('order_browse_all')}
                   </Button>
                 </div>
@@ -359,7 +359,7 @@ export default function OrderPage() {
                 <p className="text-muted-foreground mb-6">
                   {hasError ? t('order_check_connection') : t('order_check_back')}
                 </p>
-                <Button onClick={retryLoading} className="bg-tiffany hover:bg-tiffany/90 text-white gap-2">
+                <Button onClick={retryLoading} className="gap-2">
                   <RefreshCw className="h-4 w-4" />
                   {t('order_retry')}
                 </Button>
