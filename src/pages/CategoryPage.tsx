@@ -297,7 +297,7 @@ export default function CategoryPage() {
               <p className="text-muted-foreground mb-6">
                 {t('cat_coming_soon_desc')}
               </p>
-              <Button onClick={() => navigate('/')} className="bg-tiffany hover:bg-tiffany/90 text-white">
+              <Button onClick={() => navigate('/')}>
                 {t('cat_back_to_menu')}
               </Button>
             </div>
