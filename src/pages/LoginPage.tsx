@@ -194,8 +194,8 @@ export default function LoginPage() {
 
                 <Button
                   type="submit"
-                  className="w-full bg-[#1B9689] hover:bg-[#1B9689]/90 text-white"
-                  disabled={isLoading}
+                  className="w-full"
+                  disabled={isLoading || !formData.email || !formData.password}
                 >
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   {t('login_sign_in')}
