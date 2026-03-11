@@ -8,7 +8,7 @@ interface CachedCategories {
   timestamp: number;
 }
 
-const CACHE_KEY = 'panda_cakes_categories_cache';
+const CACHE_KEY = 'panda_cakes_categories_cache_v2';
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes in milliseconds
 
 export const getCachedCategories = (): any[] | null => {
