@@ -248,7 +248,7 @@ export default function OrderPage() {
                           </div>
                           <div className="p-4 text-center">
                             <h4 className="font-bold text-foreground group-hover:text-tiffany transition-colors">
-                              {translateCategory(category.name)}
+                               {(language === 'ar' && category.name_ar) || category.name}
                             </h4>
                           </div>
                         </div>)}
