@@ -7,6 +7,7 @@ import { COUNTRY_ID, DEFAULT_CURRENCY, DEFAULT_CURRENCY_SYMBOL } from '@/config/
 interface Category {
   id: string;
   name: string;
+  name_ar?: string;
   image_url: string;
   is_active: boolean;
   sort_order?: number;
