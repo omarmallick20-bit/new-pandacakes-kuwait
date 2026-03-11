@@ -19,6 +19,7 @@ import { formatAmount } from '@/utils/currencyHelpers';
 interface Category {
   id: string;
   name: string;
+  name_ar?: string;
   image_url: string;
   is_active: boolean;
   sort_order?: number;
