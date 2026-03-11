@@ -100,7 +100,7 @@ export default function CategoryPage() {
           const [catRes, itemsRes] = await Promise.all([
             supabase
               .from('categories')
-              .select('id, name, image_url, is_active')
+              .select('id, name, name_ar, image_url, is_active')
               .eq('id', categoryId)
               .eq('is_active', true)
               .abortSignal(signal)
