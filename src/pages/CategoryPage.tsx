@@ -285,7 +285,7 @@ export default function CategoryPage() {
           </Button>
           <div className="min-w-0 flex-1">
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black font-display text-foreground mb-1 sm:mb-2 bg-gradient-to-r from-primary to-tiffany bg-clip-text text-transparent truncate">
-              {translateCategory(category.name)}
+              {(language === 'ar' && category.name_ar) || category.name}
             </h1>
             
           </div>

@@ -383,7 +383,7 @@ export default function OrderPage() {
                 </div>
                 <div className="p-3 md:p-6 relative">
                   <h3 className="text-sm md:text-lg font-bold text-foreground group-hover:text-tiffany transition-colors duration-300">
-                    {translateCategory(category.name)}
+                    {(language === 'ar' && category.name_ar) || category.name}
                   </h3>
                   <div className="mt-2 h-1 bg-gradient-to-r from-tiffany to-sunshine rounded-full transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
                 </div>

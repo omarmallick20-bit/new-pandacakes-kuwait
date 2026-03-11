@@ -144,7 +144,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         async (signal) => {
           return supabase
             .from('categories')
-            .select('id, name, image_url, is_active, sort_order')
+            .select('id, name, name_ar, image_url, is_active, sort_order')
             .eq('is_active', true)
             .order('sort_order', { ascending: true })
             .abortSignal(signal);
