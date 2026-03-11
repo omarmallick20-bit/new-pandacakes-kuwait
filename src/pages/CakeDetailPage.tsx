@@ -50,6 +50,7 @@ interface MenuItem extends DiscountableItem {
 interface Category {
   id: string;
   name: string;
+  name_ar?: string;
   image_url: string;
 }
 export default function CakeDetailPage() {
