@@ -23,7 +23,7 @@ const FCC_FETCH_TIMEOUT_MS = 15000;
 // Proxy-aware fetch: routes through Fixie HTTP proxy if HTTPS_PROXY is set
 async function proxyFetch(url: string, headers: Record<string, string>, countryId?: string): Promise<{ ok: boolean; status: number; text: string; contentType: string }> {
   // Select proxy based on country: KW uses its own Fixie proxy, others use default (Qatar)
-  let proxyUrl: string | undefined = countryId === 'kw'
+  let proxyUrl: string | undefined = (countryId === 'kw' || countryId === 'sa')
     ? (Deno.env.get('HTTPS_PROXY_KW') || Deno.env.get('HTTP_PROXY_KW'))
     : (Deno.env.get('HTTPS_PROXY') || Deno.env.get('HTTP_PROXY'));
   
