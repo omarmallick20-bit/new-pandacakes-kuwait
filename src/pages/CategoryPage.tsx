@@ -17,6 +17,7 @@ import { COUNTRY_ID } from '@/config/country';
 interface Category {
   id: string;
   name: string;
+  name_ar?: string;
   image_url: string;
   is_active: boolean;
 }
@@ -99,7 +100,7 @@ export default function CategoryPage() {
           const [catRes, itemsRes] = await Promise.all([
             supabase
               .from('categories')
-              .select('id, name, image_url, is_active')
+              .select('id, name, name_ar, image_url, is_active')
               .eq('id', categoryId)
               .eq('is_active', true)
               .abortSignal(signal)
@@ -284,7 +285,7 @@ export default function CategoryPage() {
           </Button>
           <div className="min-w-0 flex-1">
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black font-display text-foreground mb-1 sm:mb-2 bg-gradient-to-r from-primary to-tiffany bg-clip-text text-transparent truncate">
-              {translateCategory(category.name)}
+              {(language === 'ar' && category.name_ar) || category.name}
             </h1>
             
           </div>

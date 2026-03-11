@@ -26,6 +26,7 @@ interface MenuItem extends DiscountableItem {
 interface Category {
   id: string;
   name: string;
+  name_ar?: string;
   image_url: string;
   is_active: boolean;
 }
@@ -224,7 +225,7 @@ export function GlobalSearchModal({ open, onOpenChange }: GlobalSearchModalProps
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent flex items-end">
                           <span className="w-full p-1.5 text-white text-[10px] sm:text-xs font-medium text-center line-clamp-2">
-                            {translateCategory(category.name)}
+                            {(language === 'ar' && category.name_ar) || category.name}
                           </span>
                         </div>
                       </div>

@@ -7,6 +7,7 @@ import { COUNTRY_ID, DEFAULT_CURRENCY, DEFAULT_CURRENCY_SYMBOL } from '@/config/
 interface Category {
   id: string;
   name: string;
+  name_ar?: string;
   image_url: string;
   is_active: boolean;
   sort_order?: number;
@@ -143,7 +144,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         async (signal) => {
           return supabase
             .from('categories')
-            .select('id, name, image_url, is_active, sort_order')
+            .select('id, name, name_ar, image_url, is_active, sort_order')
             .eq('is_active', true)
             .order('sort_order', { ascending: true })
             .abortSignal(signal);

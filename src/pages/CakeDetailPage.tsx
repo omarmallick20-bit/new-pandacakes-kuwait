@@ -50,6 +50,7 @@ interface MenuItem extends DiscountableItem {
 interface Category {
   id: string;
   name: string;
+  name_ar?: string;
   image_url: string;
 }
 export default function CakeDetailPage() {
@@ -489,7 +490,7 @@ export default function CakeDetailPage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-           {category?.name && <p className="text-muted-foreground">{translateCategory(category.name)}</p>}
+           {category?.name && <p className="text-muted-foreground">{(language === 'ar' && category?.name_ar) || category.name}</p>}
             <h1 className="text-3xl md:text-4xl font-black font-display text-foreground">
               {(language === 'ar' && (menuItem as any).name_ar) || menuItem.name}
             </h1>

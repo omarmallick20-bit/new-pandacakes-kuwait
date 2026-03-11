@@ -137,6 +137,7 @@ export type Database = {
           image_url: string | null
           is_active: boolean
           name: string
+          name_ar: string | null
           sort_order: number | null
           updated_at: string
         }
@@ -147,6 +148,7 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean
           name: string
+          name_ar?: string | null
           sort_order?: number | null
           updated_at?: string
         }
@@ -157,6 +159,7 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean
           name?: string
+          name_ar?: string | null
           sort_order?: number | null
           updated_at?: string
         }

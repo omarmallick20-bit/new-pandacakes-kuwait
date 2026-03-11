@@ -19,6 +19,7 @@ import { formatAmount } from '@/utils/currencyHelpers';
 interface Category {
   id: string;
   name: string;
+  name_ar?: string;
   image_url: string;
   is_active: boolean;
   sort_order?: number;
@@ -247,7 +248,7 @@ export default function OrderPage() {
                           </div>
                           <div className="p-4 text-center">
                             <h4 className="font-bold text-foreground group-hover:text-tiffany transition-colors">
-                              {translateCategory(category.name)}
+                               {(language === 'ar' && category.name_ar) || category.name}
                             </h4>
                           </div>
                         </div>)}
@@ -382,7 +383,7 @@ export default function OrderPage() {
                 </div>
                 <div className="p-3 md:p-6 relative">
                   <h3 className="text-sm md:text-lg font-bold text-foreground group-hover:text-tiffany transition-colors duration-300">
-                    {translateCategory(category.name)}
+                    {(language === 'ar' && category.name_ar) || category.name}
                   </h3>
                   <div className="mt-2 h-1 bg-gradient-to-r from-tiffany to-sunshine rounded-full transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
                 </div>
