@@ -13,6 +13,61 @@ interface OrderEmailRequest {
   orderId: string;
 }
 
+// Country-aware configuration
+const COUNTRY_CONFIG: Record<string, {
+  currency: string;
+  decimals: number;
+  businessEmail: string;
+  tempEmailDomain: string;
+  whatsappNumber: string;
+  whatsappDisplay: string;
+  phones: { number: string; display: string }[];
+  address: string;
+  hours: string;
+  instagram: string;
+  instagramHandle: string;
+  pickupLocation: string;
+}> = {
+  kw: {
+    currency: 'KWD',
+    decimals: 3,
+    businessEmail: 'kw@pandacakes.me',
+    tempEmailDomain: '@temp.pandacakes.kw',
+    whatsappNumber: '96550018008',
+    whatsappDisplay: '+965 5001 8008',
+    phones: [
+      { number: '+96550018008', display: '+965 5001 8008' },
+      { number: '+96555756675', display: '+965 5575 6675' },
+    ],
+    address: 'Ardiya Herafiya, Kuwait',
+    hours: 'Open Daily 8:00 AM – 9:00 PM',
+    instagram: 'https://www.instagram.com/pandacakes.kw/',
+    instagramHandle: '@pandacakes.kw',
+    pickupLocation: 'Ardiya Herafiya, Kuwait',
+  },
+  qa: {
+    currency: 'QAR',
+    decimals: 2,
+    businessEmail: 'kw@pandacakes.me',
+    tempEmailDomain: '@temp.pandacakes.qa',
+    whatsappNumber: '97460018005',
+    whatsappDisplay: '+974 60018005',
+    phones: [
+      { number: '+97460018005', display: '+974 60018005' },
+      { number: '+97460019344', display: '+974 60019344' },
+    ],
+    address: 'Barwa Village, Doha, Qatar',
+    hours: 'Open Daily 8:00 AM – 9:00 PM',
+    instagram: 'https://www.instagram.com/pandacakes.qa/',
+    instagramHandle: '@pandacakes.qa',
+    pickupLocation: 'Barwa Village, Doha, Qatar',
+  },
+};
+
+function getCountryConfig(countryId: string | null) {
+  return COUNTRY_CONFIG[countryId || 'kw'] || COUNTRY_CONFIG.kw;
+}
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -28,12 +83,10 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Initialize Supabase with service role
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Fetch order with related data
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .select(`
@@ -52,12 +105,19 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Get customer email - check auth.users first, then fall back to Customers table
+    // Derive country config from the order
+    const config = getCountryConfig(order.country_id);
+    const fmt = (amount: number) => `${amount.toFixed(config.decimals)} ${config.currency}`;
+
+    // Get customer email
     const { data: authUser } = await supabase.auth.admin.getUserById(order.customer_id);
     let customerEmail = authUser?.user?.email || null;
 
-    // If auth email is temp or missing, check Customers table
-    if (!customerEmail || customerEmail.includes('@temp.pandacakes.qa')) {
+    // Check for temp emails across all country domains
+    const isTempEmail = (email: string | null) =>
+      !email || email.includes('@temp.pandacakes.qa') || email.includes('@temp.pandacakes.kw');
+
+    if (isTempEmail(customerEmail)) {
       const { data: custData } = await supabase
         .from('Customers')
         .select('email')
@@ -66,8 +126,7 @@ const handler = async (req: Request): Promise<Response> => {
       customerEmail = custData?.email || null;
     }
 
-    const BUSINESS_EMAIL = 'kw@pandacakes.me';
-    const hasCustomerEmail = customerEmail && !customerEmail.includes('@temp.pandacakes.qa');
+    const hasCustomerEmail = customerEmail && !isTempEmail(customerEmail);
 
     if (!hasCustomerEmail) {
       customerEmail = null;
@@ -83,11 +142,11 @@ const handler = async (req: Request): Promise<Response> => {
       .eq('id', order.customer_id)
       .single();
 
-    const customerName = customer 
+    const customerName = customer
       ? `${customer.first_name || ''} ${customer.last_name || ''}`.trim() || 'Valued Customer'
       : 'Valued Customer';
 
-    // Format order items for email
+    // Format order items
     const orderItems = order.order_items || [];
     const itemsHtml = orderItems.map((item: any) => {
       const customizations = item.customizations || {};
@@ -95,7 +154,7 @@ const handler = async (req: Request): Promise<Response> => {
       if (customizations.flavor) customizationDetails.push(`Flavor: ${customizations.flavor}`);
       if (customizations.variant) customizationDetails.push(`Size: ${customizations.variant}`);
       if (customizations.specialInstructions) customizationDetails.push(`Note: ${customizations.specialInstructions}`);
-      
+
       return `
         <tr>
           <td style="padding: 12px; border-bottom: 1px solid #eeeeee;">
@@ -103,60 +162,55 @@ const handler = async (req: Request): Promise<Response> => {
             ${customizationDetails.length > 0 ? `<br><span style="font-size: 12px; color: #888;">${customizationDetails.join(' | ')}</span>` : ''}
           </td>
           <td style="padding: 12px; border-bottom: 1px solid #eeeeee; text-align: center;">${item.quantity}</td>
-          <td style="padding: 12px; border-bottom: 1px solid #eeeeee; text-align: right;">${item.total_price.toFixed(2)} QAR</td>
+          <td style="padding: 12px; border-bottom: 1px solid #eeeeee; text-align: right;">${fmt(item.total_price)}</td>
         </tr>
       `;
     }).join('');
 
-    // Calculate subtotal from items
     const subtotal = orderItems.reduce((sum: number, item: any) => sum + (item.total_price || 0), 0);
-    
-    // Format date
+
     const orderDate = new Date(order.created_at).toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
     });
 
-    // Format estimated delivery/pickup time
     let scheduledDateTime = 'To be confirmed';
     if (order.estimated_delivery_time) {
       const dt = new Date(order.estimated_delivery_time);
       scheduledDateTime = dt.toLocaleDateString('en-US', {
-        weekday: 'short',
-        month: 'short',
-        day: 'numeric'
+        weekday: 'short', month: 'short', day: 'numeric'
       }) + ' at ' + dt.toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit'
+        hour: '2-digit', minute: '2-digit'
       });
     }
 
-    // Fulfillment details
     const isDelivery = order.fulfillment_type === 'delivery';
     const fulfillmentTitle = isDelivery ? '🚗 Delivery Details' : '🏪 Pickup Details';
     let fulfillmentDetails = '';
-    
+
     if (isDelivery && order.addresses) {
       const addr = order.addresses;
       fulfillmentDetails = `
         <p style="margin: 0 0 8px;"><strong>Address:</strong> ${addr.street_address || ''}</p>
-        <p style="margin: 0 0 8px;"><strong>City:</strong> ${addr.city || ''}, ${addr.country || 'Qatar'}</p>
+        <p style="margin: 0 0 8px;"><strong>City:</strong> ${addr.city || ''}, ${addr.country || config.address.split(', ').pop()}</p>
         ${addr.landmarks ? `<p style="margin: 0 0 8px;"><strong>Landmarks:</strong> ${addr.landmarks}</p>` : ''}
       `;
     } else {
       fulfillmentDetails = `
-        <p style="margin: 0 0 8px;"><strong>Location:</strong> Barwa Village, Doha, Qatar</p>
+        <p style="margin: 0 0 8px;"><strong>Location:</strong> ${config.pickupLocation}</p>
       `;
     }
+
+    // Build phone links for contact section
+    const phoneLinks = config.phones.map(p =>
+      `<a href="tel:${p.number}" style="color: #ffffff;">${p.display}</a>`
+    ).join(' / ');
 
     console.log(`Sending order confirmation email to ${customerEmail} for order ${order.order_number}`);
 
     const emailResponse = await resend.emails.send({
       from: "Panda Cakes <order-noreply@pandacakes.me>",
-      to: customerEmail ? [customerEmail] : [BUSINESS_EMAIL],
-      ...(customerEmail ? { cc: [BUSINESS_EMAIL] } : {}),
+      to: customerEmail ? [customerEmail] : [config.businessEmail],
+      ...(customerEmail ? { cc: [config.businessEmail] } : {}),
       subject: `Order Confirmed - #${order.order_number} 🎂`,
       html: `
 <!DOCTYPE html>
@@ -226,35 +280,35 @@ const handler = async (req: Request): Promise<Response> => {
               <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
                 <tr>
                   <td style="padding: 8px 0; font-size: 14px; color: #666;">Subtotal</td>
-                  <td style="padding: 8px 0; font-size: 14px; color: #333; text-align: right;">${subtotal.toFixed(2)} QAR</td>
+                  <td style="padding: 8px 0; font-size: 14px; color: #333; text-align: right;">${fmt(subtotal)}</td>
                 </tr>
                 ${isDelivery ? `
                 <tr>
                   <td style="padding: 8px 0; font-size: 14px; color: #666;">Delivery Fee</td>
-                  <td style="padding: 8px 0; font-size: 14px; color: #333; text-align: right;">${(order.delivery_fee || 0).toFixed(2)} QAR</td>
+                  <td style="padding: 8px 0; font-size: 14px; color: #333; text-align: right;">${fmt(order.delivery_fee || 0)}</td>
                 </tr>
                 ` : ''}
                 ${order.vat_amount ? `
                 <tr>
                   <td style="padding: 8px 0; font-size: 14px; color: #666;">VAT (${order.vat_percentage || 0}%)</td>
-                  <td style="padding: 8px 0; font-size: 14px; color: #333; text-align: right;">${order.vat_amount.toFixed(2)} QAR</td>
+                  <td style="padding: 8px 0; font-size: 14px; color: #333; text-align: right;">${fmt(order.vat_amount)}</td>
                 </tr>
                 ` : ''}
                 ${order.voucher_discount_amount ? `
                 <tr>
                   <td style="padding: 8px 0; font-size: 14px; color: #22c55e;">Voucher Discount</td>
-                  <td style="padding: 8px 0; font-size: 14px; color: #22c55e; text-align: right;">-${order.voucher_discount_amount.toFixed(2)} QAR</td>
+                  <td style="padding: 8px 0; font-size: 14px; color: #22c55e; text-align: right;">-${fmt(order.voucher_discount_amount)}</td>
                 </tr>
                 ` : ''}
                 ${order.bakepoints_discount_amount ? `
                 <tr>
                   <td style="padding: 8px 0; font-size: 14px; color: #d97706;">BakePoints Discount</td>
-                  <td style="padding: 8px 0; font-size: 14px; color: #d97706; text-align: right;">-${order.bakepoints_discount_amount.toFixed(2)} QAR</td>
+                  <td style="padding: 8px 0; font-size: 14px; color: #d97706; text-align: right;">-${fmt(order.bakepoints_discount_amount)}</td>
                 </tr>
                 ` : ''}
                 <tr style="border-top: 2px solid #40E0D0;">
                   <td style="padding: 12px 0; font-size: 18px; font-weight: bold; color: #333;">Total</td>
-                  <td style="padding: 12px 0; font-size: 18px; font-weight: bold; color: #333; text-align: right;">${order.total_amount.toFixed(2)} QAR</td>
+                  <td style="padding: 12px 0; font-size: 18px; font-weight: bold; color: #333; text-align: right;">${fmt(order.total_amount)}</td>
                 </tr>
               </table>
               <p style="margin: 10px 0 0; font-size: 13px; color: #888;">
@@ -292,19 +346,19 @@ const handler = async (req: Request): Promise<Response> => {
               <div style="background: linear-gradient(135deg, #40E0D0 0%, #48D1CC 100%); border-radius: 12px; padding: 24px; color: #ffffff;">
                 <h3 style="margin: 0 0 16px; font-size: 18px;">📍 Need Help? Contact Us</h3>
                 <p style="margin: 0 0 8px; font-size: 14px;">
-                  <strong>WhatsApp:</strong> <a href="https://wa.me/97460018005" style="color: #ffffff; text-decoration: underline;">+974 60018005</a>
+                  <strong>WhatsApp:</strong> <a href="https://wa.me/${config.whatsappNumber}" style="color: #ffffff; text-decoration: underline;">${config.whatsappDisplay}</a>
                 </p>
                 <p style="margin: 0 0 8px; font-size: 14px;">
-                  <strong>Phone:</strong> <a href="tel:+97460018005" style="color: #ffffff;">+974 60018005</a> / <a href="tel:+97460019344" style="color: #ffffff;">+974 60019344</a>
+                  <strong>Phone:</strong> ${phoneLinks}
                 </p>
                 <p style="margin: 0 0 8px; font-size: 14px;">
-                  <strong>Address:</strong> Barwa Village, Doha, Qatar
+                  <strong>Address:</strong> ${config.address}
                 </p>
                 <p style="margin: 0 0 8px; font-size: 14px;">
-                  <strong>Hours:</strong> Open Daily 8:00 AM – 9:00 PM
+                  <strong>Hours:</strong> ${config.hours}
                 </p>
                 <p style="margin: 0; font-size: 14px;">
-                  <strong>Instagram:</strong> <a href="https://www.instagram.com/pandacakes.qa/" style="color: #ffffff; text-decoration: underline;">@pandacakes.qa</a>
+                  <strong>Instagram:</strong> <a href="${config.instagram}" style="color: #ffffff; text-decoration: underline;">${config.instagramHandle}</a>
                 </p>
               </div>
             </td>
