@@ -738,7 +738,7 @@ export function CheckoutModal({
       status: 'pending_payment' as const,
       payment_method: paymentMethod,
       payment_status: 'pending',
-      estimated_delivery_time: deliveryDate ? `${format(deliveryDate, 'yyyy-MM-dd')}T${deliveryTime.split('-')[0]}:00` : null,
+      estimated_delivery_time: deliveryDate ? `${format(deliveryDate, 'yyyy-MM-dd')}T${deliveryTime.split('-')[0]}:00+03:00` : null,
       customer_notes: customerNotes,
       order_number: '',
       vat_percentage: vatSettings.enabled ? vatSettings.percentage : 0,
