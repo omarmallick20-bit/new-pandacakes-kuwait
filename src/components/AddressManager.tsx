@@ -72,6 +72,7 @@ export default function AddressManager() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [addressToDelete, setAddressToDelete] = useState<Address | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [locationStep, setLocationStep] = useState<'prompt' | 'form'>('prompt');
 
   const OPERATION_TIMEOUT_MS = 15000; // 15 second timeout
 
