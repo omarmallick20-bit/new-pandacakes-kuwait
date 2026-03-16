@@ -144,6 +144,7 @@ export default function AddressManager() {
       is_serviceable: true
     });
     setEditingAddress(null);
+    setLocationStep('prompt');
   };
 
   const handleAdd = () => {
