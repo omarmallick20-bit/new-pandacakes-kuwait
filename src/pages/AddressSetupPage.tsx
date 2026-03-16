@@ -32,6 +32,7 @@ export default function AddressSetupPage() {
     delivery_fee: null as number | null,
     is_serviceable: true
   });
+  const [locationStep, setLocationStep] = useState<'prompt' | 'form'>('prompt');
   const mountedRef = useRef(true);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
