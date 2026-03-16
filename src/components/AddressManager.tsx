@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Plus, Pencil, Trash2, MapPin, Loader2, XCircle } from "lucide-react";
 import { DeliveryZoneMap } from '@/components/DeliveryZoneMap';
+import { LocationPrompt } from '@/components/LocationPrompt';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
