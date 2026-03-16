@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, MapPin } from 'lucide-react';
 import { DeliveryZoneMap } from '@/components/DeliveryZoneMap';
+import { LocationPrompt } from '@/components/LocationPrompt';
 import { retryWithBackoff } from '@/utils/retryWithBackoff';
 import { COUNTRY_ID, COUNTRY_NAME } from '@/config/country';
 
