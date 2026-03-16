@@ -601,6 +601,8 @@ export default function AddressManager() {
                 </Button>
               </div>
             </form>
+            </>
+            )}
           </DialogContent>
         </Dialog>
       </div>

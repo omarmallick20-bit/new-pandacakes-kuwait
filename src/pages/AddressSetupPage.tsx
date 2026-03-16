@@ -203,6 +203,43 @@ export default function AddressSetupPage() {
     );
   }
 
+  if (locationStep === 'prompt') {
+    return (
+      <main className="min-h-screen bg-hero-gradient flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold">Add Your Address</CardTitle>
+            <CardDescription>
+              We need your delivery address to complete your account setup
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <LocationPrompt
+              onLocationObtained={(lat, lng) => {
+                setFormData(prev => ({ ...prev, latitude: lat, longitude: lng }));
+                setLocationStep('form');
+              }}
+              onSkip={() => setLocationStep('form')}
+            />
+            <div className="text-center mt-4">
+              <button
+                type="button"
+                onClick={() => {
+                  localStorage.setItem('address_setup_skipped', 'true');
+                  toast.info('You can add your address later before placing an order');
+                  navigate('/');
+                }}
+                className="text-sm text-muted-foreground hover:text-foreground underline"
+              >
+                Skip for now
+              </button>
+            </div>
+          </CardContent>
+        </Card>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-hero-gradient flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
