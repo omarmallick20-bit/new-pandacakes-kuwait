@@ -170,16 +170,19 @@ const handler = async (req: Request): Promise<Response> => {
     const subtotal = orderItems.reduce((sum: number, item: any) => sum + (item.total_price || 0), 0);
 
     const orderDate = new Date(order.created_at).toLocaleDateString('en-US', {
-      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+      timeZone: 'Asia/Qatar'
     });
 
     let scheduledDateTime = 'To be confirmed';
     if (order.estimated_delivery_time) {
       const dt = new Date(order.estimated_delivery_time);
       scheduledDateTime = dt.toLocaleDateString('en-US', {
-        weekday: 'short', month: 'short', day: 'numeric'
+        weekday: 'short', month: 'short', day: 'numeric',
+        timeZone: 'Asia/Qatar'
       }) + ' at ' + dt.toLocaleTimeString('en-US', {
-        hour: '2-digit', minute: '2-digit'
+        hour: '2-digit', minute: '2-digit',
+        timeZone: 'Asia/Qatar'
       });
     }
 
