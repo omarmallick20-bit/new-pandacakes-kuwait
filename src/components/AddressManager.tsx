@@ -153,6 +153,7 @@ export default function AddressManager() {
   };
 
   const handleEdit = async (address: Address) => {
+    setLocationStep('form'); // Skip prompt when editing
     // Fetch full address with coordinates from database
     try {
       const { data } = await supabase
