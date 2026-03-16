@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Plus, Pencil, Trash2, MapPin, Loader2, XCircle } from "lucide-react";
 import { DeliveryZoneMap } from '@/components/DeliveryZoneMap';
+import { LocationPrompt } from '@/components/LocationPrompt';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -71,6 +72,7 @@ export default function AddressManager() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [addressToDelete, setAddressToDelete] = useState<Address | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [locationStep, setLocationStep] = useState<'prompt' | 'form'>('prompt');
 
   const OPERATION_TIMEOUT_MS = 15000; // 15 second timeout
 
@@ -142,6 +144,7 @@ export default function AddressManager() {
       is_serviceable: true
     });
     setEditingAddress(null);
+    setLocationStep('prompt');
   };
 
   const handleAdd = () => {
@@ -150,6 +153,7 @@ export default function AddressManager() {
   };
 
   const handleEdit = async (address: Address) => {
+    setLocationStep('form'); // Skip prompt when editing
     // Fetch full address with coordinates from database
     try {
       const { data } = await supabase
@@ -426,6 +430,22 @@ export default function AddressManager() {
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
+            {locationStep === 'prompt' && !editingAddress ? (
+              <>
+                <DialogHeader>
+                  <DialogTitle>{t('addr_add_title')}</DialogTitle>
+                  <DialogDescription>{t('addr_add_desc')}</DialogDescription>
+                </DialogHeader>
+                <LocationPrompt
+                  onLocationObtained={(lat, lng) => {
+                    setFormData(prev => ({ ...prev, latitude: lat, longitude: lng }));
+                    setLocationStep('form');
+                  }}
+                  onSkip={() => setLocationStep('form')}
+                />
+              </>
+            ) : (
+            <>
             <DialogHeader>
               <DialogTitle>
                 {editingAddress ? t('addr_edit_title') : t('addr_add_title')}
@@ -581,6 +601,8 @@ export default function AddressManager() {
                 </Button>
               </div>
             </form>
+            </>
+            )}
           </DialogContent>
         </Dialog>
       </div>

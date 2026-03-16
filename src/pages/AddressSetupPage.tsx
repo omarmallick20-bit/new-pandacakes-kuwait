@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, MapPin } from 'lucide-react';
 import { DeliveryZoneMap } from '@/components/DeliveryZoneMap';
+import { LocationPrompt } from '@/components/LocationPrompt';
 import { retryWithBackoff } from '@/utils/retryWithBackoff';
 import { COUNTRY_ID, COUNTRY_NAME } from '@/config/country';
 
@@ -31,6 +32,7 @@ export default function AddressSetupPage() {
     delivery_fee: null as number | null,
     is_serviceable: true
   });
+  const [locationStep, setLocationStep] = useState<'prompt' | 'form'>('prompt');
   const mountedRef = useRef(true);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
@@ -197,6 +199,43 @@ export default function AddressSetupPage() {
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-tiffany" />
           <p className="text-muted-foreground">Loading...</p>
         </div>
+      </main>
+    );
+  }
+
+  if (locationStep === 'prompt') {
+    return (
+      <main className="min-h-screen bg-hero-gradient flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold">Add Your Address</CardTitle>
+            <CardDescription>
+              We need your delivery address to complete your account setup
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <LocationPrompt
+              onLocationObtained={(lat, lng) => {
+                setFormData(prev => ({ ...prev, latitude: lat, longitude: lng }));
+                setLocationStep('form');
+              }}
+              onSkip={() => setLocationStep('form')}
+            />
+            <div className="text-center mt-4">
+              <button
+                type="button"
+                onClick={() => {
+                  localStorage.setItem('address_setup_skipped', 'true');
+                  toast.info('You can add your address later before placing an order');
+                  navigate('/');
+                }}
+                className="text-sm text-muted-foreground hover:text-foreground underline"
+              >
+                Skip for now
+              </button>
+            </div>
+          </CardContent>
+        </Card>
       </main>
     );
   }
