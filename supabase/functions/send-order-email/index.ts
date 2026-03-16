@@ -170,7 +170,8 @@ const handler = async (req: Request): Promise<Response> => {
     const subtotal = orderItems.reduce((sum: number, item: any) => sum + (item.total_price || 0), 0);
 
     const orderDate = new Date(order.created_at).toLocaleDateString('en-US', {
-      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+      timeZone: 'Asia/Qatar'
     });
 
     let scheduledDateTime = 'To be confirmed';
