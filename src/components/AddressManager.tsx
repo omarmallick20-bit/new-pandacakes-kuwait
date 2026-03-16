@@ -430,6 +430,22 @@ export default function AddressManager() {
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
+            {locationStep === 'prompt' && !editingAddress ? (
+              <>
+                <DialogHeader>
+                  <DialogTitle>{t('addr_add_title')}</DialogTitle>
+                  <DialogDescription>{t('addr_add_desc')}</DialogDescription>
+                </DialogHeader>
+                <LocationPrompt
+                  onLocationObtained={(lat, lng) => {
+                    setFormData(prev => ({ ...prev, latitude: lat, longitude: lng }));
+                    setLocationStep('form');
+                  }}
+                  onSkip={() => setLocationStep('form')}
+                />
+              </>
+            ) : (
+            <>
             <DialogHeader>
               <DialogTitle>
                 {editingAddress ? t('addr_edit_title') : t('addr_add_title')}
