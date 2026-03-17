@@ -152,6 +152,15 @@ All colors MUST be HSL.
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  .animate-pulse-subtle {
+    animation: pulse-subtle 2s ease-in-out infinite;
+  }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { box-shadow: 0 0 0 0 hsl(var(--tiffany-blue) / 0.4); }
+  50% { box-shadow: 0 0 0 6px hsl(var(--tiffany-blue) / 0.1); }
 }
 
 /* Phone input styling for popup */

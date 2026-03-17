@@ -573,16 +573,21 @@ const response = await fetch(
       </div>
 
       {/* Use Current Location Button */}
-      <Button
-        type="button"
-        variant="outline"
-        onClick={handleUseCurrentLocation}
-        disabled={isGeocoding}
-        className="w-full"
-      >
-        <Crosshair className="mr-2 h-4 w-4" />
-        Use My Current Location
-      </Button>
+      <div className="space-y-1.5">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleUseCurrentLocation}
+          disabled={isGeocoding}
+          className="w-full border-2 border-tiffany text-tiffany-active hover:bg-tiffany/10 font-semibold animate-pulse-subtle"
+        >
+          <Crosshair className="mr-2 h-4 w-4" />
+          Use My Current Location
+        </Button>
+        <p className="text-xs text-center text-tiffany-active/70">
+          📍 Recommended for accurate delivery
+        </p>
+      </div>
 
       {/* Map Container */}
       <div ref={mapContainerRef} className="h-[200px] sm:h-[280px] md:h-[350px] w-full rounded-lg border" />
