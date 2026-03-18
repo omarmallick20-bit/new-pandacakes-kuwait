@@ -1,68 +1,40 @@
 
 
-## Updated Review System Plan
+## Update Review System — Kuwait Only
 
-### Current State
-- Edge function `fetch-and-store-reviews` fetches reviews sorted by "mostRelevant", deletes all existing reviews for the country, and replaces them entirely
-- Reviews are stored in `qatar_reviews` table with `country_id` filtering
-- Frontend reads from the DB (already instant loading)
-- Translation uses MyMemory free API with 500ms delays between calls
+### Changes
 
-### Changes Required
+#### 1. Edge Function (`supabase/functions/fetch-and-store-reviews/index.ts`)
 
-#### 1. Edge Function: `fetch-and-store-reviews/index.ts`
+- Change `sortBy: 'mostRelevant'` → `sortBy: 'newestFirst'` to fetch newest reviews
+- Accept `mode` param: `'full'` (delete all + re-insert) or `'incremental'` (default, only add new)
+- In incremental mode: query existing `author_name` values for `country_id='kw'`, skip already-stored authors, only translate and insert new ones
+- New reviews get negative `sort_order` values so they appear at the top
+- Add `fetched_at: new Date().toISOString()` to each inserted row
 
-**Sort by newest instead of most relevant:**
-- Change `sortBy: 'mostRelevant'` → `sortBy: 'newestFirst'` in the Serper API call
-- Fetch 3 pages (60 reviews) to get 50-60 unique reviews after dedup
+#### 2. Frontend (`src/pages/ReviewsPage.tsx`)
 
-**Incremental upsert instead of delete-all:**
-- Instead of deleting all reviews and re-inserting, check which authors already exist in the DB for that country
-- Only insert genuinely new reviews (by `author_name + country_id` combo)
-- New reviews get `sort_order = -1, -2, -3...` (negative = newest first) so they appear at the top
-- If no new reviews found, return early with `{ new_reviews: 0 }`
+- Change sort order from `sort_order ascending` → `fetched_at descending, sort_order ascending` so newest reviews show first
+- This is a Kuwait-only deployment (`COUNTRY_ID = 'kw'`), so no conditional logic needed
 
-**Add `fetched_at` timestamp:**
-- Add a `fetched_at` column to track when each review was fetched (useful for the cron to know when last fetch happened)
+#### 3. Cron Setup (SQL migration)
 
-**Accept `mode` parameter:**
-- `mode: 'full'` — first-time setup: delete all + insert fresh 60 reviews (current behavior but sorted newest)
-- `mode: 'incremental'` (default) — only add new reviews not already in DB
-
-#### 2. Database Migration
-
-Add `fetched_at` column to `qatar_reviews`:
+Provide a `pg_cron` + `pg_net` schedule to call the edge function every 6 days for Kuwait:
 ```sql
-ALTER TABLE qatar_reviews ADD COLUMN IF NOT EXISTS fetched_at timestamptz DEFAULT now();
+SELECT cron.schedule(
+  'fetch-reviews-kw',
+  '0 3 */6 * *',
+  $$SELECT net.http_post(
+    url := 'https://qlffjhyciwabyzolzdjb.supabase.co/functions/v1/fetch-and-store-reviews',
+    headers := '{"Content-Type":"application/json","Authorization":"Bearer <service_role_key>"}'::jsonb,
+    body := '{"country_id":"kw","mode":"incremental"}'::jsonb
+  )$$
+);
 ```
 
-#### 3. Cron Job (pg_cron + pg_net)
-
-Schedule the edge function to run every 6 days for each country:
-- One cron for `qa`, one for `kw`
-- Calls the function with `{ "country_id": "qa", "mode": "incremental" }`
-- Uses `pg_cron` + `pg_net` HTTP POST
-
-#### 4. Frontend (`ReviewsPage.tsx`)
-
-- Change sort order from `sort_order ascending` to `fetched_at descending, sort_order ascending` so newest reviews appear first
-- No other frontend changes needed — it already reads from DB
-
-### Flow Summary
-
-```text
-Cron (every 6 days)
-  → calls fetch-and-store-reviews({ country_id, mode: "incremental" })
-    → Serper API (sortBy: newestFirst, 3 pages ≈ 60 reviews)
-    → Dedup against existing DB authors
-    → Translate only NEW reviews to Arabic
-    → Insert new reviews at top (skip if none new)
-    → Return { new_reviews: N }
-```
+No DB migration needed — the `fetched_at` column already exists on `qatar_reviews`.
 
 ### Files to Change
-1. **`supabase/functions/fetch-and-store-reviews/index.ts`** — sort by newest, incremental upsert logic
-2. **DB migration** — add `fetched_at` column
-3. **`src/pages/ReviewsPage.tsx`** — order by `fetched_at desc` then `sort_order asc`
-4. **Cron SQL** — schedule recurring calls via `pg_cron`
+1. `supabase/functions/fetch-and-store-reviews/index.ts` — newest sort, incremental upsert, mode param
+2. `src/pages/ReviewsPage.tsx` — order by `fetched_at desc`
 
