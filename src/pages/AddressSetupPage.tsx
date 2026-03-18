@@ -20,9 +20,10 @@ export default function AddressSetupPage() {
   const [isCheckingAddress, setIsCheckingAddress] = useState(true);
   const [formData, setFormData] = useState({
     label: 'Home',
-    building_flat: '',
-    street_address: '',
-    city: '',
+    area: '',
+    block: '',
+    street: '',
+    house: '',
     country: COUNTRY_NAME,
     country_id: COUNTRY_ID,
     landmarks: '',
@@ -147,8 +148,8 @@ export default function AddressSetupPage() {
       const addressData = {
         customer_id: user.id,
         label: formData.label,
-        street_address: `${formData.building_flat ? formData.building_flat + ', ' : ''}${formData.street_address}`,
-        city: formData.city,
+        street_address: `Block ${formData.block}, ${formData.street}, ${formData.house}`,
+        city: formData.area,
         country: COUNTRY_NAME,
         country_id: COUNTRY_ID,
         landmarks: formData.landmarks,
@@ -278,8 +279,6 @@ export default function AddressSetupPage() {
                 onLocationSelect={(locationData) => {
                   setFormData(prev => ({
                     ...prev,
-                    street_address: locationData.street || prev.street_address,
-                    city: locationData.city || prev.city,
                     latitude: locationData.latitude,
                     longitude: locationData.longitude,
                     delivery_zone_id: locationData.zone_id,
@@ -321,43 +320,48 @@ export default function AddressSetupPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="building_flat">Block and Building Details *</Label>
+              <Label htmlFor="area">Area *</Label>
               <Input
-                id="building_flat"
-                placeholder="e.g., Block 3, Building 45"
-                value={formData.building_flat}
-                onChange={(e) => setFormData(prev => ({ ...prev, building_flat: e.target.value }))}
-                required
-                disabled={isLoading}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="street_address">
-                Street Address *
-                {formData.latitude && formData.longitude && (
-                  <span className="ml-2 text-xs bg-tiffany/10 text-tiffany px-2 py-0.5 rounded">
-                    📍 From Map
-                  </span>
-                )}
-              </Label>
-              <Input
-                id="street_address"
-                placeholder="Street, Area"
-                value={formData.street_address}
-                onChange={(e) => setFormData(prev => ({ ...prev, street_address: e.target.value }))}
-                required
-                disabled={isLoading}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="city">Area</Label>
-              <Input
-                id="city"
+                id="area"
                 placeholder="e.g., Salmiya, Hawalli"
-                value={formData.city}
-                onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                value={formData.area}
+                onChange={(e) => setFormData(prev => ({ ...prev, area: e.target.value }))}
+                required
+                disabled={isLoading}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="block">Block *</Label>
+              <Input
+                id="block"
+                placeholder="e.g., 3"
+                value={formData.block}
+                onChange={(e) => setFormData(prev => ({ ...prev, block: e.target.value }))}
+                required
+                disabled={isLoading}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="street">Street *</Label>
+              <Input
+                id="street"
+                placeholder="e.g., Street 5, Avenue 3"
+                value={formData.street}
+                onChange={(e) => setFormData(prev => ({ ...prev, street: e.target.value }))}
+                required
+                disabled={isLoading}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="house">House *</Label>
+              <Input
+                id="house"
+                placeholder="e.g., House 12, Apt 4"
+                value={formData.house}
+                onChange={(e) => setFormData(prev => ({ ...prev, house: e.target.value }))}
                 required
                 disabled={isLoading}
               />

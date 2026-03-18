@@ -58,9 +58,10 @@ export default function AddressManager() {
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
   const [formData, setFormData] = useState({
     label: '',
-    building_flat: '',
-    street_address: '',
-    city: '',
+    area: '',
+    block: '',
+    street: '',
+    house: '',
     country: 'Kuwait',
     landmarks: '',
     latitude: null as number | null,
@@ -132,9 +133,10 @@ export default function AddressManager() {
   const resetForm = () => {
     setFormData({
       label: '',
-      building_flat: '',
-      street_address: '',
-      city: '',
+      area: '',
+      block: '',
+      street: '',
+      house: '',
       country: 'Kuwait',
       landmarks: '',
       latitude: null,
@@ -154,7 +156,6 @@ export default function AddressManager() {
 
   const handleEdit = async (address: Address) => {
     setLocationStep('form'); // Skip prompt when editing
-    // Fetch full address with coordinates from database
     try {
       const { data } = await supabase
         .from('addresses')
@@ -163,16 +164,18 @@ export default function AddressManager() {
         .single();
 
       if (data) {
-        // Try to extract building/flat from street_address if it exists
-        const addressParts = data.street_address.split(',');
-        const building_flat = addressParts.length > 1 ? addressParts[0].trim() : '';
-        const street = addressParts.length > 1 ? addressParts.slice(1).join(',').trim() : data.street_address;
+        // Parse stored street_address: "Block X, Street Y, House Z"
+        const parts = data.street_address.split(',').map((s: string) => s.trim());
+        const blockPart = parts[0]?.replace(/^Block\s*/i, '') || '';
+        const streetPart = parts.length > 2 ? parts[1] : '';
+        const housePart = parts.length > 2 ? parts.slice(2).join(', ') : parts.length > 1 ? parts[1] : '';
 
         setFormData({
           label: data.label,
-          building_flat: building_flat,
-          street_address: street,
-          city: data.city,
+          area: data.city,
+          block: blockPart,
+          street: streetPart,
+          house: housePart,
           country: data.country,
           landmarks: data.landmarks || '',
           latitude: data.latitude,
@@ -184,16 +187,17 @@ export default function AddressManager() {
       }
     } catch (error) {
       console.error('Error fetching address:', error);
-      // Fallback to basic data
-      const addressParts = address.street_address.split(',');
-      const building_flat = addressParts.length > 1 ? addressParts[0].trim() : '';
-      const street = addressParts.length > 1 ? addressParts.slice(1).join(',').trim() : address.street_address;
+      const parts = address.street_address.split(',').map(s => s.trim());
+      const blockPart = parts[0]?.replace(/^Block\s*/i, '') || '';
+      const streetPart = parts.length > 2 ? parts[1] : '';
+      const housePart = parts.length > 2 ? parts.slice(2).join(', ') : parts.length > 1 ? parts[1] : '';
 
       setFormData({
         label: address.label,
-        building_flat: building_flat,
-        street_address: street,
-        city: address.city,
+        area: address.city,
+        block: blockPart,
+        street: streetPart,
+        house: housePart,
         country: address.country,
         landmarks: address.landmarks || '',
         latitude: null,
@@ -246,7 +250,7 @@ export default function AddressManager() {
     }, OPERATION_TIMEOUT_MS);
 
     try {
-      const fullStreetAddress = `${formData.building_flat ? formData.building_flat + ', ' : ''}${formData.street_address}`;
+      const fullStreetAddress = `Block ${formData.block}, ${formData.street}, ${formData.house}`;
 
       if (editingAddress) {
         await retryWithBackoff(
@@ -256,7 +260,7 @@ export default function AddressManager() {
               .update({
                 label: formData.label,
                 street_address: fullStreetAddress,
-                city: formData.city,
+                city: formData.area,
                 country: 'Kuwait',
                 landmarks: formData.landmarks,
                 latitude: formData.latitude,
@@ -282,7 +286,7 @@ export default function AddressManager() {
                 customer_id: user.id,
                 label: formData.label,
                 street_address: fullStreetAddress,
-                city: formData.city,
+                city: formData.area,
                 country: 'Kuwait',
                 country_id: COUNTRY_ID,
                 landmarks: formData.landmarks,
@@ -480,8 +484,6 @@ export default function AddressManager() {
                   onLocationSelect={(locationData) => {
                     setFormData(prev => ({
                       ...prev,
-                      street_address: locationData.street || prev.street_address,
-                      city: locationData.city || prev.city,
                       latitude: locationData.latitude,
                       longitude: locationData.longitude,
                       delivery_zone_id: locationData.zone_id,
@@ -524,41 +526,45 @@ export default function AddressManager() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="building_flat">Block and Building Details *</Label>
+                <Label htmlFor="area">Area *</Label>
                 <Input
-                  id="building_flat"
-                  placeholder="e.g., Block 3, Building 45"
-                  value={formData.building_flat}
-                  onChange={(e) => setFormData(prev => ({ ...prev, building_flat: e.target.value }))}
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="street">
-                  Street Address *
-                  {formData.latitude && formData.longitude && (
-                    <span className="ml-2 text-xs bg-tiffany/10 text-tiffany px-2 py-0.5 rounded">
-                      📍 From Map
-                    </span>
-                  )}
-                </Label>
-                <Textarea
-                  id="street"
-                  placeholder="Street, Area"
-                  value={formData.street_address}
-                  onChange={(e) => setFormData(prev => ({ ...prev, street_address: e.target.value }))}
+                  id="area"
+                  placeholder="e.g., Salmiya, Hawalli"
+                  value={formData.area}
+                  onChange={(e) => setFormData(prev => ({ ...prev, area: e.target.value }))}
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="city">Area</Label>
+                <Label htmlFor="block">Block *</Label>
                 <Input
-                  id="city"
-                  placeholder="e.g., Salmiya, Hawalli"
-                  value={formData.city}
-                  onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                  id="block"
+                  placeholder="e.g., 3"
+                  value={formData.block}
+                  onChange={(e) => setFormData(prev => ({ ...prev, block: e.target.value }))}
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="street">Street *</Label>
+                <Input
+                  id="street"
+                  placeholder="e.g., Street 5, Avenue 3"
+                  value={formData.street}
+                  onChange={(e) => setFormData(prev => ({ ...prev, street: e.target.value }))}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="house">House *</Label>
+                <Input
+                  id="house"
+                  placeholder="e.g., House 12, Apt 4"
+                  value={formData.house}
+                  onChange={(e) => setFormData(prev => ({ ...prev, house: e.target.value }))}
                   required
                 />
               </div>
