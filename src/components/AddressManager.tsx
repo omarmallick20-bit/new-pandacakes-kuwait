@@ -260,7 +260,7 @@ export default function AddressManager() {
               .update({
                 label: formData.label,
                 street_address: fullStreetAddress,
-                city: formData.city,
+                city: formData.area,
                 country: 'Kuwait',
                 landmarks: formData.landmarks,
                 latitude: formData.latitude,
