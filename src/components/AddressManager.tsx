@@ -286,7 +286,7 @@ export default function AddressManager() {
                 customer_id: user.id,
                 label: formData.label,
                 street_address: fullStreetAddress,
-                city: formData.city,
+                city: formData.area,
                 country: 'Kuwait',
                 country_id: COUNTRY_ID,
                 landmarks: formData.landmarks,
