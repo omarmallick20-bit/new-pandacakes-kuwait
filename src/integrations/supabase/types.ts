@@ -1102,6 +1102,7 @@ export type Database = {
           author_name: string
           country_id: string | null
           created_at: string
+          fetched_at: string | null
           helpful_votes: number | null
           id: string
           is_active: boolean | null
@@ -1118,6 +1119,7 @@ export type Database = {
           author_name: string
           country_id?: string | null
           created_at?: string
+          fetched_at?: string | null
           helpful_votes?: number | null
           id?: string
           is_active?: boolean | null
@@ -1134,6 +1136,7 @@ export type Database = {
           author_name?: string
           country_id?: string | null
           created_at?: string
+          fetched_at?: string | null
           helpful_votes?: number | null
           id?: string
           is_active?: boolean | null
