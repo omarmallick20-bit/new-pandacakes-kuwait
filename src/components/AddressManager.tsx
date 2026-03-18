@@ -58,9 +58,10 @@ export default function AddressManager() {
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
   const [formData, setFormData] = useState({
     label: '',
-    building_flat: '',
-    street_address: '',
-    city: '',
+    area: '',
+    block: '',
+    street: '',
+    house: '',
     country: 'Kuwait',
     landmarks: '',
     latitude: null as number | null,
