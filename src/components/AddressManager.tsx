@@ -133,9 +133,10 @@ export default function AddressManager() {
   const resetForm = () => {
     setFormData({
       label: '',
-      building_flat: '',
-      street_address: '',
-      city: '',
+      area: '',
+      block: '',
+      street: '',
+      house: '',
       country: 'Kuwait',
       landmarks: '',
       latitude: null,
