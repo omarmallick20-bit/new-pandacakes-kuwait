@@ -156,7 +156,6 @@ export default function AddressManager() {
 
   const handleEdit = async (address: Address) => {
     setLocationStep('form'); // Skip prompt when editing
-    // Fetch full address with coordinates from database
     try {
       const { data } = await supabase
         .from('addresses')
@@ -165,16 +164,18 @@ export default function AddressManager() {
         .single();
 
       if (data) {
-        // Try to extract building/flat from street_address if it exists
-        const addressParts = data.street_address.split(',');
-        const building_flat = addressParts.length > 1 ? addressParts[0].trim() : '';
-        const street = addressParts.length > 1 ? addressParts.slice(1).join(',').trim() : data.street_address;
+        // Parse stored street_address: "Block X, Street Y, House Z"
+        const parts = data.street_address.split(',').map((s: string) => s.trim());
+        const blockPart = parts[0]?.replace(/^Block\s*/i, '') || '';
+        const streetPart = parts.length > 2 ? parts[1] : '';
+        const housePart = parts.length > 2 ? parts.slice(2).join(', ') : parts.length > 1 ? parts[1] : '';
 
         setFormData({
           label: data.label,
-          building_flat: building_flat,
-          street_address: street,
-          city: data.city,
+          area: data.city,
+          block: blockPart,
+          street: streetPart,
+          house: housePart,
           country: data.country,
           landmarks: data.landmarks || '',
           latitude: data.latitude,
@@ -186,16 +187,17 @@ export default function AddressManager() {
       }
     } catch (error) {
       console.error('Error fetching address:', error);
-      // Fallback to basic data
-      const addressParts = address.street_address.split(',');
-      const building_flat = addressParts.length > 1 ? addressParts[0].trim() : '';
-      const street = addressParts.length > 1 ? addressParts.slice(1).join(',').trim() : address.street_address;
+      const parts = address.street_address.split(',').map(s => s.trim());
+      const blockPart = parts[0]?.replace(/^Block\s*/i, '') || '';
+      const streetPart = parts.length > 2 ? parts[1] : '';
+      const housePart = parts.length > 2 ? parts.slice(2).join(', ') : parts.length > 1 ? parts[1] : '';
 
       setFormData({
         label: address.label,
-        building_flat: building_flat,
-        street_address: street,
-        city: address.city,
+        area: address.city,
+        block: blockPart,
+        street: streetPart,
+        house: housePart,
         country: address.country,
         landmarks: address.landmarks || '',
         latitude: null,
