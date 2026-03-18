@@ -526,41 +526,45 @@ export default function AddressManager() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="building_flat">Block and Building Details *</Label>
+                <Label htmlFor="area">Area *</Label>
                 <Input
-                  id="building_flat"
-                  placeholder="e.g., Block 3, Building 45"
-                  value={formData.building_flat}
-                  onChange={(e) => setFormData(prev => ({ ...prev, building_flat: e.target.value }))}
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="street">
-                  Street Address *
-                  {formData.latitude && formData.longitude && (
-                    <span className="ml-2 text-xs bg-tiffany/10 text-tiffany px-2 py-0.5 rounded">
-                      📍 From Map
-                    </span>
-                  )}
-                </Label>
-                <Textarea
-                  id="street"
-                  placeholder="Street, Area"
-                  value={formData.street_address}
-                  onChange={(e) => setFormData(prev => ({ ...prev, street_address: e.target.value }))}
+                  id="area"
+                  placeholder="e.g., Salmiya, Hawalli"
+                  value={formData.area}
+                  onChange={(e) => setFormData(prev => ({ ...prev, area: e.target.value }))}
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="city">Area</Label>
+                <Label htmlFor="block">Block *</Label>
                 <Input
-                  id="city"
-                  placeholder="e.g., Salmiya, Hawalli"
-                  value={formData.city}
-                  onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                  id="block"
+                  placeholder="e.g., 3"
+                  value={formData.block}
+                  onChange={(e) => setFormData(prev => ({ ...prev, block: e.target.value }))}
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="street">Street *</Label>
+                <Input
+                  id="street"
+                  placeholder="e.g., Street 5, Avenue 3"
+                  value={formData.street}
+                  onChange={(e) => setFormData(prev => ({ ...prev, street: e.target.value }))}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="house">House *</Label>
+                <Input
+                  id="house"
+                  placeholder="e.g., House 12, Apt 4"
+                  value={formData.house}
+                  onChange={(e) => setFormData(prev => ({ ...prev, house: e.target.value }))}
                   required
                 />
               </div>
