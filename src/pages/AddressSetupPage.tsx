@@ -20,9 +20,10 @@ export default function AddressSetupPage() {
   const [isCheckingAddress, setIsCheckingAddress] = useState(true);
   const [formData, setFormData] = useState({
     label: 'Home',
-    building_flat: '',
-    street_address: '',
-    city: '',
+    area: '',
+    block: '',
+    street: '',
+    house: '',
     country: COUNTRY_NAME,
     country_id: COUNTRY_ID,
     landmarks: '',
