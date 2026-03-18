@@ -250,7 +250,7 @@ export default function AddressManager() {
     }, OPERATION_TIMEOUT_MS);
 
     try {
-      const fullStreetAddress = `${formData.building_flat ? formData.building_flat + ', ' : ''}${formData.street_address}`;
+      const fullStreetAddress = `Block ${formData.block}, ${formData.street}, ${formData.house}`;
 
       if (editingAddress) {
         await retryWithBackoff(
