@@ -148,8 +148,8 @@ export default function AddressSetupPage() {
       const addressData = {
         customer_id: user.id,
         label: formData.label,
-        street_address: `${formData.building_flat ? formData.building_flat + ', ' : ''}${formData.street_address}`,
-        city: formData.city,
+        street_address: `Block ${formData.block}, ${formData.street}, ${formData.house}`,
+        city: formData.area,
         country: COUNTRY_NAME,
         country_id: COUNTRY_ID,
         landmarks: formData.landmarks,
