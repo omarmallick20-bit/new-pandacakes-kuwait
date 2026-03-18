@@ -5,7 +5,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Country-specific Place IDs
 const PLACE_IDS: Record<string, string> = {
   qa: 'ChIJPciGedDPRT4RetH05W0NOvY',
   kw: 'ChIJud10oHuQzz8RMLZClbrsXVc',
@@ -37,7 +36,7 @@ async function fetchSerperPage(apiKey: string, placeId: string, gl: string, hl: 
     placeId,
     gl,
     hl,
-    sortBy: 'mostRelevant',
+    sortBy: 'newestFirst',
     num: 20,
   };
 
@@ -151,23 +150,28 @@ Deno.serve(async (req) => {
 
     if (!serperApiKey) throw new Error('SERPER_API_KEY not configured');
 
-    // Accept country_id from request body (default 'qa')
+    // Parse request body
     let countryId = 'qa';
+    let mode = 'incremental'; // 'full' or 'incremental'
     try {
       const body = await req.json();
       if (body.country_id && PLACE_IDS[body.country_id]) {
         countryId = body.country_id;
       }
-    } catch { /* no body or invalid JSON, use default */ }
+      if (body.mode === 'full') {
+        mode = 'full';
+      }
+    } catch { /* no body or invalid JSON, use defaults */ }
 
     const placeId = PLACE_IDS[countryId];
-    const gl = countryId; // geo-location matches country
-    console.log(`Fetching reviews for country=${countryId}, placeId=${placeId}`);
+    const gl = countryId;
+    const now = new Date().toISOString();
+    console.log(`Fetching reviews for country=${countryId}, placeId=${placeId}, mode=${mode}`);
 
     const allEnglish = await fetchAllReviews(serperApiKey, placeId, gl, 'en');
     console.log(`English reviews fetched: ${allEnglish.length}`);
 
-    // Deduplicate by author name
+    // Deduplicate by author name and filter blacklisted
     const seen = new Set<string>();
     const uniqueEnglish: SerperReview[] = [];
     for (const en of allEnglish) {
@@ -180,20 +184,61 @@ Deno.serve(async (req) => {
 
     console.log(`Unique after dedup: ${uniqueEnglish.length}`);
 
+    // For incremental mode, find which authors already exist in DB
+    let existingAuthors = new Set<string>();
+    if (mode === 'incremental') {
+      const { data: existing } = await supabase
+        .from('qatar_reviews')
+        .select('author_name')
+        .eq('country_id', countryId);
+
+      if (existing) {
+        existingAuthors = new Set(existing.map((r: { author_name: string }) => r.author_name.toLowerCase().trim()));
+      }
+      console.log(`Existing authors in DB: ${existingAuthors.size}`);
+    }
+
+    // Filter to only new reviews in incremental mode
+    const reviewsToProcess = mode === 'incremental'
+      ? uniqueEnglish.filter(en => {
+          const name = (en.user?.name || '').toLowerCase().trim();
+          return !existingAuthors.has(name);
+        })
+      : uniqueEnglish;
+
+    console.log(`Reviews to process (${mode}): ${reviewsToProcess.length}`);
+
+    if (reviewsToProcess.length === 0) {
+      console.log('No new reviews found, skipping.');
+      return new Response(
+        JSON.stringify({
+          success: true,
+          country_id: countryId,
+          mode,
+          new_reviews: 0,
+          message: 'No new reviews found',
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Translate each review to Arabic
     const rows = [];
-    for (let i = 0; i < uniqueEnglish.length; i++) {
-      const en = uniqueEnglish[i];
+    for (let i = 0; i < reviewsToProcess.length; i++) {
+      const en = reviewsToProcess[i];
       const authorName = en.user?.name || 'Anonymous';
       const enText = en.snippet || '';
 
-      console.log(`Translating review ${i + 1}/${uniqueEnglish.length} by ${authorName}...`);
+      console.log(`Translating review ${i + 1}/${reviewsToProcess.length} by ${authorName}...`);
       const arText = await translateToArabic(enText);
       const arDate = translateDateToArabic(en.date || '');
 
-      if (i < uniqueEnglish.length - 1) {
+      if (i < reviewsToProcess.length - 1) {
         await new Promise(resolve => setTimeout(resolve, 500));
       }
+
+      // In incremental mode, use negative sort_order so new reviews appear at top
+      const sortOrder = mode === 'incremental' ? -(i + 1) : i;
 
       rows.push({
         author_name: authorName,
@@ -207,14 +252,17 @@ Deno.serve(async (req) => {
           .filter(m => m.type === 'image' && m.imageUrl)
           .map(m => m.imageUrl),
         helpful_votes: en.likes || 0,
-        sort_order: i,
+        sort_order: sortOrder,
         is_active: true,
         country_id: countryId,
+        fetched_at: now,
       });
     }
 
-    // Delete only reviews for this country, then insert
-    await supabase.from('qatar_reviews').delete().eq('country_id', countryId);
+    // Full mode: delete all existing reviews for this country first
+    if (mode === 'full') {
+      await supabase.from('qatar_reviews').delete().eq('country_id', countryId);
+    }
 
     if (rows.length > 0) {
       const { error: insertError } = await supabase
@@ -224,13 +272,15 @@ Deno.serve(async (req) => {
     }
 
     const withArabic = rows.filter(r => r.review_text_ar && r.review_text_ar.length > 0).length;
-    console.log(`✅ Stored ${rows.length} reviews for ${countryId} (${withArabic} with Arabic translation)`);
+    console.log(`✅ Stored ${rows.length} reviews for ${countryId} (${withArabic} with Arabic, mode=${mode})`);
 
     return new Response(
       JSON.stringify({
         success: true,
         country_id: countryId,
+        mode,
         stored: rows.length,
+        new_reviews: rows.length,
         with_arabic: withArabic,
         english_fetched: allEnglish.length,
       }),

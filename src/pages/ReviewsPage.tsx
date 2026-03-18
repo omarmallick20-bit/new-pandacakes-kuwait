@@ -61,6 +61,7 @@ export default function ReviewsPage() {
           .select('*', { count: 'exact' })
           .eq('is_active', true)
           .eq('country_id', COUNTRY_ID)
+          .order('fetched_at', { ascending: false })
           .order('sort_order', { ascending: true })
           .range(0, PAGE_SIZE - 1);
 
@@ -96,6 +97,7 @@ export default function ReviewsPage() {
         .select('*')
         .eq('is_active', true)
         .eq('country_id', COUNTRY_ID)
+        .order('fetched_at', { ascending: false })
         .order('sort_order', { ascending: true })
         .range(offset, offset + PAGE_SIZE - 1);
 
