@@ -181,11 +181,19 @@ async function proxyFetch(url: string, headers: Record<string, string>, countryI
 // Send SMS via FCC API with both P parameter and X-API-KEY header
 async function sendSmsViaFcc(phone: string, message: string, countryId?: string): Promise<{ success: boolean; error?: string }> {
   const startTime = Date.now();
-  const fccApiKey = Deno.env.get('FCC_API_KEY');
+  const rawFccApiKey = Deno.env.get('FCC_API_KEY');
+  
+  // Normalize: trim whitespace/newlines that may sneak in via secret storage
+  const fccApiKey = rawFccApiKey?.trim();
   
   if (!fccApiKey || fccApiKey.includes('PLACEHOLDER') || fccApiKey.length < 10) {
     console.error('❌ [send-otp] FCC_API_KEY is missing or contains a placeholder value');
     return { success: false, error: 'SMS service not configured -- contact support' };
+  }
+
+  // Warn if trimming changed the key (indicates stored secret has whitespace)
+  if (rawFccApiKey !== fccApiKey) {
+    console.warn(`⚠️ [send-otp] FCC_API_KEY had leading/trailing whitespace (raw length: ${rawFccApiKey!.length}, trimmed: ${fccApiKey.length})`);
   }
 
   // Debug: log first 8 chars of API key to verify correct secret is loaded
@@ -232,29 +240,52 @@ async function sendSmsViaFcc(phone: string, message: string, countryId?: string)
       return { success: true };
     }
 
-    // Log detailed failure info
-    console.error('❌ [send-otp] SMS send failed:');
-    console.error(`   HTTP Status: ${result.status}`);
-    console.error(`   Response (first 200 chars): ${result.text.substring(0, 200)}`);
+    // --- Classify FCC failure codes distinctly ---
+    const fccCode = result.text.substring(0, 2);
+    console.error(`❌ [send-otp] SMS send failed — FCC code: "${fccCode}", HTTP ${result.status}`);
+    console.error(`   Full response (first 200 chars): ${result.text.substring(0, 200)}`);
 
+    // HTML error page — almost always a proxy/IP issue, NOT an API key problem
     if (result.contentType.includes('html') || result.text.startsWith('<!DOCTYPE') || result.text.startsWith('<html')) {
-      return { success: false, error: 'FCC returned HTML error page - possible IP whitelist issue' };
+      return { success: false, error: `PROXY/NETWORK: FCC returned HTML error page — likely IP whitelist or proxy issue (HTTP ${result.status})` };
     }
 
-    if (result.text.startsWith('30')) {
-      return { success: false, error: 'FCC rejected request - IP not whitelisted or invalid credentials' };
+    // FCC documented error codes (https://api.future-club.com docs):
+    //  00 = success (handled above)
+    //  10 = invalid/missing parameters
+    //  20 = authentication failure (bad API key)
+    //  30 = IP not whitelisted
+    //  40 = insufficient credits
+    //  50 = invalid recipient
+    //  60 = message too long
+    //  70 = sender ID not registered
+    switch (fccCode) {
+      case '10':
+        return { success: false, error: `FCC_PARAM_ERROR: Invalid or missing parameters (code 10)` };
+      case '20':
+        return { success: false, error: `FCC_AUTH_FAILURE: API key rejected by FCC (code 20) — verify FCC_API_KEY secret` };
+      case '30':
+        return { success: false, error: `FCC_IP_BLOCKED: Outbound IP not whitelisted by FCC (code 30) — check proxy config, NOT the API key` };
+      case '40':
+        return { success: false, error: `FCC_NO_CREDITS: Insufficient SMS credits on FCC account (code 40)` };
+      case '50':
+        return { success: false, error: `FCC_BAD_RECIPIENT: Invalid phone number rejected by FCC (code 50)` };
+      case '60':
+        return { success: false, error: `FCC_MSG_TOO_LONG: Message exceeds FCC length limit (code 60)` };
+      case '70':
+        return { success: false, error: `FCC_SENDER_BLOCKED: Sender ID "${senderId}" not registered for this route (code 70)` };
+      default:
+        return { success: false, error: `FCC_UNKNOWN: Unrecognized response code "${fccCode}" — full: ${result.text.substring(0, 100)}` };
     }
-
-    return { success: false, error: `FCC returned: ${result.text.substring(0, 100)}` };
 
   } catch (error) {
     if (error.name === 'AbortError') {
       console.error(`❌ [send-otp] SMS provider timeout after ${FCC_FETCH_TIMEOUT_MS}ms`);
-      return { success: false, error: 'SMS provider timeout - please try again' };
+      return { success: false, error: 'PROXY_TIMEOUT: SMS provider did not respond in time — likely proxy/network issue, NOT the API key' };
     }
     
     console.error('❌ [send-otp] Network error:', error);
-    return { success: false, error: `Network error: ${error.message}` };
+    return { success: false, error: `NETWORK_ERROR: ${error.message}` };
   }
 }
 
