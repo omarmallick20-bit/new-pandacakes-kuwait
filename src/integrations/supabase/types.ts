@@ -697,6 +697,58 @@ export type Database = {
           },
         ]
       }
+      order_edit_history: {
+        Row: {
+          created_at: string
+          edit_reason: string
+          edited_by_name: string | null
+          edited_by_role: string | null
+          field_changes: Json
+          id: string
+          order_id: string
+        }
+        Insert: {
+          created_at?: string
+          edit_reason: string
+          edited_by_name?: string | null
+          edited_by_role?: string | null
+          field_changes?: Json
+          id?: string
+          order_id: string
+        }
+        Update: {
+          created_at?: string
+          edit_reason?: string
+          edited_by_name?: string | null
+          edited_by_role?: string | null
+          field_changes?: Json
+          id?: string
+          order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_edit_history_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_edit_history_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders_with_customer_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_edit_history_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "recent_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           created_at: string
