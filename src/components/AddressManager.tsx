@@ -463,10 +463,10 @@ export default function AddressManager() {
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto px-1">
               <div className="space-y-2">
-                <Label htmlFor="label">Address Label</Label>
+                <Label htmlFor="label">{t('addr_label')}</Label>
                 <Input
                   id="label"
-                  placeholder="e.g., My Home, My Office, Work"
+                  placeholder={t('addr_label_placeholder')}
                   value={formData.label}
                   onChange={(e) => setFormData(prev => ({ ...prev, label: e.target.value }))}
                   required
@@ -476,7 +476,7 @@ export default function AddressManager() {
               {/* Map Picker */}
               <div className="space-y-2">
                 <Label>
-                  Choose Location on Map <span className="text-destructive">*</span>
+                  {t('addr_map_label')} <span className="text-destructive">*</span>
                 </Label>
                 <DeliveryZoneMap
                   showZoneBoundaries={true}
@@ -496,7 +496,7 @@ export default function AddressManager() {
                 {/* Location selected indicator */}
                 {formData.latitude && formData.longitude && formData.is_serviceable !== false && (
                   <div className="flex items-center gap-2 p-2 bg-tiffany/10 border border-tiffany/30 rounded-lg">
-                    <span className="text-tiffany text-sm font-medium">✓ Location Selected</span>
+                    <span className="text-tiffany text-sm font-medium">✓ {t('addr_location_selected')}</span>
                     <span className="text-xs text-muted-foreground">
                       ({formData.latitude.toFixed(5)}, {formData.longitude.toFixed(5)})
                     </span>
@@ -507,7 +507,7 @@ export default function AddressManager() {
                 {!formData.latitude && !formData.longitude && (
                   <div className="p-2 bg-amber-500/10 border border-amber-500/30 rounded-lg">
                     <p className="text-sm text-amber-600 dark:text-amber-400">
-                      ⚠️ Please tap on the map or use "Use My Location" to set delivery coordinates
+                      ⚠️ {t('addr_map_warning')}
                     </p>
                   </div>
                 )}
@@ -516,42 +516,45 @@ export default function AddressManager() {
                   <div className="p-3 bg-destructive/10 border border-destructive rounded-lg space-y-1">
                     <p className="text-sm text-destructive font-semibold flex items-center gap-2">
                       <XCircle className="h-4 w-4" />
-                      No delivery to this location
+                      {t('addr_no_delivery')}
                     </p>
                     <p className="text-xs text-destructive/80">
-                      Please pick a different location on the map within our delivery zones
+                      {t('addr_pick_different')}
                     </p>
                   </div>
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="area">Area *</Label>
-                <Input
-                  id="area"
-                  placeholder="e.g., Salmiya, Hawalli"
-                  value={formData.area}
-                  onChange={(e) => setFormData(prev => ({ ...prev, area: e.target.value }))}
-                  required
-                />
-              </div>
+              {/* Area and Block side-by-side */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="area">{t('addr_area')} *</Label>
+                  <Input
+                    id="area"
+                    placeholder={t('addr_area_placeholder')}
+                    value={formData.area}
+                    onChange={(e) => setFormData(prev => ({ ...prev, area: e.target.value }))}
+                    required
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="block">Block *</Label>
-                <Input
-                  id="block"
-                  placeholder="e.g., 3"
-                  value={formData.block}
-                  onChange={(e) => setFormData(prev => ({ ...prev, block: e.target.value }))}
-                  required
-                />
+                <div className="space-y-2">
+                  <Label htmlFor="block">{t('addr_block')} *</Label>
+                  <Input
+                    id="block"
+                    placeholder={t('addr_block_placeholder')}
+                    value={formData.block}
+                    onChange={(e) => setFormData(prev => ({ ...prev, block: e.target.value }))}
+                    required
+                  />
+                </div>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="street">Street *</Label>
+                <Label htmlFor="street">{t('addr_street')} *</Label>
                 <Input
                   id="street"
-                  placeholder="e.g., Street 5, Avenue 3"
+                  placeholder={t('addr_street_placeholder')}
                   value={formData.street}
                   onChange={(e) => setFormData(prev => ({ ...prev, street: e.target.value }))}
                   required
@@ -559,10 +562,10 @@ export default function AddressManager() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="house">House *</Label>
+                <Label htmlFor="house">{t('addr_house')} *</Label>
                 <Input
                   id="house"
-                  placeholder="e.g., House 12, Apt 4"
+                  placeholder={t('addr_house_placeholder')}
                   value={formData.house}
                   onChange={(e) => setFormData(prev => ({ ...prev, house: e.target.value }))}
                   required
@@ -570,17 +573,17 @@ export default function AddressManager() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="landmarks">Additional Details / Near Landmarks (Optional)</Label>
+                <Label htmlFor="landmarks">{t('addr_landmarks')}</Label>
                 <Input
                   id="landmarks"
-                  placeholder="e.g., Near City Centre Mall, beside the park"
+                  placeholder={t('addr_landmarks_placeholder')}
                   value={formData.landmarks}
                   onChange={(e) => setFormData(prev => ({ ...prev, landmarks: e.target.value }))}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="country">Country</Label>
+                <Label htmlFor="country">{t('addr_country')}</Label>
                 <Input
                   id="country"
                   value={COUNTRY_NAME}
@@ -595,7 +598,7 @@ export default function AddressManager() {
                   variant="outline"
                   onClick={() => setIsDialogOpen(false)}
                 >
-                  Cancel
+                  {t('addr_cancel')}
                 </Button>
                 <Button 
                   type="submit"
