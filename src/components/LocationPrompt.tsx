@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { MapPin, Loader2, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface LocationPromptProps {
   onLocationObtained: (lat: number, lng: number) => void;
@@ -10,6 +11,7 @@ interface LocationPromptProps {
 
 export function LocationPrompt({ onLocationObtained, onSkip }: LocationPromptProps) {
   const [isLocating, setIsLocating] = useState(false);
+  const { t } = useTranslation();
 
   const handleUseCurrentLocation = () => {
     if (!navigator.geolocation) {
@@ -59,9 +61,9 @@ export function LocationPrompt({ onLocationObtained, onSkip }: LocationPromptPro
       </div>
       
       <div className="space-y-2">
-        <h3 className="text-xl font-bold text-foreground">Share Your Location</h3>
+        <h3 className="text-xl font-bold text-foreground">{t('loc_share_title')}</h3>
         <p className="text-sm text-muted-foreground max-w-xs">
-          For accurate delivery, please share your current location. This helps our drivers find you easily.
+          {t('loc_share_desc')}
         </p>
       </div>
 
@@ -74,12 +76,12 @@ export function LocationPrompt({ onLocationObtained, onSkip }: LocationPromptPro
         {isLocating ? (
           <>
             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-            Detecting Location...
+            {t('loc_detecting')}
           </>
         ) : (
           <>
             <Navigation className="mr-2 h-5 w-5" />
-            Use My Current Location
+            {t('loc_use_current')}
           </>
         )}
       </Button>
@@ -90,7 +92,7 @@ export function LocationPrompt({ onLocationObtained, onSkip }: LocationPromptPro
         disabled={isLocating}
         className="text-sm text-muted-foreground hover:text-foreground underline transition-colors"
       >
-        Enter address manually instead
+        {t('loc_enter_manual')}
       </button>
     </div>
   );

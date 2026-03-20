@@ -729,7 +729,7 @@ export default function AddressManager() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setAddressToDelete(null)} disabled={isDeleting}>
-              Cancel
+              {t('addr_cancel')}
             </AlertDialogCancel>
             <Button
               onClick={handleDelete}
@@ -739,10 +739,10 @@ export default function AddressManager() {
               {isDeleting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Deleting...
+                  {t('addr_deleting')}
                 </>
               ) : (
-                'Delete'
+                t('addr_delete')
               )}
             </Button>
           </AlertDialogFooter>

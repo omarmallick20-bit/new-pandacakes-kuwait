@@ -12,8 +12,9 @@ import { DeliveryZoneMap } from '@/components/DeliveryZoneMap';
 import { LocationPrompt } from '@/components/LocationPrompt';
 import { retryWithBackoff } from '@/utils/retryWithBackoff';
 import { COUNTRY_ID, COUNTRY_NAME } from '@/config/country';
+import { useTranslation } from '@/hooks/useTranslation';
 
-const OPERATION_TIMEOUT_MS = 15000; // 15 second timeout
+const OPERATION_TIMEOUT_MS = 15000;
 
 export default function AddressSetupPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -39,48 +40,33 @@ export default function AddressSetupPage() {
   
   const { user, isAuthReady } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
-  // CRITICAL: Reset loading state on mount
   useEffect(() => {
     mountedRef.current = true;
     setIsLoading(false);
-    
     return () => {
       mountedRef.current = false;
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, []);
 
-  // Block browser back button - prevent skipping address setup
   useEffect(() => {
     window.history.pushState(null, '', window.location.href);
     window.onpopstate = () => {
       window.history.pushState(null, '', window.location.href);
     };
-    
-    return () => {
-      window.onpopstate = null;
-    };
+    return () => { window.onpopstate = null; };
   }, []);
 
   useEffect(() => {
-    // Wait for auth to be ready before checking
     if (!isAuthReady) return;
-
-    if (!user) {
-      navigate('/login');
-      return;
-    }
-
-    // Check if user already has an address
+    if (!user) { navigate('/login'); return; }
     checkExistingAddress();
   }, [user, navigate, isAuthReady]);
 
   const checkExistingAddress = async () => {
     if (!user || !isAuthReady) return;
-
     try {
       setIsCheckingAddress(true);
       const data = await retryWithBackoff(
@@ -91,54 +77,35 @@ export default function AddressSetupPage() {
             .eq('customer_id', user.id)
             .eq('country_id', COUNTRY_ID)
             .limit(1);
-
           if (error) throw error;
           return data;
         },
         { operationName: 'checkExistingAddress', maxRetries: 2 }
       );
-
-      // If user already has an address, redirect to home
-      if (data && data.length > 0) {
-        navigate('/');
-        return;
-      }
+      if (data && data.length > 0) { navigate('/'); return; }
     } catch (error) {
       console.error('Error checking existing address:', error);
     } finally {
-      if (mountedRef.current) {
-        setIsCheckingAddress(false);
-      }
+      if (mountedRef.current) setIsCheckingAddress(false);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!user) {
-      toast.error('Please log in first');
-      return;
-    }
-
+    if (!user) { toast.error('Please log in first'); return; }
     if (isLoading) return;
-
-    // Validate coordinates are selected
     if (!formData.latitude || !formData.longitude) {
       toast.error('Please select a location on the map to continue');
       return;
     }
-
     if (formData.is_serviceable === false) {
       toast.error('This location is outside our delivery area. Please choose a different address.');
       return;
     }
 
     setIsLoading(true);
-
-    // Set timeout to auto-reset loading state
     timeoutRef.current = setTimeout(() => {
       if (mountedRef.current) {
-        console.warn('⚠️ [AddressSetup] Operation timeout - resetting state');
         setIsLoading(false);
         toast.error('Request timed out. Please try again.');
       }
@@ -163,42 +130,31 @@ export default function AddressSetupPage() {
 
       await retryWithBackoff(
         async () => {
-          const { error } = await supabase
-            .from('addresses')
-            .insert(addressData);
-
+          const { error } = await supabase.from('addresses').insert(addressData);
           if (error) throw error;
         },
         { operationName: 'insertAddress' }
       );
 
       toast.success('Address saved successfully!');
-      
-      // Check if there's a return URL
       const returnUrl = sessionStorage.getItem('checkout_return_url');
       sessionStorage.removeItem('checkout_return_url');
-      
       navigate(returnUrl || '/');
     } catch (error) {
       console.error('Error saving address:', error);
       toast.error('Failed to save address. Please try again.');
     } finally {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-      if (mountedRef.current) {
-        setIsLoading(false);
-      }
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (mountedRef.current) setIsLoading(false);
     }
   };
 
-  // Show loading while checking for existing address
   if (isCheckingAddress) {
     return (
       <main className="min-h-screen bg-hero-gradient flex items-center justify-center p-4">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-tiffany" />
-          <p className="text-muted-foreground">Loading...</p>
+          <p className="text-muted-foreground">{t('common_loading')}</p>
         </div>
       </main>
     );
@@ -209,10 +165,8 @@ export default function AddressSetupPage() {
       <main className="min-h-screen bg-hero-gradient flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold">Add Your Address</CardTitle>
-            <CardDescription>
-              We need your delivery address to complete your account setup
-            </CardDescription>
+            <CardTitle className="text-2xl font-bold">{t('addr_setup_title')}</CardTitle>
+            <CardDescription>{t('addr_setup_desc')}</CardDescription>
           </CardHeader>
           <CardContent>
             <LocationPrompt
@@ -227,12 +181,12 @@ export default function AddressSetupPage() {
                 type="button"
                 onClick={() => {
                   localStorage.setItem('address_setup_skipped', 'true');
-                  toast.info('You can add your address later before placing an order');
+                  toast.info(t('addr_skip_msg'));
                   navigate('/');
                 }}
                 className="text-sm text-muted-foreground hover:text-foreground underline"
               >
-                Skip for now
+                {t('addr_skip')}
               </button>
             </div>
           </CardContent>
@@ -248,20 +202,16 @@ export default function AddressSetupPage() {
           <div className="w-12 h-12 bg-tiffany/10 rounded-full flex items-center justify-center mx-auto mb-4">
             <MapPin className="w-6 h-6 text-tiffany" />
           </div>
-          <CardTitle className="text-2xl font-bold">
-            Add Your Address
-          </CardTitle>
-          <CardDescription>
-            We need your delivery address to complete your account setup
-          </CardDescription>
+          <CardTitle className="text-2xl font-bold">{t('addr_setup_title')}</CardTitle>
+          <CardDescription>{t('addr_setup_desc')}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="label">Address Label</Label>
+              <Label htmlFor="label">{t('addr_label')}</Label>
               <Input
                 id="label"
-                placeholder="e.g., My Home, My Office, Work"
+                placeholder={t('addr_label_placeholder')}
                 value={formData.label}
                 onChange={(e) => setFormData(prev => ({ ...prev, label: e.target.value }))}
                 required
@@ -272,7 +222,7 @@ export default function AddressSetupPage() {
             {/* Map Picker */}
             <div className="space-y-2">
               <Label>
-                Choose Location on Map <span className="text-destructive">*</span>
+                {t('addr_map_label')} <span className="text-destructive">*</span>
               </Label>
               <DeliveryZoneMap
                 showZoneBoundaries={true}
@@ -288,21 +238,19 @@ export default function AddressSetupPage() {
                 }}
               />
 
-              {/* Location selected indicator */}
               {formData.latitude && formData.longitude && formData.is_serviceable !== false && (
                 <div className="flex items-center gap-2 p-2 bg-tiffany/10 border border-tiffany/30 rounded-lg">
-                  <span className="text-tiffany text-sm font-medium">✓ Location Selected</span>
+                  <span className="text-tiffany text-sm font-medium">✓ {t('addr_location_selected')}</span>
                   <span className="text-xs text-muted-foreground">
                     ({formData.latitude.toFixed(5)}, {formData.longitude.toFixed(5)})
                   </span>
                 </div>
               )}
 
-              {/* Warning when no location selected */}
               {!formData.latitude && !formData.longitude && (
                 <div className="p-2 bg-amber-500/10 border border-amber-500/30 rounded-lg">
                   <p className="text-sm text-amber-600 dark:text-amber-400">
-                    ⚠️ Please tap on the map or use "Use My Location" to set delivery coordinates
+                    ⚠️ {t('addr_map_warning')}
                   </p>
                 </div>
               )}
@@ -310,44 +258,47 @@ export default function AddressSetupPage() {
               {formData.latitude && formData.is_serviceable === false && (
                 <div className="p-3 bg-destructive/10 border border-destructive rounded-lg">
                   <p className="text-sm text-destructive font-medium">
-                    ⚠️ This location is outside our delivery area
+                    ⚠️ {t('addr_outside_zone')}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Please select a different location or contact us for assistance
+                    {t('addr_outside_zone_desc')}
                   </p>
                 </div>
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="area">Area *</Label>
-              <Input
-                id="area"
-                placeholder="e.g., Salmiya, Hawalli"
-                value={formData.area}
-                onChange={(e) => setFormData(prev => ({ ...prev, area: e.target.value }))}
-                required
-                disabled={isLoading}
-              />
+            {/* Area and Block side-by-side */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="area">{t('addr_area')} *</Label>
+                <Input
+                  id="area"
+                  placeholder={t('addr_area_placeholder')}
+                  value={formData.area}
+                  onChange={(e) => setFormData(prev => ({ ...prev, area: e.target.value }))}
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="block">{t('addr_block')} *</Label>
+                <Input
+                  id="block"
+                  placeholder={t('addr_block_placeholder')}
+                  value={formData.block}
+                  onChange={(e) => setFormData(prev => ({ ...prev, block: e.target.value }))}
+                  required
+                  disabled={isLoading}
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="block">Block *</Label>
-              <Input
-                id="block"
-                placeholder="e.g., 3"
-                value={formData.block}
-                onChange={(e) => setFormData(prev => ({ ...prev, block: e.target.value }))}
-                required
-                disabled={isLoading}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="street">Street *</Label>
+              <Label htmlFor="street">{t('addr_street')} *</Label>
               <Input
                 id="street"
-                placeholder="e.g., Street 5, Avenue 3"
+                placeholder={t('addr_street_placeholder')}
                 value={formData.street}
                 onChange={(e) => setFormData(prev => ({ ...prev, street: e.target.value }))}
                 required
@@ -356,10 +307,10 @@ export default function AddressSetupPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="house">House *</Label>
+              <Label htmlFor="house">{t('addr_house')} *</Label>
               <Input
                 id="house"
-                placeholder="e.g., House 12, Apt 4"
+                placeholder={t('addr_house_placeholder')}
                 value={formData.house}
                 onChange={(e) => setFormData(prev => ({ ...prev, house: e.target.value }))}
                 required
@@ -368,21 +319,21 @@ export default function AddressSetupPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="landmarks">Additional Details / Near Landmarks (Optional)</Label>
+              <Label htmlFor="landmarks">{t('addr_landmarks')}</Label>
               <Input
                 id="landmarks"
-                placeholder="e.g., Near City Centre Mall, beside the park"
+                placeholder={t('addr_landmarks_placeholder')}
                 value={formData.landmarks}
                 onChange={(e) => setFormData(prev => ({ ...prev, landmarks: e.target.value }))}
                 disabled={isLoading}
               />
               <p className="text-xs text-muted-foreground">
-                Help us find you easier by adding nearby landmarks
+                {t('addr_landmarks_hint')}
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="country">Country</Label>
+              <Label htmlFor="country">{t('addr_country')}</Label>
               <Input
                 id="country"
                 value="Kuwait"
@@ -398,8 +349,8 @@ export default function AddressSetupPage() {
             >
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {!formData.latitude || !formData.longitude 
-                ? 'Select Location on Map First' 
-                : 'Save Address & Continue'}
+                ? t('addr_select_location_first')
+                : t('addr_save_continue')}
             </Button>
 
             <div className="text-center mt-4">
@@ -407,12 +358,12 @@ export default function AddressSetupPage() {
                 type="button"
                 onClick={() => {
                   localStorage.setItem('address_setup_skipped', 'true');
-                  toast.info('You can add your address later before placing an order');
+                  toast.info(t('addr_skip_msg'));
                   navigate('/');
                 }}
                 className="text-sm text-muted-foreground hover:text-foreground underline"
               >
-                Skip for now
+                {t('addr_skip')}
               </button>
             </div>
           </form>
