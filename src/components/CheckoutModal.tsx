@@ -983,9 +983,12 @@ export function CheckoutModal({
           }
         }
 
-        // Send order confirmation email for cash orders (fire and forget)
+      }
+
+      // Send order confirmation email for ALL order types (fire and forget, idempotent)
+      if (orderId) {
         supabase.functions.invoke('send-order-email', {
-          body: { orderId: order.id }
+          body: { orderId }
         }).catch(err => console.error('Failed to send order email:', err));
       }
 
