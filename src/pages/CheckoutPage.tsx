@@ -138,7 +138,7 @@ export default function CheckoutPage() {
 
     setIsAddingAddress(true);
     try {
-      const fullStreetAddress = `${newAddress.building_flat ? newAddress.building_flat + ', ' : ''}${newAddress.street_address}`;
+      const fullStreetAddress = `Block ${newAddress.block}, Street ${newAddress.street}, House ${newAddress.house}`;
 
       const {
         data,
@@ -147,7 +147,7 @@ export default function CheckoutPage() {
         customer_id: user.id,
         label: newAddress.label,
         street_address: fullStreetAddress,
-        city: newAddress.city,
+        city: newAddress.area,
         country: COUNTRY_NAME,
         country_id: COUNTRY_ID,
         landmarks: newAddress.landmarks,
