@@ -204,7 +204,7 @@ export default function CheckoutPage() {
     // Validate delivery address
     if (fulfillmentType === 'delivery') {
       const hasSelectedSavedAddress = selectedAddress && savedAddresses.some(addr => addr.id === selectedAddress);
-      const hasNewAddressData = newAddress.street_address && newAddress.city;
+      const hasNewAddressData = newAddress.area && newAddress.block && newAddress.street && newAddress.house;
       
       if (!hasSelectedSavedAddress && !hasNewAddressData) {
         toast.error("Please select a delivery address or add a new one");
