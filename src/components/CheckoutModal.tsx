@@ -758,7 +758,10 @@ export function CheckoutModal({
           phone: giftRecipientPhone
         } : null,
         fulfillmentType,
-        deliveryAddress: fulfillmentType === 'delivery' ? selectedAddress ? savedAddresses.find(a => a.id === selectedAddress) : newAddress : null
+        deliveryAddress: fulfillmentType === 'delivery' ? selectedAddress ? savedAddresses.find(a => a.id === selectedAddress) : newAddress : null,
+        delivery_time_slot: deliveryTime ? (generateTimeSlots().find(s => s.value === deliveryTime)?.label || deliveryTime) : null,
+        delivery_time_value: deliveryTime || null,
+        delivery_date: deliveryDate ? format(deliveryDate, 'yyyy-MM-dd') : null,
       })),
       delivery_address_id: fulfillmentType === 'delivery' && selectedAddress ? selectedAddress : null
     };
