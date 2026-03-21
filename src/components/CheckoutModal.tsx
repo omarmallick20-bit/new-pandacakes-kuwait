@@ -68,12 +68,13 @@ export function CheckoutModal({
   const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
   const [newAddress, setNewAddress] = useState({
     label: 'Home',
-    street_address: '',
-    city: '',
+    area: '',
+    block: '',
+    street: '',
+    house: '',
     country: COUNTRY_NAME,
     country_id: COUNTRY_ID,
     landmarks: '',
-    building_flat: '',
     latitude: null as number | null,
     longitude: null as number | null,
     delivery_zone_id: null as string | null,
