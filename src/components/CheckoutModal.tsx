@@ -532,8 +532,8 @@ export function CheckoutModal({
     });
     setIsAddingAddress(true);
     try {
-      // Construct full street address
-      const fullStreetAddress = `${newAddress.building_flat ? newAddress.building_flat + ', ' : ''}${newAddress.street_address}`;
+      // Construct full street address from Kuwait fields
+      const fullStreetAddress = `Block ${newAddress.block}, Street ${newAddress.street}, House ${newAddress.house}`;
       const data = await retryWithBackoff(async () => {
         const {
           data,
@@ -542,7 +542,7 @@ export function CheckoutModal({
           customer_id: user.id,
           label: newAddress.label || 'Home',
           street_address: fullStreetAddress,
-          city: newAddress.city,
+          city: newAddress.area,
           country: newAddress.country,
           country_id: newAddress.country_id,
           landmarks: newAddress.landmarks,
