@@ -1251,7 +1251,7 @@ export function CheckoutModal({
                   </div>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2">
-                  <Button type="button" variant="default" size="sm" onClick={handleAddNewAddress} disabled={isAddingAddress || !newAddress.latitude || !newAddress.longitude || !newAddress.street_address || !newAddress.city || !newAddress.is_serviceable} className="text-[10px] sm:text-sm h-8 sm:h-9">
+                  <Button type="button" variant="default" size="sm" onClick={handleAddNewAddress} disabled={isAddingAddress || !newAddress.latitude || !newAddress.longitude || !newAddress.area || !newAddress.block || !newAddress.street || !newAddress.house || !newAddress.is_serviceable} className="text-[10px] sm:text-sm h-8 sm:h-9">
                     {isAddingAddress ? <>
                         <Loader2 className="w-3 h-3 mr-1 animate-spin" />
                         {t('checkout_saving')}
