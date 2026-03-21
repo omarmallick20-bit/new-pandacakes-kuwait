@@ -55,9 +55,10 @@ export default function CheckoutPage() {
   }>>([]);
   const [newAddress, setNewAddress] = useState({
     label: '',
-    building_flat: '',
-    street_address: '',
-    city: '',
+    area: '',
+    block: '',
+    street: '',
+    house: '',
     country: COUNTRY_NAME,
     landmarks: '',
     latitude: null as number | null,
@@ -137,7 +138,7 @@ export default function CheckoutPage() {
 
     setIsAddingAddress(true);
     try {
-      const fullStreetAddress = `${newAddress.building_flat ? newAddress.building_flat + ', ' : ''}${newAddress.street_address}`;
+      const fullStreetAddress = `Block ${newAddress.block}, Street ${newAddress.street}, House ${newAddress.house}`;
 
       const {
         data,
@@ -146,7 +147,7 @@ export default function CheckoutPage() {
         customer_id: user.id,
         label: newAddress.label,
         street_address: fullStreetAddress,
-        city: newAddress.city,
+        city: newAddress.area,
         country: COUNTRY_NAME,
         country_id: COUNTRY_ID,
         landmarks: newAddress.landmarks,
@@ -163,9 +164,10 @@ export default function CheckoutPage() {
       setShowAddAddressDialog(false);
       setNewAddress({
         label: '',
-        building_flat: '',
-        street_address: '',
-        city: '',
+        area: '',
+        block: '',
+        street: '',
+        house: '',
         country: COUNTRY_NAME,
         landmarks: '',
         latitude: null,
@@ -202,7 +204,7 @@ export default function CheckoutPage() {
     // Validate delivery address
     if (fulfillmentType === 'delivery') {
       const hasSelectedSavedAddress = selectedAddress && savedAddresses.some(addr => addr.id === selectedAddress);
-      const hasNewAddressData = newAddress.street_address && newAddress.city;
+      const hasNewAddressData = newAddress.area && newAddress.block && newAddress.street && newAddress.house;
       
       if (!hasSelectedSavedAddress && !hasNewAddressData) {
         toast.error("Please select a delivery address or add a new one");
@@ -242,7 +244,7 @@ export default function CheckoutPage() {
       deliveryAddress: fulfillmentType === 'delivery' ? selectedAddress ? (() => {
         const addr = savedAddresses.find(a => a.id === selectedAddress);
         return addr ? `${addr.street_address}, ${addr.city}, ${addr.country}` : '';
-      })() : `${newAddress.street_address}, ${newAddress.city}, ${newAddress.country}` : undefined,
+      })() : `Area ${newAddress.area}, Block ${newAddress.block}, Street ${newAddress.street}, House ${newAddress.house}` : undefined,
       placedAt: new Date()
     };
 
@@ -587,8 +589,6 @@ export default function CheckoutPage() {
                     onLocationSelect={(locationData) => {
                       setNewAddress(prev => ({
                         ...prev,
-                        street_address: locationData.street || prev.street_address,
-                        city: locationData.city || prev.city,
                         latitude: locationData.latitude,
                         longitude: locationData.longitude,
                         delivery_zone_id: locationData.zone_id,
@@ -608,49 +608,45 @@ export default function CheckoutPage() {
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="building_flat">Block and Building Details *</Label>
-                <Input 
-                  id="building_flat" 
-                  placeholder="e.g., Block 3, Building 45"
-                  value={newAddress.building_flat}
-                  onChange={e => setNewAddress({
-                    ...newAddress,
-                    building_flat: e.target.value
-                  })}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="street_address">
-                  Street Address *
-                  {newAddress.latitude && newAddress.longitude && (
-                    <span className="ml-2 text-xs bg-tiffany/10 text-tiffany px-2 py-0.5 rounded">
-                      📍 From Map
-                    </span>
-                  )}
-                </Label>
-                <Textarea id="street_address" placeholder="Street, Area" value={newAddress.street_address} onChange={e => setNewAddress({
-                ...newAddress,
-                street_address: e.target.value
-              })} />
-              </div>
-              
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="city">Area</Label>
-                  <Input id="city" value={newAddress.city} onChange={e => setNewAddress({
-                  ...newAddress,
-                  city: e.target.value
-                })} />
+                  <Label htmlFor="area">Area *</Label>
+                  <Input id="area" placeholder="e.g., Salmiya, Hawalli" value={newAddress.area} onChange={e => setNewAddress({
+                    ...newAddress,
+                    area: e.target.value
+                  })} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="landmarks">Near Landmarks (Optional)</Label>
-                  <Input id="landmarks" value={newAddress.landmarks || ''} onChange={e => setNewAddress({
+                  <Label htmlFor="block">Block *</Label>
+                  <Input id="block" placeholder="e.g., 3" value={newAddress.block} onChange={e => setNewAddress({
+                    ...newAddress,
+                    block: e.target.value
+                  })} />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="street">Street *</Label>
+                <Input id="street" placeholder="e.g., Street 5, Avenue 3" value={newAddress.street} onChange={e => setNewAddress({
+                    ...newAddress,
+                    street: e.target.value
+                  })} />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="house">House *</Label>
+                <Input id="house" placeholder="e.g., House 12, Apt 4" value={newAddress.house} onChange={e => setNewAddress({
+                    ...newAddress,
+                    house: e.target.value
+                  })} />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="landmarks">Near Landmarks (Optional)</Label>
+                <Input id="landmarks" value={newAddress.landmarks || ''} onChange={e => setNewAddress({
                   ...newAddress,
                   landmarks: e.target.value
                 })} placeholder="e.g., Near City Centre Mall" />
-                </div>
               </div>
               
               <div className="space-y-2">
@@ -667,7 +663,7 @@ export default function CheckoutPage() {
                 <Button type="button" variant="outline" onClick={() => setShowAddAddressDialog(false)} disabled={isAddingAddress}>
                   Cancel
                 </Button>
-                <Button onClick={handleAddNewAddress} disabled={isAddingAddress || !newAddress.label || !newAddress.building_flat || !newAddress.street_address || !newAddress.city}>
+                <Button onClick={handleAddNewAddress} disabled={isAddingAddress || !newAddress.label || !newAddress.area || !newAddress.block || !newAddress.street || !newAddress.house}>
                   {isAddingAddress ? 'Adding...' : 'Add Address'}
                 </Button>
               </div>

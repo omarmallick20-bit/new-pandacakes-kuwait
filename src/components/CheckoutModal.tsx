@@ -68,12 +68,13 @@ export function CheckoutModal({
   const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
   const [newAddress, setNewAddress] = useState({
     label: 'Home',
-    street_address: '',
-    city: '',
+    area: '',
+    block: '',
+    street: '',
+    house: '',
     country: COUNTRY_NAME,
     country_id: COUNTRY_ID,
     landmarks: '',
-    building_flat: '',
     latitude: null as number | null,
     longitude: null as number | null,
     delivery_zone_id: null as string | null,
@@ -497,16 +498,20 @@ export function CheckoutModal({
       toast.error(t('checkout_provide_label'));
       return;
     }
-    if (!newAddress.building_flat?.trim()) {
+    if (!newAddress.area?.trim()) {
+      toast.error(t('checkout_provide_city'));
+      return;
+    }
+    if (!newAddress.block?.trim()) {
       toast.error(t('checkout_provide_building'));
       return;
     }
-    if (!newAddress.street_address?.trim()) {
+    if (!newAddress.street?.trim()) {
       toast.error(t('checkout_provide_street'));
       return;
     }
-    if (!newAddress.city?.trim()) {
-      toast.error(t('checkout_provide_city'));
+    if (!newAddress.house?.trim()) {
+      toast.error(t('checkout_provide_building'));
       return;
     }
     if (!newAddress.latitude || !newAddress.longitude) {
@@ -521,14 +526,14 @@ export function CheckoutModal({
     }
     console.log('➕ [CheckoutModal] Adding new address:', {
       label: newAddress.label,
-      city: newAddress.city,
+      area: newAddress.area,
       has_coordinates: !!(newAddress.latitude && newAddress.longitude),
       is_serviceable: newAddress.is_serviceable
     });
     setIsAddingAddress(true);
     try {
-      // Construct full street address
-      const fullStreetAddress = `${newAddress.building_flat ? newAddress.building_flat + ', ' : ''}${newAddress.street_address}`;
+      // Construct full street address from Kuwait fields
+      const fullStreetAddress = `Block ${newAddress.block}, Street ${newAddress.street}, House ${newAddress.house}`;
       const data = await retryWithBackoff(async () => {
         const {
           data,
@@ -537,7 +542,7 @@ export function CheckoutModal({
           customer_id: user.id,
           label: newAddress.label || 'Home',
           street_address: fullStreetAddress,
-          city: newAddress.city,
+          city: newAddress.area,
           country: newAddress.country,
           country_id: newAddress.country_id,
           landmarks: newAddress.landmarks,
@@ -564,12 +569,13 @@ export function CheckoutModal({
       // Reset form
       setNewAddress({
         label: 'Home',
-        street_address: '',
-        city: '',
+        area: '',
+        block: '',
+        street: '',
+        house: '',
         country: COUNTRY_NAME,
         country_id: COUNTRY_ID,
         landmarks: '',
-        building_flat: '',
         latitude: null,
         longitude: null,
         delivery_zone_id: null,
@@ -712,7 +718,7 @@ export function CheckoutModal({
           if (addr && addr.is_serviceable === false) return false;
           if (addr && addr.country_id && addr.country_id !== COUNTRY_ID) return false;
         }
-        return (selectedAddress || showNewAddressForm && newAddress.street_address && newAddress.city) && deliveryDate && deliveryTime;
+        return (selectedAddress || showNewAddressForm && newAddress.area && newAddress.block && newAddress.street && newAddress.house) && deliveryDate && deliveryTime;
       case 'payment':
         // If total is 0 and pickup, no payment method needed
         if (total <= 0 && fulfillmentType === 'pickup') return true;
@@ -1183,8 +1189,6 @@ export function CheckoutModal({
                     <DeliveryZoneMap showZoneBoundaries={true} onLocationSelect={locationData => {
                 setNewAddress(prev => ({
                   ...prev,
-                  street_address: locationData.street || prev.street_address,
-                  city: locationData.city || prev.city,
                   latitude: locationData.latitude,
                   longitude: locationData.longitude,
                   delivery_zone_id: locationData.zone_id,
@@ -1204,46 +1208,50 @@ export function CheckoutModal({
                       </div>}
                   </div>
 
-                  <div>
-                    <Label htmlFor="building_flat" className="text-[10px] sm:text-sm">{t('checkout_building_flat')}</Label>
-                    <Input id="building_flat" value={newAddress.building_flat} onChange={e => setNewAddress({
-                ...newAddress,
-                building_flat: e.target.value
-              })} placeholder="e.g., Block 3, Building 45" className="text-xs sm:text-sm h-8 sm:h-10 mt-1" required />
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label htmlFor="area" className="text-[10px] sm:text-sm">{t('addr_area')}</Label>
+                      <Input id="area" value={newAddress.area} onChange={e => setNewAddress({
+                  ...newAddress,
+                  area: e.target.value
+                })} placeholder={t('addr_area_placeholder')} className="text-xs sm:text-sm h-8 sm:h-10 mt-1" required />
+                    </div>
+                    <div>
+                      <Label htmlFor="block" className="text-[10px] sm:text-sm">{t('addr_block')}</Label>
+                      <Input id="block" value={newAddress.block} onChange={e => setNewAddress({
+                  ...newAddress,
+                  block: e.target.value
+                })} placeholder={t('addr_block_placeholder')} className="text-xs sm:text-sm h-8 sm:h-10 mt-1" required />
+                    </div>
                   </div>
                   <div>
-                    <Label htmlFor="street" className="text-[10px] sm:text-sm">
-                      {t('checkout_street_address')}
-                      {newAddress.latitude && newAddress.longitude && <span className="ml-2 text-[10px] bg-tiffany/10 text-tiffany px-2 py-0.5 rounded">
-                          {t('checkout_from_map')}
-                        </span>}
-                    </Label>
-                    <Input id="street" value={newAddress.street_address} onChange={e => setNewAddress({
+                    <Label htmlFor="street" className="text-[10px] sm:text-sm">{t('addr_street')}</Label>
+                    <Input id="street" value={newAddress.street} onChange={e => setNewAddress({
                 ...newAddress,
-                street_address: e.target.value
-              })} placeholder="Street, Area" className="text-xs sm:text-sm h-8 sm:h-10 mt-1" required />
+                street: e.target.value
+              })} placeholder={t('addr_street_placeholder')} className="text-xs sm:text-sm h-8 sm:h-10 mt-1" required />
                   </div>
                   <div>
-                    <Label htmlFor="city" className="text-[10px] sm:text-sm">{t('checkout_city')}</Label>
-                    <Input id="city" value={newAddress.city} onChange={e => setNewAddress({
+                    <Label htmlFor="house" className="text-[10px] sm:text-sm">{t('addr_house')}</Label>
+                    <Input id="house" value={newAddress.house} onChange={e => setNewAddress({
                 ...newAddress,
-                city: e.target.value
-              })} placeholder="e.g., Salmiya, Hawalli" className="text-xs sm:text-sm h-8 sm:h-10 mt-1" required />
+                house: e.target.value
+              })} placeholder={t('addr_house_placeholder')} className="text-xs sm:text-sm h-8 sm:h-10 mt-1" required />
                   </div>
                   <div>
-                    <Label htmlFor="landmarks" className="text-[10px] sm:text-sm">{t('checkout_landmarks')}</Label>
+                    <Label htmlFor="landmarks" className="text-[10px] sm:text-sm">{t('addr_landmarks')}</Label>
                     <Input id="landmarks" value={newAddress.landmarks} onChange={e => setNewAddress({
                 ...newAddress,
                 landmarks: e.target.value
-              })} placeholder="e.g., Near City Centre Mall" className="text-xs sm:text-sm h-8 sm:h-10 mt-1" />
+              })} placeholder={t('addr_landmarks_placeholder')} className="text-xs sm:text-sm h-8 sm:h-10 mt-1" />
                   </div>
                   <div>
-                    <Label htmlFor="country" className="text-[10px] sm:text-sm">{t('checkout_country')}</Label>
+                    <Label htmlFor="country" className="text-[10px] sm:text-sm">{t('addr_country')}</Label>
                     <Input id="country" value={COUNTRY_NAME} disabled className="bg-muted text-xs sm:text-sm h-8 sm:h-10 mt-1" />
                   </div>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2">
-                  <Button type="button" variant="default" size="sm" onClick={handleAddNewAddress} disabled={isAddingAddress || !newAddress.latitude || !newAddress.longitude || !newAddress.street_address || !newAddress.city || !newAddress.is_serviceable} className="text-[10px] sm:text-sm h-8 sm:h-9">
+                  <Button type="button" variant="default" size="sm" onClick={handleAddNewAddress} disabled={isAddingAddress || !newAddress.latitude || !newAddress.longitude || !newAddress.area || !newAddress.block || !newAddress.street || !newAddress.house || !newAddress.is_serviceable} className="text-[10px] sm:text-sm h-8 sm:h-9">
                     {isAddingAddress ? <>
                         <Loader2 className="w-3 h-3 mr-1 animate-spin" />
                         {t('checkout_saving')}
