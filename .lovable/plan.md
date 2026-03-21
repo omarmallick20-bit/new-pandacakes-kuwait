@@ -1,59 +1,27 @@
 
 
-## Fix Delivery Time Slot Storage
+## Reduce Over-Aggressive Time Slot Buffer
 
-### Root Cause Analysis
+### Problem
+`isSlotUnavailableDueToPreparation` in `src/utils/timeSlots.ts` enforces a hardcoded `MINIMUM_BUFFER_MINUTES = 60` on top of the prep + delivery lead time. This means:
+- At 9:01 PM with 90 min lead time, the order would be ready at 10:31 PM
+- The 9–11 PM slot ends at 11 PM, leaving 29 min of buffer
+- The code demands 60 min buffer → slot incorrectly blocked
 
-Three issues found:
+The prep (30 min) and delivery (60 min) times already represent the real fulfillment timeline. An additional 60-minute buffer on top is excessive and blocks valid orders.
 
-1. **Missing timezone offset in webhook functions**: The frontend (CheckoutModal line 747) correctly builds `estimated_delivery_time` with `+03:00` offset, but both `tap-webhook/index.ts` and `tap-webhook-kw/index.ts` construct it **without** the offset:
-   ```
-   // Webhook (BROKEN): interpreted as UTC → shifts +3h → midnight
-   `${orderData.deliveryDate}T${orderData.deliveryTime.split('-')[0]}:00`
-   
-   // Frontend (CORRECT):
-   `${format(deliveryDate, 'yyyy-MM-dd')}T${deliveryTime.split('-')[0]}:00+03:00`
-   ```
-   This is the direct cause of the 12:00 AM midnight issue for card payments (which go through webhooks).
+### Proposed Change
 
-2. **`delivery_time_slot` is never stored**: The human-readable slot string (e.g., `"09:00 AM - 12:00 PM"`) is never persisted. The dashboard/receipts must reverse-engineer it from a timestamp, which fails at midnight.
+**File: `src/utils/timeSlots.ts`** (line 166)
 
-3. **`cake_details` doesn't include delivery scheduling info**: No `deliveryDate` or `deliveryTime` in `cake_details`, so there's no backup source.
+Reduce `MINIMUM_BUFFER_MINUTES` from `60` to `15` (or remove it entirely, using `0`).
 
-### Changes
+A small 15-minute buffer is reasonable as a safety margin without blocking valid slots. With 15 min buffer:
+- Ready at 10:31 PM + 15 min = 10:46 PM < 11:00 PM → **slot available** ✓
 
-#### 1. `supabase/functions/tap-webhook/index.ts` — Fix timezone offset
-- Line ~144: Append `+03:00` to `estimatedDeliveryTime`
-- Add `delivery_time_slot` to `cake_details` from `orderData.deliveryTime`
-
-#### 2. `supabase/functions/tap-webhook-kw/index.ts` — Same fix
-- Line ~150: Append `+03:00` to `estimatedDeliveryTime`  
-- Add `delivery_time_slot` to `cake_details` from `orderData.deliveryTime`
-
-#### 3. `src/components/CheckoutModal.tsx` — Store slot in cake_details
-- Add `delivery_time_slot` (the label, e.g. `"09:00 AM - 12:00 PM"`) and `deliveryTime` (the value, e.g. `"09:00-12:00"`) into `cake_details` JSON at line ~753
-- Add `delivery_time_slot` to the `pending_checkouts` order data sent to webhooks (line ~854)
-
-#### 4. Slot label resolution helper
-- In CheckoutModal, look up the selected `deliveryTime` value against `generateTimeSlots()` to get the `.label` and store it as `delivery_time_slot`
+### Alternative
+If you'd prefer no extra buffer at all (trust the prep + delivery times completely), set it to `0`. The slot would then be available as long as the order can be ready before the slot ends.
 
 ### Technical Detail
-
-```text
-Card payment flow:
-  CheckoutModal → pending_checkouts (orderData) → tap-webhook → orders table
-
-COD flow:
-  CheckoutModal → orders table directly
-
-Both paths will now:
-1. Store estimated_delivery_time WITH +03:00 offset
-2. Include delivery_time_slot label in cake_details
-3. Include raw deliveryTime value in cake_details as backup
-```
-
-### What this fixes
-- Card payment orders no longer get midnight timestamps (webhook offset fix)
-- Every order's `cake_details` includes `delivery_time_slot: "09:00 AM - 12:00 PM"` for dashboard/receipts
-- No need to derive slot from timestamp — the original user selection is preserved
+Single constant change on one line in `src/utils/timeSlots.ts`. No other files affected — the function is already used everywhere via `generateTimeSlotsWithStatus`.
 
