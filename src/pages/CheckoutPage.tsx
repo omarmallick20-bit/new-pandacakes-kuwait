@@ -244,7 +244,7 @@ export default function CheckoutPage() {
       deliveryAddress: fulfillmentType === 'delivery' ? selectedAddress ? (() => {
         const addr = savedAddresses.find(a => a.id === selectedAddress);
         return addr ? `${addr.street_address}, ${addr.city}, ${addr.country}` : '';
-      })() : `${newAddress.street_address}, ${newAddress.city}, ${newAddress.country}` : undefined,
+      })() : `Area ${newAddress.area}, Block ${newAddress.block}, Street ${newAddress.street}, House ${newAddress.house}` : undefined,
       placedAt: new Date()
     };
 
