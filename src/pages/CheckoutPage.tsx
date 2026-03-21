@@ -591,8 +591,6 @@ export default function CheckoutPage() {
                         ...prev,
                         latitude: locationData.latitude,
                         longitude: locationData.longitude,
-                        latitude: locationData.latitude,
-                        longitude: locationData.longitude,
                         delivery_zone_id: locationData.zone_id,
                         delivery_fee: locationData.delivery_fee,
                         is_serviceable: locationData.is_serviceable
