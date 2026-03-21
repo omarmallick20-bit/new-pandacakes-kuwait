@@ -1208,41 +1208,45 @@ export function CheckoutModal({
                       </div>}
                   </div>
 
-                  <div>
-                    <Label htmlFor="building_flat" className="text-[10px] sm:text-sm">{t('checkout_building_flat')}</Label>
-                    <Input id="building_flat" value={newAddress.building_flat} onChange={e => setNewAddress({
-                ...newAddress,
-                building_flat: e.target.value
-              })} placeholder="e.g., Block 3, Building 45" className="text-xs sm:text-sm h-8 sm:h-10 mt-1" required />
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label htmlFor="area" className="text-[10px] sm:text-sm">{t('addr_area')}</Label>
+                      <Input id="area" value={newAddress.area} onChange={e => setNewAddress({
+                  ...newAddress,
+                  area: e.target.value
+                })} placeholder={t('addr_area_placeholder')} className="text-xs sm:text-sm h-8 sm:h-10 mt-1" required />
+                    </div>
+                    <div>
+                      <Label htmlFor="block" className="text-[10px] sm:text-sm">{t('addr_block')}</Label>
+                      <Input id="block" value={newAddress.block} onChange={e => setNewAddress({
+                  ...newAddress,
+                  block: e.target.value
+                })} placeholder={t('addr_block_placeholder')} className="text-xs sm:text-sm h-8 sm:h-10 mt-1" required />
+                    </div>
                   </div>
                   <div>
-                    <Label htmlFor="street" className="text-[10px] sm:text-sm">
-                      {t('checkout_street_address')}
-                      {newAddress.latitude && newAddress.longitude && <span className="ml-2 text-[10px] bg-tiffany/10 text-tiffany px-2 py-0.5 rounded">
-                          {t('checkout_from_map')}
-                        </span>}
-                    </Label>
-                    <Input id="street" value={newAddress.street_address} onChange={e => setNewAddress({
+                    <Label htmlFor="street" className="text-[10px] sm:text-sm">{t('addr_street')}</Label>
+                    <Input id="street" value={newAddress.street} onChange={e => setNewAddress({
                 ...newAddress,
-                street_address: e.target.value
-              })} placeholder="Street, Area" className="text-xs sm:text-sm h-8 sm:h-10 mt-1" required />
+                street: e.target.value
+              })} placeholder={t('addr_street_placeholder')} className="text-xs sm:text-sm h-8 sm:h-10 mt-1" required />
                   </div>
                   <div>
-                    <Label htmlFor="city" className="text-[10px] sm:text-sm">{t('checkout_city')}</Label>
-                    <Input id="city" value={newAddress.city} onChange={e => setNewAddress({
+                    <Label htmlFor="house" className="text-[10px] sm:text-sm">{t('addr_house')}</Label>
+                    <Input id="house" value={newAddress.house} onChange={e => setNewAddress({
                 ...newAddress,
-                city: e.target.value
-              })} placeholder="e.g., Salmiya, Hawalli" className="text-xs sm:text-sm h-8 sm:h-10 mt-1" required />
+                house: e.target.value
+              })} placeholder={t('addr_house_placeholder')} className="text-xs sm:text-sm h-8 sm:h-10 mt-1" required />
                   </div>
                   <div>
-                    <Label htmlFor="landmarks" className="text-[10px] sm:text-sm">{t('checkout_landmarks')}</Label>
+                    <Label htmlFor="landmarks" className="text-[10px] sm:text-sm">{t('addr_landmarks')}</Label>
                     <Input id="landmarks" value={newAddress.landmarks} onChange={e => setNewAddress({
                 ...newAddress,
                 landmarks: e.target.value
-              })} placeholder="e.g., Near City Centre Mall" className="text-xs sm:text-sm h-8 sm:h-10 mt-1" />
+              })} placeholder={t('addr_landmarks_placeholder')} className="text-xs sm:text-sm h-8 sm:h-10 mt-1" />
                   </div>
                   <div>
-                    <Label htmlFor="country" className="text-[10px] sm:text-sm">{t('checkout_country')}</Label>
+                    <Label htmlFor="country" className="text-[10px] sm:text-sm">{t('addr_country')}</Label>
                     <Input id="country" value={COUNTRY_NAME} disabled className="bg-muted text-xs sm:text-sm h-8 sm:h-10 mt-1" />
                   </div>
                 </div>
