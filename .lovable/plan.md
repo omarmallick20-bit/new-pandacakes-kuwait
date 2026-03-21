@@ -1,64 +1,47 @@
 
 
-## Address Form Layout + Arabic Translations
+## Update Checkout Page Address Form to Match Kuwait Format
 
-### Changes
+You're correct — the address layout changes were only applied to `AddressManager.tsx` (profile) and `AddressSetupPage.tsx` (onboarding), but **not** to the checkout page's "Add New Address" dialog in `src/pages/CheckoutPage.tsx`.
 
-#### 1. `src/i18n/translations.ts` — Add missing address form translations
+The checkout form currently has:
+- "Block and Building Details" (single field combining block + building)
+- "Street Address" (textarea)
+- "Area" + "Near Landmarks" (side-by-side)
+- "Country"
 
-Add to both `en` and `ar` sections:
+### Plan
 
-| Key | English | Arabic |
-|-----|---------|--------|
-| `addr_label` | Address Label | عنوان المكان |
-| `addr_area` | Area | المنطقة |
-| `addr_block` | Block | قطعة |
-| `addr_street` | Street | شارع |
-| `addr_house` | House | منزل |
-| `addr_landmarks` | Additional Details / Near Landmarks (Optional) | تفاصيل إضافية / معالم قريبة (اختياري) |
-| `addr_landmarks_hint` | Help us find you easier by adding nearby landmarks | ساعدنا في العثور عليك بسهولة بإضافة معالم قريبة |
-| `addr_country` | Country | الدولة |
-| `addr_map_label` | Choose Location on Map | اختر الموقع على الخريطة |
-| `addr_location_selected` | Location Selected | تم تحديد الموقع |
-| `addr_map_warning` | Please tap on the map or use "Use My Location" to set delivery coordinates | يرجى النقر على الخريطة أو استخدام "استخدم موقعي" لتحديد إحداثيات التوصيل |
-| `addr_outside_zone` | This location is outside our delivery area | هذا الموقع خارج منطقة التوصيل |
-| `addr_outside_zone_desc` | Please select a different location or contact us for assistance | يرجى اختيار موقع مختلف أو التواصل معنا للمساعدة |
-| `addr_no_delivery` | No delivery to this location | لا يوجد توصيل لهذا الموقع |
-| `addr_pick_different` | Please pick a different location on the map within our delivery zones | يرجى اختيار موقع مختلف على الخريطة ضمن مناطق التوصيل |
-| `addr_save_continue` | Save Address & Continue | حفظ العنوان والمتابعة |
-| `addr_skip` | Skip for now | تخطي الآن |
-| `addr_skip_msg` | You can add your address later before placing an order | يمكنك إضافة عنوانك لاحقاً قبل تقديم الطلب |
-| `addr_cancel` | Cancel | إلغاء |
-| `addr_deleting` | Deleting... | جاري الحذف... |
-| `addr_delete` | Delete | حذف |
-| `loc_share_title` | Share Your Location | شارك موقعك |
-| `loc_share_desc` | For accurate delivery, please share your current location. This helps our drivers find you easily. | للتوصيل الدقيق، يرجى مشاركة موقعك الحالي. هذا يساعد السائقين في العثور عليك بسهولة. |
-| `loc_use_current` | Use My Current Location | استخدم موقعي الحالي |
-| `loc_detecting` | Detecting Location... | جاري تحديد الموقع... |
-| `loc_enter_manual` | Enter address manually instead | أدخل العنوان يدوياً بدلاً من ذلك |
-| `addr_setup_title` | Add Your Address | أضف عنوانك |
-| `addr_setup_desc` | We need your delivery address to complete your account setup | نحتاج عنوان التوصيل لإكمال إعداد حسابك |
+**File: `src/pages/CheckoutPage.tsx`**
 
-Also add to `variantTranslations` in `useTranslation.ts`:
-- `Avenue` → `جادة`
-- `Apartment` → `شقة`
+1. Add `useTranslation` import and call `const { t } = useTranslation()` in the component
+2. Replace the current address fields with the Kuwait format: **Area → Block → Street → House**, with Area and Block side-by-side
+3. Update the `newAddress` state to use `area`, `block`, `street`, `house` fields instead of `building_flat` + `street_address`
+4. Update `handleAddNewAddress` to compose `street_address` from the individual fields (e.g., `Block ${block}, ${street}, ${house}`)
+5. Replace all hardcoded English strings in the dialog with `t()` calls:
+   - "Add New Address" → `t('addr_add_new')`
+   - "Add a new delivery address" → `t('addr_add_new_desc')`
+   - Labels, placeholders, buttons (Cancel, Add Address, Adding...)
+   - Map button text, error messages
+6. Keep the Landmarks and Country fields as-is (just translate labels)
 
-#### 2. `src/components/AddressManager.tsx` — Layout + translations
+### Field layout (matching profile form)
+```
+[Area          ] [Block         ]   ← grid-cols-2
+[Street                        ]   ← full width
+[House                         ]   ← full width
+[Landmarks (Optional)          ]   ← full width
+[Country (disabled)            ]   ← full width
+```
 
-- **Two-field row**: Place Area and Block side-by-side using `grid grid-cols-2 gap-4`
-- Replace all hardcoded English labels/placeholders with `t()` calls
-- Replace hardcoded button text (Cancel, Delete, Deleting...) with `t()` calls
+### Translation keys needed (already exist from previous work)
+- `addr_area`, `addr_block`, `addr_street`, `addr_house`
+- `addr_landmarks`, `addr_country`, `addr_label`, `addr_label_placeholder`
+- `addr_map_label`, `addr_outside_zone`
+- `addr_cancel`, `addr_add_new` (new), `addr_add_new_desc` (new), `addr_adding` (new)
 
-#### 3. `src/pages/AddressSetupPage.tsx` — Same layout + translations
-
-- Place Area and Block side-by-side
-- Replace all hardcoded English strings with `t()` calls
-
-#### 4. `src/components/LocationPrompt.tsx` — Full Arabic translation
-
-- Accept `t` function as prop (or use `useTranslation` directly)
-- Replace hardcoded "Share Your Location", "Use My Current Location", "Detecting Location...", "Enter address manually instead" with `t()` calls
-
-### Field order preserved
-Area → Block (same row) → Street → House → Landmarks → Country
+Will add 3 new translation keys to `src/i18n/translations.ts`:
+- `addr_add_new` → "Add New Address" / "إضافة عنوان جديد"
+- `addr_add_new_desc` → "Add a new delivery address for this order" / "أضف عنوان توصيل جديد لهذا الطلب"
+- `addr_adding` → "Adding..." / "جاري الإضافة..."
 
