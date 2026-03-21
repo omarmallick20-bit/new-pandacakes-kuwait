@@ -1,47 +1,44 @@
 
 
-## Update Checkout Page Address Form to Match Kuwait Format
+## Update CheckoutModal Address Form to Kuwait Format
 
-You're correct — the address layout changes were only applied to `AddressManager.tsx` (profile) and `AddressSetupPage.tsx` (onboarding), but **not** to the checkout page's "Add New Address" dialog in `src/pages/CheckoutPage.tsx`.
+Yes — the previous plan explicitly included `CheckoutModal.tsx` but the implementation was only applied to `AddressManager.tsx` (profile) and `AddressSetupPage.tsx` (onboarding). The checkout modal still uses the old `building_flat` + `street_address` + `city` layout.
 
-The checkout form currently has:
-- "Block and Building Details" (single field combining block + building)
-- "Street Address" (textarea)
-- "Area" + "Near Landmarks" (side-by-side)
-- "Country"
+### What needs to change
 
-### Plan
+**File: `src/components/CheckoutModal.tsx`**
 
-**File: `src/pages/CheckoutPage.tsx`**
+1. **State**: Replace `building_flat` and `street_address` fields in `newAddress` state with `area`, `block`, `street`, `house` (lines 69-77)
 
-1. Add `useTranslation` import and call `const { t } = useTranslation()` in the component
-2. Replace the current address fields with the Kuwait format: **Area → Block → Street → House**, with Area and Block side-by-side
-3. Update the `newAddress` state to use `area`, `block`, `street`, `house` fields instead of `building_flat` + `street_address`
-4. Update `handleAddNewAddress` to compose `street_address` from the individual fields (e.g., `Block ${block}, ${street}, ${house}`)
-5. Replace all hardcoded English strings in the dialog with `t()` calls:
-   - "Add New Address" → `t('addr_add_new')`
-   - "Add a new delivery address" → `t('addr_add_new_desc')`
-   - Labels, placeholders, buttons (Cancel, Add Address, Adding...)
-   - Map button text, error messages
-6. Keep the Landmarks and Country fields as-is (just translate labels)
+2. **Validation** (line ~500): Check `area`, `block`, `street`, `house` instead of `building_flat` and `street_address`
 
-### Field layout (matching profile form)
-```
-[Area          ] [Block         ]   ← grid-cols-2
-[Street                        ]   ← full width
-[House                         ]   ← full width
-[Landmarks (Optional)          ]   ← full width
-[Country (disabled)            ]   ← full width
-```
+3. **Compose address for DB** (line ~531): Build `street_address` from individual fields: `"Area ${area}, Block ${block}, Street ${street}, House ${house}"`; set `city` from `area`
 
-### Translation keys needed (already exist from previous work)
-- `addr_area`, `addr_block`, `addr_street`, `addr_house`
-- `addr_landmarks`, `addr_country`, `addr_label`, `addr_label_placeholder`
-- `addr_map_label`, `addr_outside_zone`
-- `addr_cancel`, `addr_add_new` (new), `addr_add_new_desc` (new), `addr_adding` (new)
+4. **Reset state** (line ~565): Reset the new field names
 
-Will add 3 new translation keys to `src/i18n/translations.ts`:
+5. **Step validation** (line ~715): Update the check from `newAddress.street_address && newAddress.city` to `newAddress.area && newAddress.block`
+
+6. **Form fields** (lines 1207-1243): Replace with Kuwait layout:
+   - Area + Block side-by-side (`grid grid-cols-2 gap-2`)
+   - Street (full width)
+   - House (full width)
+   - Landmarks (keep as-is, just translate label)
+   - Country (keep as-is)
+
+7. **Submit button disabled check** (line ~1246): Update from `!newAddress.street_address || !newAddress.city` to `!newAddress.area || !newAddress.block || !newAddress.street || !newAddress.house`
+
+8. **Reverse geocode handler** (line ~1186): Remove the auto-fill of `street_address` and `city` from map data (per Kuwait policy — fields are always manual)
+
+9. **Labels**: Use existing `t()` keys: `addr_area`, `addr_block`, `addr_street`, `addr_house`, `addr_landmarks`, `addr_country`
+
+**File: `src/i18n/translations.ts`**
+
+Add 3 keys (if not already present):
 - `addr_add_new` → "Add New Address" / "إضافة عنوان جديد"
-- `addr_add_new_desc` → "Add a new delivery address for this order" / "أضف عنوان توصيل جديد لهذا الطلب"
+- `addr_add_new_desc` → "Add a new delivery address" / "أضف عنوان توصيل جديد"
 - `addr_adding` → "Adding..." / "جاري الإضافة..."
+
+### No other files need changes
+
+`AddressManager.tsx`, `AddressSetupPage.tsx`, and `LocationPrompt.tsx` were already updated in the previous round.
 
