@@ -569,12 +569,13 @@ export function CheckoutModal({
       // Reset form
       setNewAddress({
         label: 'Home',
-        street_address: '',
-        city: '',
+        area: '',
+        block: '',
+        street: '',
+        house: '',
         country: COUNTRY_NAME,
         country_id: COUNTRY_ID,
         landmarks: '',
-        building_flat: '',
         latitude: null,
         longitude: null,
         delivery_zone_id: null,
