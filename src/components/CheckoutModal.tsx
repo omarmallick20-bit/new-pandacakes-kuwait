@@ -718,7 +718,7 @@ export function CheckoutModal({
           if (addr && addr.is_serviceable === false) return false;
           if (addr && addr.country_id && addr.country_id !== COUNTRY_ID) return false;
         }
-        return (selectedAddress || showNewAddressForm && newAddress.street_address && newAddress.city) && deliveryDate && deliveryTime;
+        return (selectedAddress || showNewAddressForm && newAddress.area && newAddress.block && newAddress.street && newAddress.house) && deliveryDate && deliveryTime;
       case 'payment':
         // If total is 0 and pickup, no payment method needed
         if (total <= 0 && fulfillmentType === 'pickup') return true;
