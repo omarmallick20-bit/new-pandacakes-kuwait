@@ -526,7 +526,7 @@ export function CheckoutModal({
     }
     console.log('➕ [CheckoutModal] Adding new address:', {
       label: newAddress.label,
-      city: newAddress.city,
+      area: newAddress.area,
       has_coordinates: !!(newAddress.latitude && newAddress.longitude),
       is_serviceable: newAddress.is_serviceable
     });
