@@ -189,7 +189,7 @@ serve(async (req) => {
         country_id: countryId,
         fulfillment_type: orderData.fulfillmentType,
         delivery_address_id: orderData.fulfillmentType === 'delivery' ? orderData.deliveryAddressId : null,
-        cake_details: orderData.cakeDetails,
+        cake_details: enrichedCakeDetails,
         platform_source: 'website',
         original_amount: orderData.originalAmount || orderData.totalAmount,
         voucher_id: orderData.voucherId,
