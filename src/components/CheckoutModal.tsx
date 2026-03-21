@@ -20,7 +20,7 @@ import { PaymentModal } from './PaymentModal';
 import { CompactMap } from './CompactMap';
 import { DeliveryZoneMap } from './DeliveryZoneMap';
 import { CartItem } from '@/types';
-import { generateTimeSlotsWithStatus, getCurrentDohaTime, BlockedSlot, RawBlockedSlot, expandBlockedSlots, isStoreCurrentlyClosed } from '@/utils/timeSlots';
+import { generateTimeSlotsWithStatus, generateTimeSlots, getCurrentDohaTime, BlockedSlot, RawBlockedSlot, expandBlockedSlots, isStoreCurrentlyClosed } from '@/utils/timeSlots';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { calculateDiscount, getPointsRedemptionInfo } from '@/utils/pointsDisplay';
