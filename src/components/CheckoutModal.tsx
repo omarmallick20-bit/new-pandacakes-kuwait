@@ -1189,8 +1189,6 @@ export function CheckoutModal({
                     <DeliveryZoneMap showZoneBoundaries={true} onLocationSelect={locationData => {
                 setNewAddress(prev => ({
                   ...prev,
-                  street_address: locationData.street || prev.street_address,
-                  city: locationData.city || prev.city,
                   latitude: locationData.latitude,
                   longitude: locationData.longitude,
                   delivery_zone_id: locationData.zone_id,
