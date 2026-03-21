@@ -20,7 +20,7 @@ import { PaymentModal } from './PaymentModal';
 import { CompactMap } from './CompactMap';
 import { DeliveryZoneMap } from './DeliveryZoneMap';
 import { CartItem } from '@/types';
-import { generateTimeSlotsWithStatus, getCurrentDohaTime, BlockedSlot, RawBlockedSlot, expandBlockedSlots, isStoreCurrentlyClosed } from '@/utils/timeSlots';
+import { generateTimeSlotsWithStatus, generateTimeSlots, getCurrentDohaTime, BlockedSlot, RawBlockedSlot, expandBlockedSlots, isStoreCurrentlyClosed } from '@/utils/timeSlots';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { calculateDiscount, getPointsRedemptionInfo } from '@/utils/pointsDisplay';
@@ -758,7 +758,10 @@ export function CheckoutModal({
           phone: giftRecipientPhone
         } : null,
         fulfillmentType,
-        deliveryAddress: fulfillmentType === 'delivery' ? selectedAddress ? savedAddresses.find(a => a.id === selectedAddress) : newAddress : null
+        deliveryAddress: fulfillmentType === 'delivery' ? selectedAddress ? savedAddresses.find(a => a.id === selectedAddress) : newAddress : null,
+        delivery_time_slot: deliveryTime ? (generateTimeSlots().find(s => s.value === deliveryTime)?.label || deliveryTime) : null,
+        delivery_time_value: deliveryTime || null,
+        delivery_date: deliveryDate ? format(deliveryDate, 'yyyy-MM-dd') : null,
       })),
       delivery_address_id: fulfillmentType === 'delivery' && selectedAddress ? selectedAddress : null
     };
@@ -869,7 +872,10 @@ export function CheckoutModal({
           isGift,
           giftRecipient: isGift ? { name: giftRecipientName, phone: giftRecipientPhone } : null,
           fulfillmentType,
-          deliveryAddress: fulfillmentType === 'delivery' ? (selectedAddress ? savedAddresses.find(a => a.id === selectedAddress) : newAddress) : null
+          deliveryAddress: fulfillmentType === 'delivery' ? (selectedAddress ? savedAddresses.find(a => a.id === selectedAddress) : newAddress) : null,
+          delivery_time_slot: deliveryTime ? (generateTimeSlots().find(s => s.value === deliveryTime)?.label || deliveryTime) : null,
+          delivery_time_value: deliveryTime || null,
+          delivery_date: deliveryDate ? format(deliveryDate, 'yyyy-MM-dd') : null,
         })),
         originalAmount: subtotal,
         voucherId: cartAppliedVoucher?.voucher_id || null,

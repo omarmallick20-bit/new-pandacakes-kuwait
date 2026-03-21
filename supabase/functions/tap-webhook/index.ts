@@ -141,8 +141,26 @@ serve(async (req) => {
     }
 
     const estimatedDeliveryTime = orderData.deliveryDate && orderData.deliveryTime
-      ? `${orderData.deliveryDate}T${orderData.deliveryTime.split('-')[0]}:00`
+      ? `${orderData.deliveryDate}T${orderData.deliveryTime.split('-')[0]}:00+03:00`
       : null;
+
+    // Resolve human-readable delivery time slot label
+    const TIME_SLOT_LABELS: Record<string, string> = {
+      '09:00-12:00': '09:00 AM - 12:00 PM',
+      '12:00-15:00': '12:00 PM - 03:00 PM',
+      '15:00-18:00': '03:00 PM - 06:00 PM',
+      '18:00-21:00': '06:00 PM - 09:00 PM',
+      '21:00-23:00': '09:00 PM - 11:00 PM',
+    };
+    const deliveryTimeSlotLabel = orderData.deliveryTime ? (TIME_SLOT_LABELS[orderData.deliveryTime] || orderData.deliveryTime) : null;
+
+    // Merge delivery scheduling info into cake_details
+    const enrichedCakeDetails = {
+      ...(orderData.cakeDetails || {}),
+      delivery_time_slot: deliveryTimeSlotLabel,
+      delivery_time_value: orderData.deliveryTime || null,
+      delivery_date: orderData.deliveryDate || null,
+    };
 
     const { data: newOrder, error: orderError } = await supabase
       .from('orders')
@@ -165,7 +183,7 @@ serve(async (req) => {
         country_id: countryId,
         fulfillment_type: orderData.fulfillmentType,
         delivery_address_id: orderData.fulfillmentType === 'delivery' ? orderData.deliveryAddressId : null,
-        cake_details: orderData.cakeDetails,
+        cake_details: enrichedCakeDetails,
         platform_source: 'website',
         original_amount: orderData.originalAmount || orderData.totalAmount,
         voucher_id: orderData.voucherId,
