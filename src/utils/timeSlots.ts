@@ -163,7 +163,7 @@ export const isSlotUnavailableDueToPreparation = (
   const slotEndTime = new Date(selectedDateLocal);
   slotEndTime.setHours(slotEndHour, 0, 0, 0);
   
-  const MINIMUM_BUFFER_MINUTES = 60;
+  const MINIMUM_BUFFER_MINUTES = 15;
   const bufferMinutes = (slotEndTime.getTime() - readyTime.getTime()) / (60 * 1000);
   
   return bufferMinutes < MINIMUM_BUFFER_MINUTES;
