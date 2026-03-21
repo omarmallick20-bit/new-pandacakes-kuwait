@@ -498,16 +498,20 @@ export function CheckoutModal({
       toast.error(t('checkout_provide_label'));
       return;
     }
-    if (!newAddress.building_flat?.trim()) {
+    if (!newAddress.area?.trim()) {
+      toast.error(t('checkout_provide_city'));
+      return;
+    }
+    if (!newAddress.block?.trim()) {
       toast.error(t('checkout_provide_building'));
       return;
     }
-    if (!newAddress.street_address?.trim()) {
+    if (!newAddress.street?.trim()) {
       toast.error(t('checkout_provide_street'));
       return;
     }
-    if (!newAddress.city?.trim()) {
-      toast.error(t('checkout_provide_city'));
+    if (!newAddress.house?.trim()) {
+      toast.error(t('checkout_provide_building'));
       return;
     }
     if (!newAddress.latitude || !newAddress.longitude) {
