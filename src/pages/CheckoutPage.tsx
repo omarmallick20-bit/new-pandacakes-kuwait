@@ -55,9 +55,10 @@ export default function CheckoutPage() {
   }>>([]);
   const [newAddress, setNewAddress] = useState({
     label: '',
-    building_flat: '',
-    street_address: '',
-    city: '',
+    area: '',
+    block: '',
+    street: '',
+    house: '',
     country: COUNTRY_NAME,
     landmarks: '',
     latitude: null as number | null,
