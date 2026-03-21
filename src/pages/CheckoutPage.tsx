@@ -164,9 +164,10 @@ export default function CheckoutPage() {
       setShowAddAddressDialog(false);
       setNewAddress({
         label: '',
-        building_flat: '',
-        street_address: '',
-        city: '',
+        area: '',
+        block: '',
+        street: '',
+        house: '',
         country: COUNTRY_NAME,
         landmarks: '',
         latitude: null,
