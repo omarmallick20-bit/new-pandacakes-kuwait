@@ -377,7 +377,7 @@ We'll update you on WhatsApp about your order status. Thank you for choosing us!
                           Qty: {item.quantity}
                         </p>
                       </div>
-                      <span className="font-medium">{formatQAR((item.total_price || item.price) * (item.quantity || 1))}</span>
+                      <span className="font-medium">{formatQAR(item.total_price != null ? item.total_price : (item.price * (item.quantity || 1)))}</span>
                     </div>
                   ))}
                 </div>
