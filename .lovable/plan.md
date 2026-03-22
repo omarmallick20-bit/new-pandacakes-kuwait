@@ -1,27 +1,32 @@
 
 
-## Reduce Over-Aggressive Time Slot Buffer
+## Fix Double-Counting of Item Price on Payment Success Page
 
 ### Problem
-`isSlotUnavailableDueToPreparation` in `src/utils/timeSlots.ts` enforces a hardcoded `MINIMUM_BUFFER_MINUTES = 60` on top of the prep + delivery lead time. This means:
-- At 9:01 PM with 90 min lead time, the order would be ready at 10:31 PM
-- The 9–11 PM slot ends at 11 PM, leaving 29 min of buffer
-- The code demands 60 min buffer → slot incorrectly blocked
+Line 380 in `PaymentSuccessPage.tsx` does:
+```
+(item.total_price || item.price) * (item.quantity || 1)
+```
 
-The prep (30 min) and delivery (60 min) times already represent the real fulfillment timeline. An additional 60-minute buffer on top is excessive and blocks valid orders.
+`total_price` from the `order_items` table already accounts for quantity (e.g., 2 candles at 0.500 each = 1.000 total). Multiplying by quantity again produces 2.000 — an inflated display.
 
-### Proposed Change
+The receipt confirms: `2×Number Candles Silver` = `1.000 KWD`, but the success page shows `2.000 KWD`.
 
-**File: `src/utils/timeSlots.ts`** (line 166)
+### Fix
 
-Reduce `MINIMUM_BUFFER_MINUTES` from `60` to `15` (or remove it entirely, using `0`).
+**File: `src/pages/PaymentSuccessPage.tsx`** (line 380)
 
-A small 15-minute buffer is reasonable as a safety margin without blocking valid slots. With 15 min buffer:
-- Ready at 10:31 PM + 15 min = 10:46 PM < 11:00 PM → **slot available** ✓
+Change the price display logic to:
+- If `total_price` exists, use it directly (it already includes quantity)
+- If only `price` exists (unit price from cart flow), multiply by quantity
 
-### Alternative
-If you'd prefer no extra buffer at all (trust the prep + delivery times completely), set it to `0`. The slot would then be available as long as the order can be ready before the slot ends.
+```typescript
+// Before
+{formatQAR((item.total_price || item.price) * (item.quantity || 1))}
 
-### Technical Detail
-Single constant change on one line in `src/utils/timeSlots.ts`. No other files affected — the function is already used everywhere via `generateTimeSlotsWithStatus`.
+// After
+{formatQAR(item.total_price != null ? item.total_price : (item.price * (item.quantity || 1)))}
+```
+
+Single line change, one file.
 
