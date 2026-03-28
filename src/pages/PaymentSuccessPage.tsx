@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { CheckCircle2, MessageCircle, Home, User, Calendar, MapPin, XCircle, RefreshCw, Loader2 } from 'lucide-react';
+import { CheckCircle2, Home, User, Calendar, MapPin, XCircle, RefreshCw, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { formatQAR } from '@/utils/currencyHelpers';
 import { useAuth } from '@/contexts/AuthContext';
