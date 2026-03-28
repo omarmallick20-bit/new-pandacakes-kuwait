@@ -34,13 +34,16 @@ const PaymentSuccessPage = () => {
     if (paymentStatus === 'success' && orderDetails && !toastShownRef.current) {
       toastShownRef.current = true;
       
-      const formattedDate = orderDetails.estimated_delivery_time 
-        ? (() => {
-            const start = new Date(orderDetails.estimated_delivery_time);
-            const end = new Date(start.getTime() + 3 * 60 * 60 * 1000);
-            return `${format(start, 'MMM d, yyyy h:mm a')} - ${format(end, 'h:mm a')}`;
-          })()
-        : 'your scheduled date';
+      const cakeDetails = orderDetails.cake_details as any;
+      const deliverySlotLabel = cakeDetails?.delivery_time_slot;
+      const formattedDate = deliverySlotLabel
+        ? `${cakeDetails?.delivery_date ? format(new Date(cakeDetails.delivery_date), 'MMM d, yyyy') + ' ' : ''}${deliverySlotLabel}`
+        : orderDetails.estimated_delivery_time
+          ? (() => {
+              const kwTime = toZonedTime(new Date(orderDetails.estimated_delivery_time), KUWAIT_TIMEZONE);
+              return format(kwTime, 'MMM d, yyyy h:mm a');
+            })()
+          : 'your scheduled date';
       const fulfillmentText = orderDetails.fulfillment_type === 'pickup' ? 'Store Pickup' : 'Delivery';
       const formattedTotal = formatQAR(orderDetails.total_amount || 0);
       
