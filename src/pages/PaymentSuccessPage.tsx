@@ -467,23 +467,6 @@ const PaymentSuccessPage = () => {
           </CardContent>
         </Card>
 
-        {/* WhatsApp Preview */}
-        <Card className="mb-6 bg-green-50 border-green-200">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <MessageCircle className="w-5 h-5 text-green-600" />
-              <h3 className="font-medium text-green-800">WhatsApp Confirmation</h3>
-            </div>
-            <div className="bg-white rounded-lg p-3 border border-green-200">
-              <pre className="text-xs whitespace-pre-wrap text-green-900 font-mono">
-                {whatsappMessage}
-              </pre>
-            </div>
-            <p className="text-xs text-green-700 mt-2">
-              We'll send you updates via WhatsApp as your order progresses through preparation and delivery.
-            </p>
-          </CardContent>
-        </Card>
 
         {/* Action Buttons */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
