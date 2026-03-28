@@ -339,12 +339,6 @@ const PaymentSuccessPage = () => {
     );
   }
 
-  const whatsappMessage = `🎉 Order Confirmed!
-Order #${orderData.orderNumber}
-Total: ${formatQAR(orderData.total)}
-${orderData.isGift ? '🎁 Gift Order' : ''}
-
-We'll update you on WhatsApp about your order status. Thank you for choosing us! 🧁`;
 
   return (
     <main className="min-h-screen bg-background">
