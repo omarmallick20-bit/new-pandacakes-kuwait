@@ -12,6 +12,9 @@ import { useAppContext } from '@/contexts/AppContext';
 import { clearCartInDB, clearCartFromLocalStorage, setCheckoutComplete, resetCheckoutFlag } from '@/utils/cartSync';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { toZonedTime } from 'date-fns-tz';
+
+const KUWAIT_TIMEZONE = 'Asia/Kuwait';
 
 const PaymentSuccessPage = () => {
   const navigate = useNavigate();
