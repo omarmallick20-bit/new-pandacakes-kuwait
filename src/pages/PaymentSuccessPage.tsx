@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { CheckCircle2, MessageCircle, Home, User, Calendar, MapPin, XCircle, RefreshCw, Loader2 } from 'lucide-react';
+import { CheckCircle2, Home, User, Calendar, MapPin, XCircle, RefreshCw, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { formatQAR } from '@/utils/currencyHelpers';
 import { useAuth } from '@/contexts/AuthContext';
@@ -12,6 +12,9 @@ import { useAppContext } from '@/contexts/AppContext';
 import { clearCartInDB, clearCartFromLocalStorage, setCheckoutComplete, resetCheckoutFlag } from '@/utils/cartSync';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { toZonedTime } from 'date-fns-tz';
+
+const KUWAIT_TIMEZONE = 'Asia/Kuwait';
 
 const PaymentSuccessPage = () => {
   const navigate = useNavigate();
@@ -31,13 +34,16 @@ const PaymentSuccessPage = () => {
     if (paymentStatus === 'success' && orderDetails && !toastShownRef.current) {
       toastShownRef.current = true;
       
-      const formattedDate = orderDetails.estimated_delivery_time 
-        ? (() => {
-            const start = new Date(orderDetails.estimated_delivery_time);
-            const end = new Date(start.getTime() + 3 * 60 * 60 * 1000);
-            return `${format(start, 'MMM d, yyyy h:mm a')} - ${format(end, 'h:mm a')}`;
-          })()
-        : 'your scheduled date';
+      const cakeDetails = orderDetails.cake_details as any;
+      const deliverySlotLabel = cakeDetails?.delivery_time_slot;
+      const formattedDate = deliverySlotLabel
+        ? `${cakeDetails?.delivery_date ? format(new Date(cakeDetails.delivery_date), 'MMM d, yyyy') + ' ' : ''}${deliverySlotLabel}`
+        : orderDetails.estimated_delivery_time
+          ? (() => {
+              const kwTime = toZonedTime(new Date(orderDetails.estimated_delivery_time), KUWAIT_TIMEZONE);
+              return format(kwTime, 'MMM d, yyyy h:mm a');
+            })()
+          : 'your scheduled date';
       const fulfillmentText = orderDetails.fulfillment_type === 'pickup' ? 'Store Pickup' : 'Delivery';
       const formattedTotal = formatQAR(orderDetails.total_amount || 0);
       
@@ -333,12 +339,6 @@ const PaymentSuccessPage = () => {
     );
   }
 
-  const whatsappMessage = `🎉 Order Confirmed!
-Order #${orderData.orderNumber}
-Total: ${formatQAR(orderData.total)}
-${orderData.isGift ? '🎁 Gift Order' : ''}
-
-We'll update you on WhatsApp about your order status. Thank you for choosing us! 🧁`;
 
   return (
     <main className="min-h-screen bg-background">
@@ -429,13 +429,19 @@ We'll update you on WhatsApp about your order status. Thank you for choosing us!
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-muted-foreground" />
                     <span>
-                      {orderDetails?.estimated_delivery_time 
-                        ? (() => {
-                            const start = new Date(orderDetails.estimated_delivery_time);
-                            const end = new Date(start.getTime() + 3 * 60 * 60 * 1000);
-                            return `${format(start, 'MMM d, yyyy h:mm a')} - ${format(end, 'h:mm a')}`;
-                          })()
-                        : orderData.scheduledTime}
+                      {(() => {
+                        const cd = orderDetails?.cake_details as any;
+                        const slotLabel = cd?.delivery_time_slot;
+                        if (slotLabel) {
+                          const dateStr = cd?.delivery_date ? format(new Date(cd.delivery_date), 'MMM d, yyyy') + ' ' : '';
+                          return `${dateStr}${slotLabel}`;
+                        }
+                        if (orderDetails?.estimated_delivery_time) {
+                          const kwTime = toZonedTime(new Date(orderDetails.estimated_delivery_time), KUWAIT_TIMEZONE);
+                          return format(kwTime, 'MMM d, yyyy h:mm a');
+                        }
+                        return orderData.scheduledTime;
+                      })()}
                     </span>
                   </div>
                   {orderData.deliveryAddress && (
@@ -461,23 +467,6 @@ We'll update you on WhatsApp about your order status. Thank you for choosing us!
           </CardContent>
         </Card>
 
-        {/* WhatsApp Preview */}
-        <Card className="mb-6 bg-green-50 border-green-200">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <MessageCircle className="w-5 h-5 text-green-600" />
-              <h3 className="font-medium text-green-800">WhatsApp Confirmation</h3>
-            </div>
-            <div className="bg-white rounded-lg p-3 border border-green-200">
-              <pre className="text-xs whitespace-pre-wrap text-green-900 font-mono">
-                {whatsappMessage}
-              </pre>
-            </div>
-            <p className="text-xs text-green-700 mt-2">
-              We'll send you updates via WhatsApp as your order progresses through preparation and delivery.
-            </p>
-          </CardContent>
-        </Card>
 
         {/* Action Buttons */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
