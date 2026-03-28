@@ -1,32 +1,28 @@
 
 
-## Fix Double-Counting of Item Price on Payment Success Page
+## Fix Order Confirmation Emails Not Sending
 
-### Problem
-Line 380 in `PaymentSuccessPage.tsx` does:
+### Root Cause
+
+The **deployed** `send-order-email` edge function is out of sync with the codebase. When I tested it against a recent order (KW-26MA-0402), it returned:
+
+```json
+{ "success": true, "skipped": true, "reason": "no_email" }
 ```
-(item.total_price || item.price) * (item.quantity || 1)
-```
 
-`total_price` from the `order_items` table already accounts for quantity (e.g., 2 candles at 0.500 each = 1.000 total). Multiplying by quantity again produces 2.000 — an inflated display.
+This `skipped`/`no_email` logic does **not exist** in the current codebase version of `send-order-email/index.ts`. The codebase version correctly falls back to sending to the business email (`kw@pandacakes.me`) when no customer email is found. But the deployed version has different code that skips sending entirely when there's no customer email.
 
-The receipt confirms: `2×Number Candles Silver` = `1.000 KWD`, but the success page shows `2.000 KWD`.
+Additionally, the customer (Reem, order KW-26MA-0402) has `email: null` in the Customers table and no auth.users record found — this is a phone-signup user with no email on file. The codebase version handles this by sending to the business email instead, but the deployed version does not.
 
 ### Fix
 
-**File: `src/pages/PaymentSuccessPage.tsx`** (line 380)
+**Redeploy `send-order-email`** — the codebase already has the correct logic:
+- Line 131-134: When no customer email exists, sets `customerEmail = null`
+- Line 387-388: The Resend call uses `to: customerEmail ? [customerEmail] : [config.businessEmail]` — correctly falls back to business email
 
-Change the price display logic to:
-- If `total_price` exists, use it directly (it already includes quantity)
-- If only `price` exists (unit price from cart flow), multiply by quantity
+Simply redeploying the function from the current codebase will restore the correct behavior. No code changes needed.
 
-```typescript
-// Before
-{formatQAR((item.total_price || item.price) * (item.quantity || 1))}
-
-// After
-{formatQAR(item.total_price != null ? item.total_price : (item.price * (item.quantity || 1)))}
-```
-
-Single line change, one file.
+### Action
+1. Deploy edge function `send-order-email` to sync the deployed version with the codebase
+2. Test against a recent order to confirm emails send successfully
 
