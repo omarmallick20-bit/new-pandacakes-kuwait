@@ -435,13 +435,19 @@ We'll update you on WhatsApp about your order status. Thank you for choosing us!
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-muted-foreground" />
                     <span>
-                      {orderDetails?.estimated_delivery_time 
-                        ? (() => {
-                            const start = new Date(orderDetails.estimated_delivery_time);
-                            const end = new Date(start.getTime() + 3 * 60 * 60 * 1000);
-                            return `${format(start, 'MMM d, yyyy h:mm a')} - ${format(end, 'h:mm a')}`;
-                          })()
-                        : orderData.scheduledTime}
+                      {(() => {
+                        const cd = orderDetails?.cake_details as any;
+                        const slotLabel = cd?.delivery_time_slot;
+                        if (slotLabel) {
+                          const dateStr = cd?.delivery_date ? format(new Date(cd.delivery_date), 'MMM d, yyyy') + ' ' : '';
+                          return `${dateStr}${slotLabel}`;
+                        }
+                        if (orderDetails?.estimated_delivery_time) {
+                          const kwTime = toZonedTime(new Date(orderDetails.estimated_delivery_time), KUWAIT_TIMEZONE);
+                          return format(kwTime, 'MMM d, yyyy h:mm a');
+                        }
+                        return orderData.scheduledTime;
+                      })()}
                     </span>
                   </div>
                   {orderData.deliveryAddress && (
