@@ -193,7 +193,7 @@ export default function CakeDetailPage() {
       try {
         const { data } = await supabase
           .from('menu_items')
-          .select('id, name, price, image_url, category_id, description, flavors, sizes, custom_sections, additional_images, preparation_time')
+          .select('id, name, name_ar, price, image_url, category_id, description, flavors, sizes, custom_sections, additional_images, preparation_time')
           .eq('category_id', menuItem.category_id)
           .eq('is_active', true)
           .eq('country_id', COUNTRY_ID)
