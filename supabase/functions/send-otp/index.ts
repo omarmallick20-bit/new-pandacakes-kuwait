@@ -400,7 +400,7 @@ serve(async (req) => {
     const otpCode = Math.floor(1000 + Math.random() * 9000).toString();
     const expiresAt = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000).toISOString();
 
-    const { error: insertError } = await supabase
+    let { error: insertError } = await supabase
       .from('phone_verifications')
       .insert({
         phone_number: normalizedPhone,
@@ -410,6 +410,31 @@ serve(async (req) => {
         verified: false,
         attempts: 0
       });
+
+    // Handle FK violation (23503) — Customer profile may not exist yet for Google/Apple signups
+    if (insertError?.code === '23503') {
+      console.warn(`⚠️ [send-otp] FK violation for user ${resolvedUserId} — ensuring Customer profile exists and retrying`);
+      
+      await supabase.from('Customers').upsert({
+        id: resolvedUserId,
+        country_id: country_id || 'kw',
+        preferred_country: country_id || 'kw',
+        phone_verified: false
+      }, { onConflict: 'id' });
+
+      const { error: retryError } = await supabase
+        .from('phone_verifications')
+        .insert({
+          phone_number: normalizedPhone,
+          otp_code: otpCode,
+          expires_at: expiresAt,
+          user_id: resolvedUserId,
+          verified: false,
+          attempts: 0
+        });
+
+      insertError = retryError;
+    }
 
     if (insertError) {
       console.error('❌ [send-otp] Failed to store OTP:', insertError);
