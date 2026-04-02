@@ -1,32 +1,23 @@
 
 
-## Fix Delivery Time Display + Remove WhatsApp Section
+## Fix "You Might Also Like" Not Showing Arabic Names
 
-### Two issues found
+### Problem
+The Supabase query on line 196 of `CakeDetailPage.tsx` does not include `name_ar` in the `.select()` clause. The display logic on line 667 already checks for `name_ar`, but the field is never fetched, so it always falls back to the English `name`.
 
-**1. Delivery time shows wrong slot**
+### Fix
 
-The PaymentSuccessPage (lines 34-38, 432-436) does two things wrong:
-- Uses `date-fns` `format()` on the UTC-parsed timestamp **without converting to Kuwait timezone** — so the displayed time depends on the user's browser timezone instead of always showing Kuwait time (UTC+3)
-- Adds a hardcoded `+ 3 hours` to create the slot end time, which is incorrect for slots that aren't 3 hours long (e.g., the 9–11 PM slot is only 2 hours)
+**File: `src/pages/CakeDetailPage.tsx`** — Line 196
 
-The fix: Use the `delivery_time_slot` label already stored in `cake_details` (from the recent delivery-time-slot persistence fix). Fall back to timezone-correct formatting using `toZonedTime` only if the label isn't available.
+Add `name_ar` to the select query:
 
-Same fix needed in the toast (lines 34-38).
+```typescript
+// Before
+.select('id, name, price, image_url, category_id, description, flavors, sizes, custom_sections, additional_images, preparation_time')
 
-**2. WhatsApp Confirmation section**
+// After
+.select('id, name, name_ar, price, image_url, category_id, description, flavors, sizes, custom_sections, additional_images, preparation_time')
+```
 
-Lines 336-341 and 464-480 show a fake WhatsApp confirmation card. No actual WhatsApp integration sends these messages. Remove the entire section.
-
-### File: `src/pages/PaymentSuccessPage.tsx`
-
-1. **Import** `toZonedTime` from `date-fns-tz` and add `KUWAIT_TIMEZONE = 'Asia/Kuwait'`
-2. **Toast (lines 34-38)**: Read `delivery_time_slot` from `orderDetails.cake_details`. If present, display it directly. Otherwise, convert `estimated_delivery_time` to Kuwait time using `toZonedTime` before formatting.
-3. **Delivery info display (lines 432-438)**: Same logic — prefer `cake_details.delivery_time_slot` label, fall back to timezone-aware formatting. Also read `cake_details.delivery_date` for the date portion if available.
-4. **Remove WhatsApp block**: Delete lines 336-341 (message variable) and lines 464-480 (WhatsApp card). Remove `MessageCircle` from imports.
-
-### Result
-- Delivery time always shows the slot the customer actually selected (e.g., "12:00 PM - 03:00 PM")
-- Times are always in Kuwait timezone regardless of user's browser
-- No misleading WhatsApp confirmation UI
+Single field addition, one line, one file. The display logic already handles it correctly.
 
