@@ -89,7 +89,14 @@ export function UpsellQuickAddModal({
             const option = section.options.find(opt => opt.name === optName);
             if (option) price += option.price;
           });
-          custom_selections[section.title] = { selected, price };
+          custom_selections[section.title] = {
+            selected,
+            selected_ar: section.options
+              .filter(opt => selectedOptions.includes(opt.name))
+              .map(opt => (opt as any).name_ar || opt.name),
+            title_ar: (section as any).title_ar,
+            price
+          };
         }
       });
       customizations = {
