@@ -79,7 +79,7 @@ export function UpsellQuickAddModal({
     // Build customizations object from selections
     let customizations: CartItem['customizations'] | undefined;
     if (hasCustomSections && Object.keys(customSelections).length > 0) {
-      const custom_selections: Record<string, { selected: string | string[]; price: number }> = {};
+      const custom_selections: Record<string, { selected: string | string[]; selected_ar?: string | string[]; title_ar?: string; price: number }> = {};
       customSections.forEach(section => {
         const selected = customSelections[section.title];
         if (selected !== undefined) {
