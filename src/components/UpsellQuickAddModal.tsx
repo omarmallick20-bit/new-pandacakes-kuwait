@@ -79,7 +79,7 @@ export function UpsellQuickAddModal({
     // Build customizations object from selections
     let customizations: CartItem['customizations'] | undefined;
     if (hasCustomSections && Object.keys(customSelections).length > 0) {
-      const custom_selections: Record<string, { selected: string | string[]; price: number }> = {};
+      const custom_selections: Record<string, { selected: string | string[]; selected_ar?: string | string[]; title_ar?: string; price: number }> = {};
       customSections.forEach(section => {
         const selected = customSelections[section.title];
         if (selected !== undefined) {
@@ -89,7 +89,14 @@ export function UpsellQuickAddModal({
             const option = section.options.find(opt => opt.name === optName);
             if (option) price += option.price;
           });
-          custom_selections[section.title] = { selected, price };
+          custom_selections[section.title] = {
+            selected,
+            selected_ar: section.options
+              .filter(opt => selectedOptions.includes(opt.name))
+              .map(opt => (opt as any).name_ar || opt.name),
+            title_ar: (section as any).title_ar,
+            price
+          };
         }
       });
       customizations = {
