@@ -1534,7 +1534,7 @@ export function CheckoutModal({
               return (
                 <div key={item.id} className="flex justify-between gap-2 text-xs sm:text-sm">
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium break-words">{item.cake.name}</div>
+                    <div className="font-medium break-words">{(language === 'ar' && item.cake.name_ar) || item.cake.name}</div>
                     <div className="text-muted-foreground break-words">
                       {detailsString}
                     </div>

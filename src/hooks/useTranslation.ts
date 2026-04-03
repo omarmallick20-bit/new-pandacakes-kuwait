@@ -96,6 +96,7 @@ const variantTranslations: Record<string, string> = {
   "Orange": "برتقالي",
   "Brown": "بني",
   "None": "بدون",
+  "Default": "عادي",
   "Avenue": "جادة",
   "Apartment": "شقة",
   "Yes": "نعم",

@@ -305,13 +305,19 @@ export default function CartPage() {
                   </p>
                   {item.customizations?.custom_selections && Object.keys(item.customizations.custom_selections).length > 0 && (
                     <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
-                      {Object.entries(item.customizations.custom_selections).map(([title, data]) => (
-                        <div key={title} className="break-words">
-                          <span className="font-medium">{translateVariant(title)}:</span>{' '}
-                          {Array.isArray(data.selected) ? data.selected.map(s => translateVariant(s)).join('، ') : translateVariant(data.selected)}
-                          {data.price > 0 && <span className="text-primary"> (+{currencyLabel} {toArabicNumerals(formatAmount(data.price))})</span>}
-                        </div>
-                      ))}
+                      {Object.entries(item.customizations.custom_selections).map(([title, data]) => {
+                        const displayTitle = language === 'ar' && data.title_ar ? data.title_ar : translateVariant(title);
+                        const displaySelected = language === 'ar' && data.selected_ar
+                          ? (Array.isArray(data.selected_ar) ? data.selected_ar.join('، ') : data.selected_ar)
+                          : (Array.isArray(data.selected) ? data.selected.map(s => translateVariant(s)).join('، ') : translateVariant(data.selected as string));
+                        return (
+                          <div key={title} className="break-words">
+                            <span className="font-medium">{displayTitle}:</span>{' '}
+                            {displaySelected}
+                            {data.price > 0 && <span className="text-primary"> (+{currencyLabel} {toArabicNumerals(formatAmount(data.price))})</span>}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                   {item.specialInstructions && (

@@ -431,8 +431,13 @@ export default function CakeDetailPage() {
           if (selected) {
             const selectedOptions = Array.isArray(selected) ? selected : [selected];
             const price = section.options.filter(opt => selectedOptions.includes(opt.name)).reduce((sum, opt) => sum + opt.price, 0);
+            const selectedOptionsArr = Array.isArray(selected) ? selected : [selected];
             customizations.custom_selections[section.title] = {
               selected,
+              selected_ar: section.options
+                .filter((opt: any) => selectedOptionsArr.includes(opt.name))
+                .map((opt: any) => opt.name_ar || opt.name),
+              title_ar: (section as any).title_ar,
               price
             };
           }

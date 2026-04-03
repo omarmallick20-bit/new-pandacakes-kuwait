@@ -35,6 +35,8 @@ export interface CartItem {
   customizations?: {
     custom_selections: Record<string, {
       selected: string | string[];
+      selected_ar?: string | string[];
+      title_ar?: string;
       price: number;
     }>;
     total_variant_price: number;
