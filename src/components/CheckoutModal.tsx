@@ -1506,12 +1506,13 @@ export function CheckoutModal({
               
               if (item.customizations?.custom_selections) {
                 Object.entries(item.customizations.custom_selections).forEach(([title, data]) => {
-                  const selData = data as { selected?: string | string[]; price?: number };
-                  const selected = Array.isArray(selData.selected) 
-                    ? selData.selected.join(', ') 
-                    : selData.selected;
+                  const selData = data as { selected?: string | string[]; selected_ar?: string | string[]; title_ar?: string; price?: number };
+                  const displayTitle = language === 'ar' && selData.title_ar ? selData.title_ar : translateVariant(title);
+                  const selected = language === 'ar' && selData.selected_ar
+                    ? (Array.isArray(selData.selected_ar) ? selData.selected_ar.join(', ') : selData.selected_ar)
+                    : (Array.isArray(selData.selected) ? selData.selected.join(', ') : selData.selected);
                   if (selected && selected !== 'Default' && selected !== 'Standard') {
-                    customDetails.push(`${title}: ${selected}`);
+                    customDetails.push(`${displayTitle}: ${selected}`);
                   }
                 });
               }
