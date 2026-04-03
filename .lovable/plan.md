@@ -1,67 +1,81 @@
 
 
-## Fix OTP Failure After Google/Apple Signup
+## Fix Cart Translation Issues + Time Display
 
-### Root Cause
+### Two Problems
 
-The `phone_verifications` table has a **foreign key constraint** (`phone_verifications_user_id_fkey`) referencing the `Customers` table. When a user signs up via Google/Apple:
+**1. Cart items show untranslated text in Arabic mode**
 
-1. `AuthCallback` creates the Customer profile (with retries)
-2. User is redirected to `/phone-setup`
-3. User enters phone → `send-otp` tries to insert into `phone_verifications`
-4. **If the Customer profile wasn't created yet (race) or creation failed**, the FK constraint blocks the insert with error `23503`
+The cart stores only English keys for custom selections (e.g., `"Candle Number": { selected: ["Number 4", "Number 5"] }`). The display relies on a static `translateVariant()` dictionary, which doesn't know DB-specific values like "Candle Number" or "Number 4". Also, "Default" is missing from the dictionary entirely.
 
-This does NOT affect phone-based signup because the Customer profile is created during the signup flow itself, before OTP verification.
+**2. Time-related issue** — Need you to clarify what specific time issue persists. The slot buffer was already reduced to 15 minutes, and the PaymentSuccessPage now uses Kuwait timezone. Is it still showing wrong times somewhere? Which page/screen?
 
-### Fix — Two changes
+---
 
-#### 1. Database migration: Change FK target from `Customers` to `auth.users`
+### Fix for Translation
 
-The foreign key should reference `auth.users(id)` instead of `Customers(id)`. The auth user always exists at this point (Google/Apple created it). This is the correct reference since `user_id` represents the auth user, not the customer profile.
+**Approach**: Store Arabic translations alongside English in the cart data, then use them at display time. This eliminates dependency on the static dictionary for DB-sourced values.
 
-```sql
-ALTER TABLE phone_verifications 
-  DROP CONSTRAINT phone_verifications_user_id_fkey;
+#### File 1: `src/hooks/useTranslation.ts`
 
-ALTER TABLE phone_verifications 
-  ADD CONSTRAINT phone_verifications_user_id_fkey 
-  FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+Add "Default" to the variant translations map:
+```
+"Default": "عادي"
 ```
 
-#### 2. Edge function fallback (belt-and-suspenders): `send-otp/index.ts`
+#### File 2: `src/types/index.ts` — Extend cart customization type
 
-Add a fallback in the `send-otp` function: if the insert fails with `23503` (FK violation), **ensure the Customer record exists** by upserting a minimal profile, then retry the insert. This handles edge cases where even `auth.users` might have timing issues.
-
-**Lines ~403-420**: Wrap the existing insert in a try/retry block:
-
+Add optional Arabic metadata to `custom_selections`:
 ```typescript
-// After the initial insert fails with 23503:
-if (insertError?.code === '23503') {
-  // Ensure minimal Customer profile exists
-  await supabase.from('Customers').upsert({
-    id: resolvedUserId,
-    country_id: country_id || 'kw',
-    preferred_country: country_id || 'kw',
-    phone_verified: false
-  }, { onConflict: 'id' });
-  
-  // Retry insert
-  const { error: retryError } = await supabase
-    .from('phone_verifications')
-    .insert({ phone_number: normalizedPhone, otp_code: otpCode, expires_at: expiresAt, user_id: resolvedUserId, verified: false, attempts: 0 });
-  
-  if (retryError) {
-    // Return error
-  }
-}
+custom_selections: Record<string, {
+  selected: string | string[];
+  selected_ar?: string | string[];  // Arabic option names
+  title_ar?: string;                 // Arabic section title
+  price: number;
+}>;
 ```
 
-### Why both changes
+#### File 3: `src/pages/CakeDetailPage.tsx` — Store Arabic data when adding to cart
 
-- The migration is the **permanent fix** — `auth.users` always exists before OTP is needed
-- The edge function fallback handles any remaining edge cases and ensures the Customer profile is bootstrapped
+When building `custom_selections` (lines 428-439), also store `title_ar` and the Arabic option names from the section data:
+```typescript
+customizations.custom_selections[section.title] = {
+  selected,
+  selected_ar: section.options
+    .filter(opt => selectedOptions.includes(opt.name))
+    .map(opt => opt.name_ar || opt.name),
+  title_ar: section.title_ar,
+  price
+};
+```
 
-### Files changed
-1. New SQL migration (FK constraint change)
-2. `supabase/functions/send-otp/index.ts` (fallback insert retry)
+#### File 4: `src/pages/CartPage.tsx` — Use stored Arabic data
+
+Update the custom selections display (lines 308-315) to prefer stored Arabic when language is Arabic:
+```typescript
+// Title: use stored title_ar, fall back to translateVariant
+const displayTitle = language === 'ar' 
+  ? (data.title_ar || translateVariant(title)) 
+  : title;
+
+// Values: use stored selected_ar, fall back to translateVariant  
+const displaySelected = language === 'ar' && data.selected_ar
+  ? (Array.isArray(data.selected_ar) ? data.selected_ar.join('، ') : data.selected_ar)
+  : (Array.isArray(data.selected) ? data.selected.map(s => translateVariant(s)).join('، ') : translateVariant(data.selected));
+```
+
+#### File 5: Same pattern for `CheckoutModal.tsx`, `PaymentSuccessPage.tsx`, `UpsellQuickAddModal.tsx`
+
+Apply the same Arabic-aware display logic wherever cart item customizations are rendered.
+
+### Product names ("Number Candles Silver")
+
+This item likely has no `name_ar` in the database. The code already shows `name_ar` when available. This is a **data issue** — the Arabic name needs to be added in the database for that menu item. No code change needed.
+
+### Summary
+- 1 dictionary addition ("Default" → "عادي")
+- 1 type extension (add `selected_ar`, `title_ar` to cart customizations)
+- Store Arabic metadata at add-to-cart time
+- Display Arabic metadata in cart, checkout, and payment success pages
+- Product names without `name_ar` in DB will still show English — that's a data entry task
 
