@@ -1,81 +1,48 @@
 
 
-## Fix Cart Translation Issues + Time Display
+## Apple Email Delivery Failures — Analysis and Fix
 
-### Two Problems
+### What the screenshots show
 
-**1. Cart items show untranslated text in Arabic mode**
+From the Resend dashboard:
+- **Gmail, Hotmail users**: All "Delivered" — working fine
+- **Apple relay users** (`@privaterelay.appleid.com`): "Bounced" and "Suppressed"
+- Once an Apple relay email bounces, Resend automatically **suppresses** all future emails to that address — which is why order confirmations show "Suppressed" after the welcome email already bounced
 
-The cart stores only English keys for custom selections (e.g., `"Candle Number": { selected: ["Number 4", "Number 5"] }`). The display relies on a static `translateVariant()` dictionary, which doesn't know DB-specific values like "Candle Number" or "Number 4". Also, "Default" is missing from the dictionary entirely.
+### Root cause
 
-**2. Time-related issue** — Need you to clarify what specific time issue persists. The slot buffer was already reduced to 15 minutes, and the PaymentSuccessPage now uses Kuwait timezone. Is it still showing wrong times somewhere? Which page/screen?
+Apple's "Hide My Email" relay service (`privaterelay.appleid.com`) requires the sending domain to be **registered with Apple** as a trusted email source. Without this registration, Apple's relay servers reject (bounce) all emails from `pandacakes.me`.
 
----
+This is **not a code issue** — the Resend API accepts the email, delivers it to Apple's relay servers, and Apple bounces it back because `pandacakes.me` is not whitelisted.
 
-### Fix for Translation
+### Fix — Two steps required
 
-**Approach**: Store Arabic translations alongside English in the cart data, then use them at display time. This eliminates dependency on the static dictionary for DB-sourced values.
+#### Step 1: Register `pandacakes.me` with Apple (manual — you must do this)
 
-#### File 1: `src/hooks/useTranslation.ts`
+1. Go to https://developer.apple.com/account/resources/services/configure
+2. Under **"Sign in with Apple for Email Communication"**, click **Configure**
+3. Register the email source domain: **`pandacakes.me`**
+4. Register the individual sender addresses:
+   - `order-noreply@pandacakes.me`
+5. Apple will verify SPF records for the domain — since `pandacakes.me` is already verified in Resend with proper SPF/DKIM, this should pass automatically
+6. After registration, Apple relay servers will accept emails from this domain
 
-Add "Default" to the variant translations map:
-```
-"Default": "عادي"
-```
+#### Step 2: Remove suppressed Apple addresses from Resend
 
-#### File 2: `src/types/index.ts` — Extend cart customization type
+Once the domain is registered with Apple, the previously bounced addresses are still **suppressed** in Resend. New emails to those users will continue to be blocked until removed from the suppression list.
 
-Add optional Arabic metadata to `custom_selections`:
-```typescript
-custom_selections: Record<string, {
-  selected: string | string[];
-  selected_ar?: string | string[];  // Arabic option names
-  title_ar?: string;                 // Arabic section title
-  price: number;
-}>;
-```
+1. In Resend dashboard, go to **Audience → Suppression List** (or check under the suppressed email's details)
+2. Remove the suppressed Apple relay addresses (e.g., `9hpvgj8wz7@privaterelay.appleid.com`, `t2ndg2bkw2@privaterelay.appleid.com`)
+3. After removal, future emails to these addresses will attempt delivery again
 
-#### File 3: `src/pages/CakeDetailPage.tsx` — Store Arabic data when adding to cart
+### No code changes needed
 
-When building `custom_selections` (lines 428-439), also store `title_ar` and the Arabic option names from the section data:
-```typescript
-customizations.custom_selections[section.title] = {
-  selected,
-  selected_ar: section.options
-    .filter(opt => selectedOptions.includes(opt.name))
-    .map(opt => opt.name_ar || opt.name),
-  title_ar: section.title_ar,
-  price
-};
-```
+- The sending domain, API key, and edge functions are all working correctly
+- Gmail, Hotmail, and other providers deliver successfully
+- The same API key serves both Kuwait and Qatar — this is expected and correct
+- The only action items are the Apple domain registration and Resend suppression list cleanup
 
-#### File 4: `src/pages/CartPage.tsx` — Use stored Arabic data
+### About Kuwait/Qatar logs appearing together
 
-Update the custom selections display (lines 308-315) to prefer stored Arabic when language is Arabic:
-```typescript
-// Title: use stored title_ar, fall back to translateVariant
-const displayTitle = language === 'ar' 
-  ? (data.title_ar || translateVariant(title)) 
-  : title;
-
-// Values: use stored selected_ar, fall back to translateVariant  
-const displaySelected = language === 'ar' && data.selected_ar
-  ? (Array.isArray(data.selected_ar) ? data.selected_ar.join('، ') : data.selected_ar)
-  : (Array.isArray(data.selected) ? data.selected.map(s => translateVariant(s)).join('، ') : translateVariant(data.selected));
-```
-
-#### File 5: Same pattern for `CheckoutModal.tsx`, `PaymentSuccessPage.tsx`, `UpsellQuickAddModal.tsx`
-
-Apply the same Arabic-aware display logic wherever cart item customizations are rendered.
-
-### Product names ("Number Candles Silver")
-
-This item likely has no `name_ar` in the database. The code already shows `name_ar` when available. This is a **data issue** — the Arabic name needs to be added in the database for that menu item. No code change needed.
-
-### Summary
-- 1 dictionary addition ("Default" → "عادي")
-- 1 type extension (add `selected_ar`, `title_ar` to cart customizations)
-- Store Arabic metadata at add-to-cart time
-- Display Arabic metadata in cart, checkout, and payment success pages
-- Product names without `name_ar` in DB will still show English — that's a data entry task
+Both countries share one Resend API key and send from `pandacakes.me`. Resend does not have a concept of "country" — all sends appear in one unified log. This is normal. Order subjects already include the country prefix (KW- vs QA-) so you can visually distinguish them.
 
