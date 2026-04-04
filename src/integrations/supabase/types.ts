@@ -1260,6 +1260,78 @@ export type Database = {
         }
         Relationships: []
       }
+      spin_rewards_config: {
+        Row: {
+          country_id: string
+          created_at: string
+          current_count: number
+          discount_percentage: number
+          id: string
+          is_active: boolean
+          monthly_limit: number
+          reset_month: string
+          updated_at: string
+        }
+        Insert: {
+          country_id?: string
+          created_at?: string
+          current_count?: number
+          discount_percentage: number
+          id?: string
+          is_active?: boolean
+          monthly_limit?: number
+          reset_month?: string
+          updated_at?: string
+        }
+        Update: {
+          country_id?: string
+          created_at?: string
+          current_count?: number
+          discount_percentage?: number
+          id?: string
+          is_active?: boolean
+          monthly_limit?: number
+          reset_month?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      spin_settings: {
+        Row: {
+          allow_cod: boolean
+          country_id: string
+          created_at: string
+          expiry_days: number
+          id: string
+          is_enabled: boolean
+          social_bonus_enabled: boolean
+          social_bonus_percentage: number
+          updated_at: string
+        }
+        Insert: {
+          allow_cod?: boolean
+          country_id?: string
+          created_at?: string
+          expiry_days?: number
+          id?: string
+          is_enabled?: boolean
+          social_bonus_enabled?: boolean
+          social_bonus_percentage?: number
+          updated_at?: string
+        }
+        Update: {
+          allow_cod?: boolean
+          country_id?: string
+          created_at?: string
+          expiry_days?: number
+          id?: string
+          is_enabled?: boolean
+          social_bonus_enabled?: boolean
+          social_bonus_percentage?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       staff: {
         Row: {
           country_access: string[] | null
@@ -1423,6 +1495,71 @@ export type Database = {
             columns: ["country_id"]
             isOneToOne: false
             referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_spin_flags: {
+        Row: {
+          ban_reason: string | null
+          is_spin_banned: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ban_reason?: string | null
+          is_spin_banned?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ban_reason?: string | null
+          is_spin_banned?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_spins: {
+        Row: {
+          bakepoints_awarded: number
+          country_id: string
+          created_at: string
+          id: string
+          order_id: string
+          reward_percentage: number
+          status: string
+          user_id: string
+          voucher_id: string | null
+        }
+        Insert: {
+          bakepoints_awarded?: number
+          country_id?: string
+          created_at?: string
+          id?: string
+          order_id: string
+          reward_percentage?: number
+          status?: string
+          user_id: string
+          voucher_id?: string | null
+        }
+        Update: {
+          bakepoints_awarded?: number
+          country_id?: string
+          created_at?: string
+          id?: string
+          order_id?: string
+          reward_percentage?: number
+          status?: string
+          user_id?: string
+          voucher_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_spins_voucher_id_fkey"
+            columns: ["voucher_id"]
+            isOneToOne: false
+            referencedRelation: "vouchers"
             referencedColumns: ["id"]
           },
         ]
