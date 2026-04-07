@@ -1306,6 +1306,7 @@ export type Database = {
           is_enabled: boolean
           social_bonus_enabled: boolean
           social_bonus_percentage: number
+          theme_color: string
           updated_at: string
         }
         Insert: {
@@ -1317,6 +1318,7 @@ export type Database = {
           is_enabled?: boolean
           social_bonus_enabled?: boolean
           social_bonus_percentage?: number
+          theme_color?: string
           updated_at?: string
         }
         Update: {
@@ -1328,6 +1330,7 @@ export type Database = {
           is_enabled?: boolean
           social_bonus_enabled?: boolean
           social_bonus_percentage?: number
+          theme_color?: string
           updated_at?: string
         }
         Relationships: []
@@ -2534,6 +2537,127 @@ export type Database = {
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
+      transition_order_status: {
+        Args: {
+          p_actor_name?: string
+          p_actor_role?: string
+          p_new_status: Database["public"]["Enums"]["order_status"]
+          p_notes?: string
+          p_order_id: string
+        }
+        Returns: {
+          assigned_driver_id: string | null
+          assigned_driver_name: string | null
+          bakepoints_discount_amount: number | null
+          cake_details: Json | null
+          country_id: string | null
+          created_at: string
+          customer_id: string | null
+          customer_notes: string | null
+          customer_snapshot: Json | null
+          delivery_address_id: string | null
+          delivery_address_snapshot: Json | null
+          delivery_fee: number | null
+          delivery_zone_id: string | null
+          driver_notes: string | null
+          estimated_delivery_time: string | null
+          fulfillment_type: string | null
+          id: string
+          loyalty_discount_amount: number | null
+          order_number: string
+          order_placed_at: string | null
+          original_amount: number | null
+          payment_amount: number | null
+          payment_currency: string | null
+          payment_method: string | null
+          payment_retry_count: number | null
+          payment_status: string | null
+          pickup_contact_name: string | null
+          pickup_contact_phone: string | null
+          pickup_location: string | null
+          pickup_time: string | null
+          platform_order_id: string | null
+          platform_source: string
+          staff_notes: string | null
+          status: Database["public"]["Enums"]["order_status"] | null
+          tap_charge_id: string | null
+          tap_idempotency_key: string | null
+          tap_payment_reference: string | null
+          total_amount: number
+          updated_at: string
+          vat_amount: number | null
+          vat_percentage: number | null
+          voucher_discount_amount: number | null
+          voucher_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      transition_order_status_with_updates: {
+        Args: {
+          p_actor_name?: string
+          p_actor_role?: string
+          p_new_status: Database["public"]["Enums"]["order_status"]
+          p_notes?: string
+          p_order_id: string
+          p_updates?: Json
+        }
+        Returns: {
+          assigned_driver_id: string | null
+          assigned_driver_name: string | null
+          bakepoints_discount_amount: number | null
+          cake_details: Json | null
+          country_id: string | null
+          created_at: string
+          customer_id: string | null
+          customer_notes: string | null
+          customer_snapshot: Json | null
+          delivery_address_id: string | null
+          delivery_address_snapshot: Json | null
+          delivery_fee: number | null
+          delivery_zone_id: string | null
+          driver_notes: string | null
+          estimated_delivery_time: string | null
+          fulfillment_type: string | null
+          id: string
+          loyalty_discount_amount: number | null
+          order_number: string
+          order_placed_at: string | null
+          original_amount: number | null
+          payment_amount: number | null
+          payment_currency: string | null
+          payment_method: string | null
+          payment_retry_count: number | null
+          payment_status: string | null
+          pickup_contact_name: string | null
+          pickup_contact_phone: string | null
+          pickup_location: string | null
+          pickup_time: string | null
+          platform_order_id: string | null
+          platform_source: string
+          staff_notes: string | null
+          status: Database["public"]["Enums"]["order_status"] | null
+          tap_charge_id: string | null
+          tap_idempotency_key: string | null
+          tap_payment_reference: string | null
+          total_amount: number
+          updated_at: string
+          vat_amount: number | null
+          vat_percentage: number | null
+          voucher_discount_amount: number | null
+          voucher_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       update_order_status: {
         Args: {
           new_status: Database["public"]["Enums"]["order_status"]

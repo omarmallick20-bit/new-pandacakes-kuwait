@@ -94,6 +94,7 @@ export function CheckoutModal({
     code: string;
     discount_amount: number;
     final_amount: number;
+    voucher_id?: string;
     applicable_products?: string[];
   } | null>(null);
   const [isValidatingVoucher, setIsValidatingVoucher] = useState(false);
@@ -630,6 +631,7 @@ export function CheckoutModal({
           code: voucherCode.trim().toUpperCase(),
           discount_amount: discountAmt,
           final_amount: subtotal - discountAmt,
+          voucher_id: data.voucher_id,
           applicable_products: applicableProducts || undefined
         });
         
@@ -878,7 +880,7 @@ export function CheckoutModal({
           delivery_date: deliveryDate ? format(deliveryDate, 'yyyy-MM-dd') : null,
         })),
         originalAmount: subtotal,
-        voucherId: cartAppliedVoucher?.voucher_id || null,
+        voucherId: cartAppliedVoucher?.voucher_id || appliedVoucher?.voucher_id || null,
         voucherDiscount: discount,
         bakePointsApplied: appliedBakePoints,
         bakePointsDiscount: bakePointsDiscount
@@ -1754,7 +1756,7 @@ export function CheckoutModal({
           })),
           // Voucher and BakePoints data for webhook to process
           originalAmount: subtotal, // Items subtotal only, delivery fee tracked separately
-          voucherId: cartAppliedVoucher?.voucher_id || null,
+          voucherId: cartAppliedVoucher?.voucher_id || appliedVoucher?.voucher_id || null,
           voucherDiscount: discount,
           bakePointsApplied: appliedBakePoints,
           bakePointsDiscount: bakePointsDiscount
