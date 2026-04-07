@@ -880,7 +880,7 @@ export function CheckoutModal({
           delivery_date: deliveryDate ? format(deliveryDate, 'yyyy-MM-dd') : null,
         })),
         originalAmount: subtotal,
-        voucherId: cartAppliedVoucher?.voucher_id || null,
+        voucherId: cartAppliedVoucher?.voucher_id || appliedVoucher?.voucher_id || null,
         voucherDiscount: discount,
         bakePointsApplied: appliedBakePoints,
         bakePointsDiscount: bakePointsDiscount
