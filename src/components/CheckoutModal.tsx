@@ -1756,7 +1756,7 @@ export function CheckoutModal({
           })),
           // Voucher and BakePoints data for webhook to process
           originalAmount: subtotal, // Items subtotal only, delivery fee tracked separately
-          voucherId: cartAppliedVoucher?.voucher_id || null,
+          voucherId: cartAppliedVoucher?.voucher_id || appliedVoucher?.voucher_id || null,
           voucherDiscount: discount,
           bakePointsApplied: appliedBakePoints,
           bakePointsDiscount: bakePointsDiscount
