@@ -631,6 +631,7 @@ export function CheckoutModal({
           code: voucherCode.trim().toUpperCase(),
           discount_amount: discountAmt,
           final_amount: subtotal - discountAmt,
+          voucher_id: data.voucher_id,
           applicable_products: applicableProducts || undefined
         });
         
