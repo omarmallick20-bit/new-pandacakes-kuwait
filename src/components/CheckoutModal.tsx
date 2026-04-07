@@ -94,6 +94,7 @@ export function CheckoutModal({
     code: string;
     discount_amount: number;
     final_amount: number;
+    voucher_id?: string;
     applicable_products?: string[];
   } | null>(null);
   const [isValidatingVoucher, setIsValidatingVoucher] = useState(false);
