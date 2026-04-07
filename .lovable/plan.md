@@ -1,48 +1,58 @@
 
 
-## Apple Email Delivery Failures — Analysis and Fix
+## Fix Voucher Usage Not Being Tracked
 
-### What the screenshots show
+### Root Cause
 
-From the Resend dashboard:
-- **Gmail, Hotmail users**: All "Delivered" — working fine
-- **Apple relay users** (`@privaterelay.appleid.com`): "Bounced" and "Suppressed"
-- Once an Apple relay email bounces, Resend automatically **suppresses** all future emails to that address — which is why order confirmations show "Suppressed" after the welcome email already bounced
+When a customer applies a voucher **inside the checkout modal** (not from the cart page), the voucher ID is never passed to the webhook. Here's why:
 
-### Root cause
+1. The `validate_voucher` RPC returns `voucher_id` in its response — but the code on line 629 doesn't store it
+2. The local `appliedVoucher` state (line 93-98) has no `voucher_id` field
+3. Both order data builders (line 881 for card, line 1757 for PaymentModal) use `cartAppliedVoucher?.voucher_id || null` — which is `null` when the voucher was applied in checkout
+4. The webhook sees `voucherId: null`, skips usage recording entirely
 
-Apple's "Hide My Email" relay service (`privaterelay.appleid.com`) requires the sending domain to be **registered with Apple** as a trusted email source. Without this registration, Apple's relay servers reject (bounce) all emails from `pandacakes.me`.
+The webhook code itself is correct — it calls `record_voucher_usage` when `voucherId` is present. The problem is purely that the voucher ID never reaches it.
 
-This is **not a code issue** — the Resend API accepts the email, delivers it to Apple's relay servers, and Apple bounces it back because `pandacakes.me` is not whitelisted.
+### Fix — One file: `src/components/CheckoutModal.tsx`
 
-### Fix — Two steps required
+**Change 1**: Add `voucher_id` to the local `appliedVoucher` state type (line 93-98)
 
-#### Step 1: Register `pandacakes.me` with Apple (manual — you must do this)
+```typescript
+const [appliedVoucher, setAppliedVoucher] = useState<{
+  code: string;
+  discount_amount: number;
+  final_amount: number;
+  voucher_id?: string;           // ADD THIS
+  applicable_products?: string[];
+} | null>(null);
+```
 
-1. Go to https://developer.apple.com/account/resources/services/configure
-2. Under **"Sign in with Apple for Email Communication"**, click **Configure**
-3. Register the email source domain: **`pandacakes.me`**
-4. Register the individual sender addresses:
-   - `order-noreply@pandacakes.me`
-5. Apple will verify SPF records for the domain — since `pandacakes.me` is already verified in Resend with proper SPF/DKIM, this should pass automatically
-6. After registration, Apple relay servers will accept emails from this domain
+**Change 2**: Store voucher_id from validation response (line 629-634)
 
-#### Step 2: Remove suppressed Apple addresses from Resend
+```typescript
+setAppliedVoucher({
+  code: voucherCode.trim().toUpperCase(),
+  discount_amount: discountAmt,
+  final_amount: subtotal - discountAmt,
+  voucher_id: data.voucher_id,   // ADD THIS
+  applicable_products: applicableProducts || undefined
+});
+```
 
-Once the domain is registered with Apple, the previously bounced addresses are still **suppressed** in Resend. New emails to those users will continue to be blocked until removed from the suppression list.
+**Change 3**: Use local voucher_id with fallback (lines 881 and 1757)
 
-1. In Resend dashboard, go to **Audience → Suppression List** (or check under the suppressed email's details)
-2. Remove the suppressed Apple relay addresses (e.g., `9hpvgj8wz7@privaterelay.appleid.com`, `t2ndg2bkw2@privaterelay.appleid.com`)
-3. After removal, future emails to these addresses will attempt delivery again
+```typescript
+// Before (both locations):
+voucherId: cartAppliedVoucher?.voucher_id || null,
 
-### No code changes needed
+// After:
+voucherId: cartAppliedVoucher?.voucher_id || appliedVoucher?.voucher_id || null,
+```
 
-- The sending domain, API key, and edge functions are all working correctly
-- Gmail, Hotmail, and other providers deliver successfully
-- The same API key serves both Kuwait and Qatar — this is expected and correct
-- The only action items are the Apple domain registration and Resend suppression list cleanup
+### Result
 
-### About Kuwait/Qatar logs appearing together
-
-Both countries share one Resend API key and send from `pandacakes.me`. Resend does not have a concept of "country" — all sends appear in one unified log. This is normal. Order subjects already include the country prefix (KW- vs QA-) so you can visually distinguish them.
+- Voucher ID flows from validation response → local state → order data → webhook → `record_voucher_usage` RPC
+- Both card and cash payment paths are fixed
+- Cart-applied vouchers continue to work as before (first fallback)
+- Dashboard will show correct usage counts going forward
 
