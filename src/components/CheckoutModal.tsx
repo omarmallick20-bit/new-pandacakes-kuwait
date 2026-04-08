@@ -998,6 +998,24 @@ export function CheckoutModal({
           }
         }
 
+        // Record voucher usage for cash orders (card orders handle this in webhook)
+        const effectiveVoucherId = cartAppliedVoucher?.voucher_id || appliedVoucher?.voucher_id;
+        if (effectiveVoucherId && discount > 0) {
+          try {
+            const { error: voucherUsageError } = await supabase.rpc('record_voucher_usage', {
+              p_voucher_id: effectiveVoucherId,
+              p_customer_id: user.id,
+              p_order_id: order.id,
+              p_discount_applied: discount
+            });
+            if (voucherUsageError) {
+              console.error('Error recording voucher usage:', voucherUsageError);
+            }
+          } catch (vuError) {
+            console.error('Failed to record voucher usage:', vuError);
+          }
+        }
+
       }
 
       // Send order confirmation email for ALL order types (fire and forget, idempotent)
