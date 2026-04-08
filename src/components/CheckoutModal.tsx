@@ -743,6 +743,7 @@ export function CheckoutModal({
       original_amount: subtotal, // Items subtotal only, delivery fee tracked separately
       bakepoints_discount_amount: bakePointsDiscount > 0 ? bakePointsDiscount : null, // Track BakePoints discount
       voucher_discount_amount: discount > 0 ? discount : null, // Track voucher discount
+      voucher_id: cartAppliedVoucher?.voucher_id || appliedVoucher?.voucher_id || null,
       status: 'pending_payment' as const,
       payment_method: paymentMethod,
       payment_status: 'pending',
