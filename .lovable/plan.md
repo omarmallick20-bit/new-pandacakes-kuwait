@@ -1,18 +1,52 @@
 
 
-## Fix Kuwait Order Emails Not Reaching kw@pandacakes.me
+## Fix Voucher Usage Tracking for All Order Types
 
 ### Root Cause
 
-The **deployed** `send-order-email` edge function is out of sync with the codebase. The deployed version returns `{ skipped: true, reason: "no_email" }` instead of falling back to the business email. This was identified previously but the function was never redeployed.
+Two gaps in `createPendingOrder()` inside `CheckoutModal.tsx`:
 
-The codebase version is correct — it sends to `kw@pandacakes.me` either as CC (when customer has email) or as the primary recipient (when no customer email exists). No code changes needed.
+1. **`voucher_id` is never set on the order record** — line 737-769 builds the order insert with `voucher_discount_amount` but omits `voucher_id`. This is why 9 out of 10 orders with discounts have `voucher_id = NULL`.
 
-### Fix
+2. **`record_voucher_usage` is never called for cash/COD orders** — For card payments, the `tap-webhook-kw` function calls `record_voucher_usage` after payment completes. But for cash orders, `handlePaymentSuccess()` creates the order via `createPendingOrder()` and never records voucher usage. The voucher_usage table never gets a row, so the dashboard shows 0 usage.
 
-**Redeploy the `send-order-email` edge function** to sync the deployed version with the current codebase. This single action will restore all order confirmation emails to `kw@pandacakes.me`.
+### Fix — Single file: `src/components/CheckoutModal.tsx`
 
-### What changes
-- No code changes — the codebase is already correct
-- One deployment action: deploy `send-order-email` edge function
+**Change 1: Add `voucher_id` to `createPendingOrder()`** (line 745, inside the orderData object)
+
+Add after the `voucher_discount_amount` line:
+```typescript
+voucher_id: cartAppliedVoucher?.voucher_id || appliedVoucher?.voucher_id || null,
+```
+
+**Change 2: Record voucher usage for cash orders** (after line 998, inside the cash order branch of `handlePaymentSuccess`)
+
+After BakePoints redemption, add voucher usage recording:
+```typescript
+// Record voucher usage for cash orders (card orders handle this in webhook)
+const effectiveVoucherId = cartAppliedVoucher?.voucher_id || appliedVoucher?.voucher_id;
+if (effectiveVoucherId && discount > 0) {
+  try {
+    const { error: voucherUsageError } = await supabase.rpc('record_voucher_usage', {
+      p_voucher_id: effectiveVoucherId,
+      p_customer_id: user.id,
+      p_order_id: order.id,
+      p_discount_applied: discount
+    });
+    if (voucherUsageError) {
+      console.error('Error recording voucher usage:', voucherUsageError);
+    }
+  } catch (vuError) {
+    console.error('Failed to record voucher usage:', vuError);
+  }
+}
+```
+
+### What this fixes
+
+- All orders (card and cash) will have `voucher_id` set on the order record
+- Cash/COD orders will now record usage in `voucher_usage` table
+- Card orders already work (webhook handles it) but will also benefit from `voucher_id` being on the order from creation
+- Dashboard usage counts will be accurate going forward
+- No changes needed to edge functions or database schema
 
