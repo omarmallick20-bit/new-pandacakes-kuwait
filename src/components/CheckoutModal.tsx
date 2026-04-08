@@ -743,6 +743,7 @@ export function CheckoutModal({
       original_amount: subtotal, // Items subtotal only, delivery fee tracked separately
       bakepoints_discount_amount: bakePointsDiscount > 0 ? bakePointsDiscount : null, // Track BakePoints discount
       voucher_discount_amount: discount > 0 ? discount : null, // Track voucher discount
+      voucher_id: cartAppliedVoucher?.voucher_id || appliedVoucher?.voucher_id || null,
       status: 'pending_payment' as const,
       payment_method: paymentMethod,
       payment_status: 'pending',
@@ -994,6 +995,24 @@ export function CheckoutModal({
             }
           } catch (bpError) {
             console.error('Failed to redeem BakePoints:', bpError);
+          }
+        }
+
+        // Record voucher usage for cash orders (card orders handle this in webhook)
+        const effectiveVoucherId = cartAppliedVoucher?.voucher_id || appliedVoucher?.voucher_id;
+        if (effectiveVoucherId && discount > 0) {
+          try {
+            const { error: voucherUsageError } = await supabase.rpc('record_voucher_usage', {
+              p_voucher_id: effectiveVoucherId,
+              p_customer_id: user.id,
+              p_order_id: order.id,
+              p_discount_applied: discount
+            });
+            if (voucherUsageError) {
+              console.error('Error recording voucher usage:', voucherUsageError);
+            }
+          } catch (vuError) {
+            console.error('Failed to record voucher usage:', vuError);
           }
         }
 
