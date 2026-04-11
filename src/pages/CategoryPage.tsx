@@ -139,8 +139,15 @@ export default function CategoryPage() {
       const categoryData = categoryResult.data;
       const itemsData = itemsResult.data || [];
 
+      // Client-side sort safety net for sort_order
+      const sortedItems = [...itemsData].sort((a, b) => {
+        const orderA = a.sort_order ?? 999;
+        const orderB = b.sort_order ?? 999;
+        return orderA - orderB;
+      });
+
       setCategory(categoryData);
-      setCategoryItems(itemsData);
+      setCategoryItems(sortedItems);
       setLoadingTooLong(false);
       
       if (itemsData.length > 0) {

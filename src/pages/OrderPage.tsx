@@ -15,6 +15,7 @@ import { useCategoryDiscounts } from '@/hooks/useCategoryDiscounts';
 import { useTranslation } from '@/hooks/useTranslation';
 import { COUNTRY_ID } from '@/config/country';
 import { formatAmount } from '@/utils/currencyHelpers';
+import { WhatsAppFloat } from '@/components/WhatsAppFloat';
 
 interface Category {
   id: string;
@@ -391,5 +392,6 @@ export default function OrderPage() {
             })}
           </div>}
       </div>
+      <WhatsAppFloat />
     </main>;
 }
