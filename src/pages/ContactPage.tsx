@@ -4,6 +4,7 @@ import { MessageCircle, Phone, Share2, Copy, Instagram, Facebook } from "lucide-
 import tiktokLogo from "@/assets/tiktok-logo.png";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/hooks/useTranslation";
+import { WhatsAppFloat } from "@/components/WhatsAppFloat";
 
 export default function ContactPage() {
   const { toast } = useToast();
@@ -116,5 +117,6 @@ export default function ContactPage() {
           </Card>
         </div>
       </div>
+      <WhatsAppFloat />
     </main>;
 }

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { BakePointsInfoModal } from "@/components/BakePointsInfoModal";
 import { useTranslation } from '@/hooks/useTranslation';
+import { WhatsAppFloat } from '@/components/WhatsAppFloat';
 
 export default function FAQsPage() {
   const [isBakePointsModalOpen, setIsBakePointsModalOpen] = useState(false);
@@ -62,5 +63,6 @@ export default function FAQsPage() {
         </div>
       </main>
       <BakePointsInfoModal isOpen={isBakePointsModalOpen} onClose={() => setIsBakePointsModalOpen(false)} />
+      <WhatsAppFloat />
     </div>;
 }
