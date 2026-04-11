@@ -1,52 +1,47 @@
 
 
-## Fix Voucher Usage Tracking for All Order Types
+## Fix Item Sorting + Add WhatsApp Floating Icon
 
-### Root Cause
+### Issue 1: Item Sorting Not Reflecting Properly
 
-Two gaps in `createPendingOrder()` inside `CheckoutModal.tsx`:
+**Root cause**: In `CategoryPage.tsx` (line 111), the query uses an `or` filter to match items by either `category_id` or `category_ids` array. Items matched via the `category_ids` array field may have `sort_order` values set for a different primary category, causing unexpected ordering. Additionally, items with `NULL` sort_order get pushed to the end unpredictably.
 
-1. **`voucher_id` is never set on the order record** — line 737-769 builds the order insert with `voucher_discount_amount` but omits `voucher_id`. This is why 9 out of 10 orders with discounts have `voucher_id = NULL`.
+**Fix**: After fetching items, apply a client-side sort as a safety net (similar to how DataContext does it for categories on line 175-178). This ensures sort_order is always respected regardless of how PostgreSQL handles NULLs with the `or` filter:
 
-2. **`record_voucher_usage` is never called for cash/COD orders** — For card payments, the `tap-webhook-kw` function calls `record_voucher_usage` after payment completes. But for cash orders, `handlePaymentSuccess()` creates the order via `createPendingOrder()` and never records voucher usage. The voucher_usage table never gets a row, so the dashboard shows 0 usage.
-
-### Fix — Single file: `src/components/CheckoutModal.tsx`
-
-**Change 1: Add `voucher_id` to `createPendingOrder()`** (line 745, inside the orderData object)
-
-Add after the `voucher_discount_amount` line:
 ```typescript
-voucher_id: cartAppliedVoucher?.voucher_id || appliedVoucher?.voucher_id || null,
+// After line 140 in CategoryPage.tsx
+const sortedItems = itemsData.sort((a, b) => {
+  const orderA = a.sort_order ?? 999;
+  const orderB = b.sort_order ?? 999;
+  return orderA - orderB;
+});
+setCategoryItems(sortedItems);
 ```
 
-**Change 2: Record voucher usage for cash orders** (after line 998, inside the cash order branch of `handlePaymentSuccess`)
+### Issue 2: Add WhatsApp Floating Icon
 
-After BakePoints redemption, add voucher usage recording:
-```typescript
-// Record voucher usage for cash orders (card orders handle this in webhook)
-const effectiveVoucherId = cartAppliedVoucher?.voucher_id || appliedVoucher?.voucher_id;
-if (effectiveVoucherId && discount > 0) {
-  try {
-    const { error: voucherUsageError } = await supabase.rpc('record_voucher_usage', {
-      p_voucher_id: effectiveVoucherId,
-      p_customer_id: user.id,
-      p_order_id: order.id,
-      p_discount_applied: discount
-    });
-    if (voucherUsageError) {
-      console.error('Error recording voucher usage:', voucherUsageError);
-    }
-  } catch (vuError) {
-    console.error('Failed to record voucher usage:', vuError);
-  }
-}
-```
+**What**: Add a small floating WhatsApp button (bottom-right corner) on Order, Contact, and FAQ pages using the user's custom tiffany-blue WhatsApp icon.
 
-### What this fixes
+**Implementation**:
 
-- All orders (card and cash) will have `voucher_id` set on the order record
-- Cash/COD orders will now record usage in `voucher_usage` table
-- Card orders already work (webhook handles it) but will also benefit from `voucher_id` being on the order from creation
-- Dashboard usage counts will be accurate going forward
-- No changes needed to edge functions or database schema
+1. **Copy the uploaded icon** to `src/assets/whatsapp-tiffany.png`
+
+2. **Create a reusable `WhatsAppFloat` component** (`src/components/WhatsAppFloat.tsx`):
+   - Fixed position bottom-right (bottom-6 right-6)
+   - Small circular button (~48px) with the custom icon
+   - Links to `https://api.whatsapp.com/send/?phone=96550018008`
+   - Subtle shadow and hover scale animation
+
+3. **Add `<WhatsAppFloat />` to**:
+   - `src/pages/OrderPage.tsx`
+   - `src/pages/ContactPage.tsx`
+   - `src/pages/FAQsPage.tsx`
+
+### Files changed
+- `src/assets/whatsapp-tiffany.png` — new (uploaded icon)
+- `src/components/WhatsAppFloat.tsx` — new component
+- `src/pages/CategoryPage.tsx` — add client-side sort safety net
+- `src/pages/OrderPage.tsx` — add WhatsAppFloat
+- `src/pages/ContactPage.tsx` — add WhatsAppFloat
+- `src/pages/FAQsPage.tsx` — add WhatsAppFloat
 
