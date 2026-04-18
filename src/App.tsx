@@ -10,6 +10,7 @@ import { AppProvider } from "@/contexts/AppContext";
 import { DataProvider } from "@/contexts/DataContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { GlobalModals } from "@/components/GlobalModals";
+import { Analytics } from "@vercel/analytics/react";
 
 // Customer Components
 import { Header } from "@/components/Header";
@@ -55,6 +56,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <GlobalModals />
+          <Analytics />
           <BrowserRouter>
             <ErrorBoundary>
               <AppReadyGuard>
