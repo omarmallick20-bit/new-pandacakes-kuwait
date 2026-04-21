@@ -208,14 +208,8 @@ const handler = async (req: Request): Promise<Response> => {
       `<a href="tel:${p.number}" style="color: #ffffff;">${p.display}</a>`
     ).join(' / ');
 
-    console.log(`Sending order confirmation email to ${customerEmail} for order ${order.order_number}`);
-
-    const emailResponse = await resend.emails.send({
-      from: "Panda Cakes <order-noreply@pandacakes.me>",
-      to: customerEmail ? [customerEmail] : [config.businessEmail],
-      ...(customerEmail ? { cc: [config.businessEmail] } : {}),
-      subject: `Order Confirmed - #${order.order_number} 🎂`,
-      html: `
+    const subject = `Order Confirmed - #${order.order_number} 🎂`;
+    const emailHtml = `
 <!DOCTYPE html>
 <html>
 <head>
