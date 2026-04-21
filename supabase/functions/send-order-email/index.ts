@@ -378,13 +378,47 @@ const handler = async (req: Request): Promise<Response> => {
   </table>
 </body>
 </html>
-      `,
-    });
+      `;
 
-    console.log("Order confirmation email sent successfully:", emailResponse);
+    // Send TWO separate emails (instead of using CC) to avoid Resend silently
+    // dropping the business address if it ever lands on a suppression list.
+    // Each send produces an independent log entry in Resend.
+    const sendTasks: { label: string; to: string }[] = [];
+    if (customerEmail) sendTasks.push({ label: 'customer', to: customerEmail });
+    sendTasks.push({ label: 'business', to: config.businessEmail });
+
+    console.log(
+      `📧 Sending order confirmation for ${order.order_number} to:`,
+      sendTasks.map(t => `${t.label}=${t.to}`).join(', ')
+    );
+
+    const results = await Promise.allSettled(
+      sendTasks.map(task =>
+        resend.emails.send({
+          from: "Panda Cakes <order-noreply@pandacakes.me>",
+          to: [task.to],
+          subject,
+          html: emailHtml,
+        }).then(res => {
+          console.log(`✅ Resend response (${task.label} -> ${task.to}):`, JSON.stringify(res));
+          return res;
+        }).catch(err => {
+          console.error(`❌ Resend send failed (${task.label} -> ${task.to}):`, err);
+          throw err;
+        })
+      )
+    );
+
+    const summary = results.map((r, i) => ({
+      recipient: sendTasks[i].label,
+      to: sendTasks[i].to,
+      status: r.status,
+      ...(r.status === 'fulfilled' ? { id: (r.value as any)?.data?.id } : { error: String((r as PromiseRejectedResult).reason?.message || (r as PromiseRejectedResult).reason) }),
+    }));
+    console.log('📧 Final send summary:', JSON.stringify(summary));
 
     return new Response(
-      JSON.stringify({ success: true, emailResponse }),
+      JSON.stringify({ success: true, results: summary }),
       { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   } catch (error: any) {
