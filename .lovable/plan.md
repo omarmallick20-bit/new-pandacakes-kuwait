@@ -1,47 +1,41 @@
 
 
-## Fix Item Sorting + Add WhatsApp Floating Icon
+## Fix: CC to kw@pandacakes.me Stopped Working
 
-### Issue 1: Item Sorting Not Reflecting Properly
+### Diagnosis
 
-**Root cause**: In `CategoryPage.tsx` (line 111), the query uses an `or` filter to match items by either `category_id` or `category_ids` array. Items matched via the `category_ids` array field may have `sort_order` values set for a different primary category, causing unexpected ordering. Additionally, items with `NULL` sort_order get pushed to the end unpredictably.
+The code is correct. The `send-order-email` function (line 216) explicitly adds `cc: [config.businessEmail]` whenever the customer has a real email address, and `kw@pandacakes.me` is hardcoded as `businessEmail` for both KW and QA configs. Triggers (`CheckoutModal.tsx` line 1023 and `tap-webhook-kw/index.ts` line 287) are firing — KW orders are being created normally (KW-26AP-0648 just placed today).
 
-**Fix**: After fetching items, apply a client-side sort as a safety net (similar to how DataContext does it for categories on line 175-178). This ensures sort_order is always respected regardless of how PostgreSQL handles NULLs with the `or` filter:
+So the email IS being sent to the customer, but the CC to `kw@pandacakes.me` is being dropped. There are only 3 plausible causes:
 
-```typescript
-// After line 140 in CategoryPage.tsx
-const sortedItems = itemsData.sort((a, b) => {
-  const orderA = a.sort_order ?? 999;
-  const orderB = b.sort_order ?? 999;
-  return orderA - orderB;
-});
-setCategoryItems(sortedItems);
-```
+1. **Deployed function is stale** — same root cause as the previous issue (memory note: "the deployed `send-order-email` edge function is out of sync with the codebase"). The code change adding the CC fallback may have never reached production.
+2. **`kw@pandacakes.me` is on Resend's suppression list** — Resend automatically suppresses recipients (including CC addresses) after a hard bounce or spam complaint. When a CC address is suppressed, Resend silently drops it from the CC list and still delivers to the primary `to` address, so the customer keeps getting their email but the business never sees the CC. This matches the observed behaviour exactly.
+3. **Resend domain/account changed** — if `RESEND_API_KEY` was rotated or the sending domain config changed, suppression state on the new account would mirror this behaviour.
 
-### Issue 2: Add WhatsApp Floating Icon
+### Fix Plan
 
-**What**: Add a small floating WhatsApp button (bottom-right corner) on Order, Contact, and FAQ pages using the user's custom tiffany-blue WhatsApp icon.
+**Step 1 — Force redeploy `send-order-email`** to guarantee the deployed version matches the codebase (cheap, eliminates cause #1).
 
-**Implementation**:
+**Step 2 — Check Resend suppression list for `kw@pandacakes.me`** (the most likely cause). The user must:
+- Log in to Resend dashboard → Suppressions
+- Search for `kw@pandacakes.me`
+- If present, remove it (this restores CC delivery immediately)
 
-1. **Copy the uploaded icon** to `src/assets/whatsapp-tiffany.png`
+I cannot do this from the sandbox — Resend suppression management is dashboard-only. I'll instruct the user clearly.
 
-2. **Create a reusable `WhatsAppFloat` component** (`src/components/WhatsAppFloat.tsx`):
-   - Fixed position bottom-right (bottom-6 right-6)
-   - Small circular button (~48px) with the custom icon
-   - Links to `https://api.whatsapp.com/send/?phone=96550018008`
-   - Subtle shadow and hover scale animation
+**Step 3 — Add diagnostic logging** to `send-order-email` so future drops are visible. Specifically log:
+- Which `to` and `cc` addresses were sent to Resend
+- The full Resend response (Resend returns the email ID even when CC is suppressed, but the dashboard will show the suppression)
 
-3. **Add `<WhatsAppFloat />` to**:
-   - `src/pages/OrderPage.tsx`
-   - `src/pages/ContactPage.tsx`
-   - `src/pages/FAQsPage.tsx`
+**Step 4 — Add a fallback safety net**: if both `to` (customer) and `cc` (business) are set, also BCC `kw@pandacakes.me` to a backup address pattern, OR send a separate copy to the business email when the customer email is present. The cleanest approach: send TWO emails — one to the customer, one to the business — instead of using CC. This way, if Resend suppresses one address, the other still goes through and we get a separate Resend log entry per send.
 
-### Files changed
-- `src/assets/whatsapp-tiffany.png` — new (uploaded icon)
-- `src/components/WhatsAppFloat.tsx` — new component
-- `src/pages/CategoryPage.tsx` — add client-side sort safety net
-- `src/pages/OrderPage.tsx` — add WhatsAppFloat
-- `src/pages/ContactPage.tsx` — add WhatsAppFloat
-- `src/pages/FAQsPage.tsx` — add WhatsAppFloat
+### Files Changed
+
+- `supabase/functions/send-order-email/index.ts` — split into two `resend.emails.send()` calls (one for customer, one for business), add detailed logging of each send result. Both calls run in parallel via `Promise.allSettled` so one failure doesn't block the other.
+
+### After Deploying
+
+I'll ask the user to:
+1. Place a test KW order and check whether `kw@pandacakes.me` receives a copy
+2. If still missing, check Resend dashboard → Logs for the order's email IDs and Suppressions for `kw@pandacakes.me`
 
