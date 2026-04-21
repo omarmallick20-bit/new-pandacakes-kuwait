@@ -1271,6 +1271,7 @@ export type Database = {
           monthly_limit: number
           reset_month: string
           segment_color: string | null
+          segment_weight: number
           updated_at: string
         }
         Insert: {
@@ -1283,6 +1284,7 @@ export type Database = {
           monthly_limit?: number
           reset_month?: string
           segment_color?: string | null
+          segment_weight?: number
           updated_at?: string
         }
         Update: {
@@ -1295,6 +1297,7 @@ export type Database = {
           monthly_limit?: number
           reset_month?: string
           segment_color?: string | null
+          segment_weight?: number
           updated_at?: string
         }
         Relationships: []
@@ -1530,6 +1533,7 @@ export type Database = {
         Row: {
           bakepoints_awarded: number
           country_id: string
+          coupon_value: number | null
           created_at: string
           id: string
           order_id: string
@@ -1541,6 +1545,7 @@ export type Database = {
         Insert: {
           bakepoints_awarded?: number
           country_id?: string
+          coupon_value?: number | null
           created_at?: string
           id?: string
           order_id: string
@@ -1552,6 +1557,7 @@ export type Database = {
         Update: {
           bakepoints_awarded?: number
           country_id?: string
+          coupon_value?: number | null
           created_at?: string
           id?: string
           order_id?: string
@@ -1688,11 +1694,15 @@ export type Database = {
           min_order_amount: number | null
           order_type: string | null
           show_on_website: boolean | null
+          source_order_id: string | null
+          source_type: string
           usage_count: number | null
           used_at: string | null
           used_by_customer_id: string | null
           valid_from: string
           valid_until: string
+          voided: boolean
+          voided_at: string | null
           voucher_code: string
           voucher_type: string
         }
@@ -1716,11 +1726,15 @@ export type Database = {
           min_order_amount?: number | null
           order_type?: string | null
           show_on_website?: boolean | null
+          source_order_id?: string | null
+          source_type?: string
           usage_count?: number | null
           used_at?: string | null
           used_by_customer_id?: string | null
           valid_from: string
           valid_until: string
+          voided?: boolean
+          voided_at?: string | null
           voucher_code: string
           voucher_type: string
         }
@@ -1744,11 +1758,15 @@ export type Database = {
           min_order_amount?: number | null
           order_type?: string | null
           show_on_website?: boolean | null
+          source_order_id?: string | null
+          source_type?: string
           usage_count?: number | null
           used_at?: string | null
           used_by_customer_id?: string | null
           valid_from?: string
           valid_until?: string
+          voided?: boolean
+          voided_at?: string | null
           voucher_code?: string
           voucher_type?: string
         }
@@ -1765,6 +1783,27 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "Customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vouchers_source_order_id_fkey"
+            columns: ["source_order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vouchers_source_order_id_fkey"
+            columns: ["source_order_id"]
+            isOneToOne: false
+            referencedRelation: "orders_with_customer_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vouchers_source_order_id_fkey"
+            columns: ["source_order_id"]
+            isOneToOne: false
+            referencedRelation: "recent_orders"
             referencedColumns: ["id"]
           },
         ]
@@ -2322,6 +2361,17 @@ export type Database = {
           returning_customer_revenue: number
           returning_customers: number
           total_customers: number
+        }[]
+      }
+      get_customer_order_stats: {
+        Args: never
+        Returns: {
+          customer_id: string
+          total_orders: number
+          total_spend: number
+          total_spend_kw: number
+          total_spend_qa: number
+          total_spend_sa: number
         }[]
       }
       get_customer_segments_by_loyalty:
