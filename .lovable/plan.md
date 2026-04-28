@@ -1,41 +1,28 @@
+## Auto-Cycle Cake Detail Images
 
+### Behavior
+- Cake detail page (`src/pages/CakeDetailPage.tsx`) shows the main image + any `additional_images`.
+- If only 1 image: render as today, no auto-switch.
+- If 2+ images: auto-advance every **3500ms** in a loop.
+- Transition is an **instant swap** — no glide, fade, or slide animation.
+- Pause auto-cycle when the user manually interacts (clicks an arrow or a dot), then resume after one cycle interval. Dots and arrows continue to work.
 
-## Fix: CC to kw@pandacakes.me Stopped Working
+### Approach
+The current implementation uses Embla Carousel which always animates the slide. Since the requirement is "no glide / no fancy animation", the carousel is the wrong primitive here. Replace it with a simple state-driven image swap that preserves the existing arrows + dots UI.
 
-### Diagnosis
+### Technical changes
 
-The code is correct. The `send-order-email` function (line 216) explicitly adds `cc: [config.businessEmail]` whenever the customer has a real email address, and `kw@pandacakes.me` is hardcoded as `businessEmail` for both KW and QA configs. Triggers (`CheckoutModal.tsx` line 1023 and `tap-webhook-kw/index.ts` line 287) are firing — KW orders are being created normally (KW-26AP-0648 just placed today).
+**File: `src/pages/CakeDetailPage.tsx`**
 
-So the email IS being sent to the customer, but the CC to `kw@pandacakes.me` is being dropped. There are only 3 plausible causes:
+1. Remove `Carousel` / `CarouselContent` / `CarouselItem` / `CarouselPrevious` / `CarouselNext` usage and the `carouselApi` state for the multi-image branch.
+2. Keep `currentSlide` state (already exists) as the single source of truth for which image is shown.
+3. Render only the currently selected image inside the existing `aspect-square rounded-3xl` container — no transition classes, just `<img src={allImages[currentSlide]} ... />`.
+4. Re-add the previous / next arrow buttons as plain styled `<button>` elements positioned over the image, using the same look as today's `CarouselPrevious` / `CarouselNext` (white circular buttons, `ChevronLeft` / `ChevronRight` from `lucide-react`). They update `currentSlide` with modulo wrap-around.
+5. Keep the existing dots row (line 534–537) — switch its `onClick` from `carouselApi?.scrollTo(index)` to `setCurrentSlide(index)`.
+6. Add a `useEffect` that, when `hasMultipleImages` is true, sets a `setInterval` every **3500 ms** to advance `currentSlide` to `(currentSlide + 1) % allImages.length`. Clear the interval on unmount and reset/restart it whenever the user manually changes the slide (so manual interaction doesn't cause a near-immediate auto-jump).
+7. Reset `currentSlide` to `0` when `menuItem.id` changes (navigating between cakes).
 
-1. **Deployed function is stale** — same root cause as the previous issue (memory note: "the deployed `send-order-email` edge function is out of sync with the codebase"). The code change adding the CC fallback may have never reached production.
-2. **`kw@pandacakes.me` is on Resend's suppression list** — Resend automatically suppresses recipients (including CC addresses) after a hard bounce or spam complaint. When a CC address is suppressed, Resend silently drops it from the CC list and still delivers to the primary `to` address, so the customer keeps getting their email but the business never sees the CC. This matches the observed behaviour exactly.
-3. **Resend domain/account changed** — if `RESEND_API_KEY` was rotated or the sending domain config changed, suppression state on the new account would mirror this behaviour.
+### Files changed
+- `src/pages/CakeDetailPage.tsx` — replace Embla carousel block with state-driven image swap + 3.5s auto-advance interval.
 
-### Fix Plan
-
-**Step 1 — Force redeploy `send-order-email`** to guarantee the deployed version matches the codebase (cheap, eliminates cause #1).
-
-**Step 2 — Check Resend suppression list for `kw@pandacakes.me`** (the most likely cause). The user must:
-- Log in to Resend dashboard → Suppressions
-- Search for `kw@pandacakes.me`
-- If present, remove it (this restores CC delivery immediately)
-
-I cannot do this from the sandbox — Resend suppression management is dashboard-only. I'll instruct the user clearly.
-
-**Step 3 — Add diagnostic logging** to `send-order-email` so future drops are visible. Specifically log:
-- Which `to` and `cc` addresses were sent to Resend
-- The full Resend response (Resend returns the email ID even when CC is suppressed, but the dashboard will show the suppression)
-
-**Step 4 — Add a fallback safety net**: if both `to` (customer) and `cc` (business) are set, also BCC `kw@pandacakes.me` to a backup address pattern, OR send a separate copy to the business email when the customer email is present. The cleanest approach: send TWO emails — one to the customer, one to the business — instead of using CC. This way, if Resend suppresses one address, the other still goes through and we get a separate Resend log entry per send.
-
-### Files Changed
-
-- `supabase/functions/send-order-email/index.ts` — split into two `resend.emails.send()` calls (one for customer, one for business), add detailed logging of each send result. Both calls run in parallel via `Promise.allSettled` so one failure doesn't block the other.
-
-### After Deploying
-
-I'll ask the user to:
-1. Place a test KW order and check whether `kw@pandacakes.me` receives a copy
-2. If still missing, check Resend dashboard → Logs for the order's email IDs and Suppressions for `kw@pandacakes.me`
-
+No other pages render cake images this way (only this detail page uses `additional_images`), so the change is isolated.
