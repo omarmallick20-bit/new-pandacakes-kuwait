@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from '@/hooks/useTranslation';
-import { ArrowLeft, Heart, ShoppingCart, Share2 } from 'lucide-react';
+import { ArrowLeft, Heart, ShoppingCart, Share2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -12,7 +12,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { CartItem, WishlistItem } from '@/types';
 import { CustomVariantSelector, type CustomSection } from '@/components/CustomVariantSelector';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from '@/components/ui/carousel';
 import { cn } from '@/lib/utils';
 import { formatPreparationTime } from '@/utils/dateHelpers';
 import { addToWishlistDB, removeFromWishlistDB } from '@/utils/wishlistSync';
@@ -73,7 +72,6 @@ export default function CakeDetailPage() {
   const [totalVariantPrice, setTotalVariantPrice] = useState(0);
   const [isCustomValid, setIsCustomValid] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [carouselApi, setCarouselApi] = useState<CarouselApi>();
   const [loadTimeout, setLoadTimeout] = useState(false);
   const [relatedCakes, setRelatedCakes] = useState<MenuItem[]>([]);
   
