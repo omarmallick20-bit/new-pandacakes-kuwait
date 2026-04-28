@@ -243,6 +243,28 @@ export default function CakeDetailPage() {
   }, [menuItem, additionalImages]);
   
   const hasMultipleImages = allImages.length > 1;
+
+  // Reset to first image whenever the cake changes
+  useEffect(() => {
+    setCurrentSlide(0);
+  }, [menuItem?.id]);
+
+  // Track manual interactions so we can restart the auto-cycle timer
+  const [manualNonce, setManualNonce] = useState(0);
+
+  // Auto-advance images every 3.5s (instant swap, no animation)
+  useEffect(() => {
+    if (!hasMultipleImages) return;
+    const id = window.setInterval(() => {
+      setCurrentSlide(prev => (prev + 1) % allImages.length);
+    }, 3500);
+    return () => window.clearInterval(id);
+  }, [hasMultipleImages, allImages.length, manualNonce]);
+
+  const goToSlide = (index: number) => {
+    setCurrentSlide(((index % allImages.length) + allImages.length) % allImages.length);
+    setManualNonce(n => n + 1);
+  };
   
   const selectedFlavorData = useMemo(() => {
     return flavors.find((f: MenuItemFlavor) => f.name === selectedFlavor);
