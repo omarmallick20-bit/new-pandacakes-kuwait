@@ -525,35 +525,44 @@ export default function CakeDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Cake Image(s) - Slider if multiple images */}
           <div className="space-y-4">
-            {hasMultipleImages ? <Carousel className="w-full" opts={{
-            align: "start",
-            loop: true
-          }} setApi={api => {
-            setCarouselApi(api);
-            api?.on('select', () => {
-              setCurrentSlide(api.selectedScrollSnap());
-            });
-          }}>
-                <CarouselContent>
-                  {allImages.map((imageUrl, index) => <CarouselItem key={index}>
-                      <div className="aspect-square rounded-3xl overflow-hidden bg-card shadow-lg">
-                        <img src={imageUrl} alt={`${menuItem.name} - Image ${index + 1}`} loading="lazy" className="w-full h-full object-cover" />
-                      </div>
-                    </CarouselItem>)}
-                </CarouselContent>
-                
-                {/* Navigation Arrows */}
-                <CarouselPrevious className="left-2 sm:left-4 h-8 w-8 sm:h-10 sm:w-10 bg-white/90 hover:bg-white shadow-lg border-0" />
-                <CarouselNext className="right-2 sm:right-4 h-8 w-8 sm:h-10 sm:w-10 bg-white/90 hover:bg-white shadow-lg border-0" />
-              </Carousel> :
-          // Single image - no slider needed
-          <div className="aspect-square rounded-3xl overflow-hidden bg-card shadow-lg">
+            {hasMultipleImages ? (
+              <div className="relative">
+                <div className="aspect-square rounded-3xl overflow-hidden bg-card shadow-lg">
+                  <img
+                    key={currentSlide}
+                    src={allImages[currentSlide]}
+                    alt={`${menuItem.name} - Image ${currentSlide + 1}`}
+                    loading="lazy"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => goToSlide(currentSlide - 1)}
+                  aria-label="Previous image"
+                  className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-white/90 hover:bg-white shadow-lg border-0 flex items-center justify-center"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => goToSlide(currentSlide + 1)}
+                  aria-label="Next image"
+                  className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-white/90 hover:bg-white shadow-lg border-0 flex items-center justify-center"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              // Single image - no slider needed
+              <div className="aspect-square rounded-3xl overflow-hidden bg-card shadow-lg">
                 <img src={menuItem.image_url} alt={menuItem.name} loading="lazy" className="w-full h-full object-cover" />
-              </div>}
+              </div>
+            )}
             
             {/* Thumbnail Dots Navigation */}
             {hasMultipleImages && <div className="flex justify-center gap-1.5 sm:gap-2 px-4">
-                {allImages.map((_, index) => <button key={index} onClick={() => carouselApi?.scrollTo(index)} className={cn("h-1.5 sm:h-2 rounded-full transition-all duration-300 touch-manipulation", currentSlide === index ? "w-6 sm:w-8 bg-tiffany" : "w-1.5 sm:w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50")} aria-label={`Go to image ${index + 1}`} aria-current={currentSlide === index} />)}
+                {allImages.map((_, index) => <button key={index} onClick={() => goToSlide(index)} className={cn("h-1.5 sm:h-2 rounded-full transition-all duration-300 touch-manipulation", currentSlide === index ? "w-6 sm:w-8 bg-tiffany" : "w-1.5 sm:w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50")} aria-label={`Go to image ${index + 1}`} aria-current={currentSlide === index} />)}
               </div>}
           </div>
 
