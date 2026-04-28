@@ -344,6 +344,7 @@ export type Database = {
           name: string
           notes: string | null
           phone: string
+          staff_id: string | null
           updated_at: string | null
           vehicle_type: string | null
         }
@@ -356,6 +357,7 @@ export type Database = {
           name: string
           notes?: string | null
           phone: string
+          staff_id?: string | null
           updated_at?: string | null
           vehicle_type?: string | null
         }
@@ -368,6 +370,7 @@ export type Database = {
           name?: string
           notes?: string | null
           phone?: string
+          staff_id?: string | null
           updated_at?: string | null
           vehicle_type?: string | null
         }
@@ -409,6 +412,45 @@ export type Database = {
           min_order_value?: number | null
           updated_at?: string | null
           zone_name?: string
+        }
+        Relationships: []
+      }
+      driver_locations: {
+        Row: {
+          accuracy_m: number | null
+          driver_id: string
+          heading: number | null
+          is_online: boolean
+          last_ping_at: string
+          latitude: number | null
+          longitude: number | null
+          speed: number | null
+          staff_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          accuracy_m?: number | null
+          driver_id: string
+          heading?: number | null
+          is_online?: boolean
+          last_ping_at?: string
+          latitude?: number | null
+          longitude?: number | null
+          speed?: number | null
+          staff_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          accuracy_m?: number | null
+          driver_id?: string
+          heading?: number | null
+          is_online?: boolean
+          last_ping_at?: string
+          latitude?: number | null
+          longitude?: number | null
+          speed?: number | null
+          staff_id?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -2161,6 +2203,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      auto_complete_past_orders: { Args: never; Returns: number }
       create_birthday_vouchers:
         | { Args: never; Returns: number }
         | { Args: { country_code?: string }; Returns: number }
@@ -2747,7 +2790,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "staff" | "customer"
+      app_role: "admin" | "staff" | "customer" | "driver"
       order_status:
         | "pending"
         | "confirmed"
@@ -2885,7 +2928,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "staff", "customer"],
+      app_role: ["admin", "staff", "customer", "driver"],
       order_status: [
         "pending",
         "confirmed",
