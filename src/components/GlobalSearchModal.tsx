@@ -28,7 +28,7 @@ interface Category {
   name: string;
   name_ar?: string;
   image_url: string;
-  is_active: boolean;
+  is_active_kw: boolean;
 }
 
 interface SearchResults {
@@ -82,7 +82,7 @@ export function GlobalSearchModal({ open, onOpenChange }: GlobalSearchModalProps
             const { data, error } = await supabase
               .from('categories')
               .select('*')
-              .eq('is_active', true)
+              .eq('is_active_kw', true)
               .ilike('name', `%${query}%`)
               .order('name');
             
