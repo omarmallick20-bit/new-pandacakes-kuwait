@@ -19,7 +19,7 @@ interface Category {
   name: string;
   name_ar?: string;
   image_url: string;
-  is_active: boolean;
+  is_active_kw: boolean;
 }
 
 interface MenuItem extends DiscountableItem {
@@ -100,9 +100,9 @@ export default function CategoryPage() {
           const [catRes, itemsRes] = await Promise.all([
             supabase
               .from('categories')
-              .select('id, name, name_ar, image_url, is_active')
+              .select('id, name, name_ar, image_url, is_active_kw')
               .eq('id', categoryId)
-              .eq('is_active', true)
+              .eq('is_active_kw', true)
               .abortSignal(signal)
               .single(),
             supabase
