@@ -9,7 +9,7 @@ interface Category {
   name: string;
   name_ar?: string;
   image_url: string;
-  is_active: boolean;
+  is_active_kw: boolean;
   sort_order?: number;
 }
 
