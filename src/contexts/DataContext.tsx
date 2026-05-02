@@ -9,7 +9,7 @@ interface Category {
   name: string;
   name_ar?: string;
   image_url: string;
-  is_active: boolean;
+  is_active_kw: boolean;
   sort_order?: number;
 }
 
@@ -144,8 +144,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
         async (signal) => {
           return supabase
             .from('categories')
-            .select('id, name, name_ar, image_url, is_active, sort_order')
-            .eq('is_active', true)
+            .select('id, name, name_ar, image_url, is_active_kw, sort_order')
+            .eq('is_active_kw', true)
             .order('sort_order', { ascending: true })
             .abortSignal(signal);
         },
