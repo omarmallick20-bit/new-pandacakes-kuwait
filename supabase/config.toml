@@ -89,6 +89,3 @@ verify_jwt = false
 
 [functions.tap-retry-payment-kw]
 verify_jwt = false
-
-[functions.migrate-base64-categories]
-verify_jwt = false
