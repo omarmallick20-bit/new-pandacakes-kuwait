@@ -45,7 +45,7 @@ interface DataContextType {
 
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 const FETCH_TIMEOUT_MS = 8000; // 8 second timeout with abort
-const SLOW_LOADING_THRESHOLD_MS = 3000; // Show "taking too long" after 3 seconds
+const SLOW_LOADING_THRESHOLD_MS = 6000; // Show "taking too long" after 6 seconds
 
 interface CacheEntry<T> {
   data: T;
@@ -316,7 +316,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
     // Set up "loading too long" warning
     const slowLoadingTimeout = setTimeout(() => {
-      if (mountedRef.current && !isCacheValid(categoriesCache)) {
+      // Only flag as slow if we have NO categories on screen at all
+      if (mountedRef.current && !isCacheValid(categoriesCache) && categories.length === 0) {
         setLoadingTooLong(true);
       }
     }, SLOW_LOADING_THRESHOLD_MS);

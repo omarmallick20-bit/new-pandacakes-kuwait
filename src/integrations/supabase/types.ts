@@ -2455,6 +2455,16 @@ export type Database = {
           revenue_growth: number
         }[]
       }
+      get_dashboard_stats: {
+        Args: { p_timeframe?: string }
+        Returns: {
+          completed_today: number
+          country_id: string
+          pending_orders: number
+          total_orders: number
+          total_revenue: number
+        }[]
+      }
       get_enhanced_menu_by_country: {
         Args: { country_code?: string }
         Returns: {

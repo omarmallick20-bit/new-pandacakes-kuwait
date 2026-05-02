@@ -370,14 +370,15 @@ export default function OrderPage() {
         gridTemplateColumns: `repeat(${isMobile ? layoutConfig?.mobile_columns || 2 : layoutConfig?.desktop_columns || 4}, 1fr)`,
         gap: `${isMobile ? layoutConfig?.mobile_gap || 16 : layoutConfig?.desktop_gap || 24}px`
       }}>
-            {categories.map(category => {
+            {categories.map((category, idx) => {
               const catDiscount = categoryDiscounts.get(category.id);
+              const isAboveFold = idx < 4;
               return <div key={category.id} onClick={() => navigate(`/category/${category.id}`)} className="bg-card-gradient rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer border border-tiffany/20 group">
                 <div className="aspect-[4/3] md:aspect-square relative">
                   {catDiscount && catDiscount > 0 && (
                     <DiscountBadge percentage={catDiscount} />
                   )}
-                  <img src={category.image_url || '/placeholder.svg'} alt={category.name} loading="lazy" onError={e => {
+                  <img src={category.image_url || '/placeholder.svg'} alt={category.name} loading={isAboveFold ? 'eager' : 'lazy'} decoding="async" {...(isAboveFold ? { fetchpriority: 'high' as any } : {})} onError={e => {
               e.currentTarget.src = '/placeholder.svg';
             }} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                   <div className="absolute inset-0 bg-gradient-to-t from-tiffany/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
