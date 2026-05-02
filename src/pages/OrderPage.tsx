@@ -22,7 +22,7 @@ interface Category {
   name: string;
   name_ar?: string;
   image_url: string;
-  is_active: boolean;
+  is_active_kw: boolean;
   sort_order?: number;
 }
 
@@ -161,7 +161,7 @@ export default function OrderPage() {
       setIsSearching(true);
 
       // Search both cakes and categories in parallel
-      const [cakesResult, categoriesResult] = await Promise.all([supabase.from('menu_items').select('*').eq('country_id', COUNTRY_ID).eq('is_active', true).ilike('name', `%${query}%`).order('name'), supabase.from('categories').select('*').eq('is_active', true).ilike('name', `%${query}%`).order('name')]);
+      const [cakesResult, categoriesResult] = await Promise.all([supabase.from('menu_items').select('*').eq('country_id', COUNTRY_ID).eq('is_active', true).ilike('name', `%${query}%`).order('name'), supabase.from('categories').select('*').eq('is_active_kw', true).ilike('name', `%${query}%`).order('name')]);
       if (cakesResult.error) throw cakesResult.error;
       if (categoriesResult.error) throw categoriesResult.error;
       setSearchResults({
