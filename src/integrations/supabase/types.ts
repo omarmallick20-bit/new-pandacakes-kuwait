@@ -136,6 +136,9 @@ export type Database = {
           image_migrated: boolean | null
           image_url: string | null
           is_active: boolean
+          is_active_kw: boolean
+          is_active_qa: boolean
+          is_active_sa: boolean
           name: string
           name_ar: string | null
           sort_order: number | null
@@ -147,6 +150,9 @@ export type Database = {
           image_migrated?: boolean | null
           image_url?: string | null
           is_active?: boolean
+          is_active_kw?: boolean
+          is_active_qa?: boolean
+          is_active_sa?: boolean
           name: string
           name_ar?: string | null
           sort_order?: number | null
@@ -158,6 +164,9 @@ export type Database = {
           image_migrated?: boolean | null
           image_url?: string | null
           is_active?: boolean
+          is_active_kw?: boolean
+          is_active_qa?: boolean
+          is_active_sa?: boolean
           name?: string
           name_ar?: string | null
           sort_order?: number | null
