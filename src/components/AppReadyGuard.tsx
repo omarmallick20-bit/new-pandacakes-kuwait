@@ -11,13 +11,19 @@ interface Props {
  * AppReadyGuard prevents route components from rendering
  * until both auth and data contexts are fully initialized.
  * This prevents React Error #310 (invalid hook call) from race conditions.
+ *
+ * Optimization: as soon as we have ANY cached categories on screen, render
+ * immediately. Pages have their own skeletons for finer-grained loading.
  */
 export function AppReadyGuard({ children }: Props) {
   const { isAuthReady } = useAuth();
-  const { isDataReady } = useDataContext();
-  
-  // Only show loading on truly fresh loads (no cached data)
-  if (!isAuthReady || !isDataReady) {
+  const { isDataReady, categories } = useDataContext();
+
+  // Render as soon as we have ANY data to show, even if auth is still resolving
+  // (auth gates are handled per-route via PhoneGuard / ProtectedRoute).
+  const hasCachedData = categories.length > 0;
+
+  if (!hasCachedData && (!isAuthReady || !isDataReady)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
@@ -27,6 +33,6 @@ export function AppReadyGuard({ children }: Props) {
       </div>
     );
   }
-  
+
   return <>{children}</>;
 }
