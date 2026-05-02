@@ -8,7 +8,7 @@ interface CachedCategoryData {
     id: string;
     name: string;
     image_url: string;
-    is_active: boolean;
+    is_active_kw: boolean;
   } | null;
   items: any[];
   timestamp: number;
